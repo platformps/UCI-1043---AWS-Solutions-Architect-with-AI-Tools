@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 268.10 - AWS GuardDuty and AWS Inspector</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">Lesson 268.10 - AWS GuardDuty and AWS Inspector</h1>
+  <p>Detect threats with Amazon GuardDuty and find vulnerabilities with Amazon Inspector: what each service analyzes, how its findings work, and how to respond to them automatically.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. Threat Detection and Vulnerability Management</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Amazon GuardDuty</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. GuardDuty Findings and Management</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. Amazon Inspector</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab5" id="b5">5. Amazon Inspector in Practice</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab6" id="b6">6. Comparison &amp; Scenarios</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab7" id="b7">7. Knowledge Check</button></li>
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <p>This lesson covers two AWS security services that watch an environment for problems: Amazon GuardDuty, which detects threats, and Amazon Inspector, which finds vulnerabilities in workloads. It explains what each service analyzes, how its findings work, how to respond to findings automatically, and how the two services differ from each other and from Amazon Macie. The last two tabs bring the parts together for the AWS Certified Solutions Architect – Associate (SAA-C03) exam.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> the difference between threat detection and vulnerability management, and where the two services fit.</li>
+    <li><strong>Tab 2:</strong> Amazon GuardDuty, its data sources, and its protection plans.</li>
+    <li><strong>Tab 3:</strong> GuardDuty findings, automatic responses, suppression rules, IP lists, multiple accounts, and pricing.</li>
+    <li><strong>Tab 4:</strong> Amazon Inspector, what it scans, and how it scans each resource type.</li>
+    <li><strong>Tab 5:</strong> turning on Amazon Inspector, delivering findings, fixing them, and pricing.</li>
+    <li><strong>Tab 6:</strong> comparison tables and the SAA-C03 cheat sheet with decision rules.</li>
+    <li><strong>Tab 7:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Threat Detection and Vulnerability Management</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Amazon GuardDuty</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">GuardDuty Findings and Management</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Amazon Inspector</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="5" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Amazon Inspector in Practice</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="6" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="7" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Introduction</h2>
+  <p>A secure AWS environment needs more than good access rules. Someone can still steal a password, an instance can still run software with a known flaw, and an attacker can still send traffic from inside the network. GuardDuty and Inspector help in different ways. GuardDuty watches the activity in an account and reports behavior that looks like an attack. Inspector looks at the workloads themselves and reports software flaws before an attacker uses them. An architect who passes SAA-C03 questions on security needs to know which service answers which question.</p>
+  <p>This lesson assumes that you know the basics of AWS accounts, IAM, Amazon EC2, and AWS CloudTrail. It follows Northwind, the company from the module 268 kick-off, through the Problem Statement of each tab.</p>
+  <p>Use the tab list on the left, or the Previous and Next buttons, to move through the lesson. Each topic tab opens with a Problem Statement and ends with exam traps, keyword triggers, and resource links. The Knowledge Check is the last tab.</p>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define threat detection and vulnerability management, and name the AWS service for each.</li>
+    <li>Identify the GuardDuty foundational data sources and protection plans, and what each one monitors.</li>
+    <li>Describe how Amazon Inspector scans EC2 instances, ECR container images, and Lambda functions.</li>
+    <li>Explain how GuardDuty findings, suppression rules, trusted IP lists, and threat lists work.</li>
+    <li>Explain the Inspector risk score and how Inspector delivers findings.</li>
+    <li>Apply GuardDuty and Inspector settings to a requirement, such as a suppression rule, a trusted IP list, or agentless scanning.</li>
+    <li>Differentiate GuardDuty, Inspector, Amazon Macie, and AWS Security Hub by what each one analyzes and reports.</li>
+    <li>Design an automatic response to GuardDuty and Inspector findings with Amazon EventBridge.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>CVE</td><td>Common Vulnerabilities and Exposures</td></tr>
+      <tr><td>DNS</td><td>Domain Name System</td></tr>
+      <tr><td>EBS</td><td>Amazon Elastic Block Store</td></tr>
+      <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+      <tr><td>ECR</td><td>Amazon Elastic Container Registry</td></tr>
+      <tr><td>ECS</td><td>Amazon Elastic Container Service</td></tr>
+      <tr><td>EKS</td><td>Amazon Elastic Kubernetes Service</td></tr>
+      <tr><td>RDS</td><td>Amazon Relational Database Service</td></tr>
+      <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
+      <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SBOM</td><td>Software bill of materials</td></tr>
+      <tr><td>SNS</td><td>Amazon Simple Notification Service</td></tr>
+      <tr><td>SSM</td><td>AWS Systems Manager</td></tr>
+      <tr><td>VPC</td><td>Amazon Virtual Private Cloud</td></tr>
+    </tbody>
+  </table></div>
+  <p>Three terms appear often in this lesson:</p>
+  <ul>
+    <li><strong>Threat:</strong> activity that looks like an attack or misuse, for example a call from a known malicious address.</li>
+    <li><strong>Vulnerability:</strong> a flaw in software that an attacker could use. A CVE is a public record of a known vulnerability.</li>
+    <li><strong>Finding:</strong> a report that a security service creates when it detects a threat or a vulnerability.</li>
+  </ul>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. Threat Detection and Vulnerability Management</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>Northwind runs its web application on Amazon EC2 instances in several AWS accounts. A security review asks two questions. First, would Northwind notice if someone used a stolen access key, or if an instance began to talk to a known malicious server? Second, do any of the instances, container images, or Lambda functions contain software with a known flaw? Northwind has a small security team, and it cannot read logs or scan servers by hand. The team needs to know which AWS services answer each question.</p>
+  </div>
+
+  <h2>1.1 Two Different Questions</h2>
+  <ul>
+    <li><strong>Threat detection</strong> asks whether someone is attacking or misusing the environment right now. <strong>Amazon GuardDuty</strong> answers this question by analyzing the activity in your account.</li>
+    <li><strong>Vulnerability management</strong> asks whether the workloads contain flaws that an attacker could use. <strong>Amazon Inspector</strong> answers this question by scanning your workloads.</li>
+    <li>GuardDuty looks at <strong>behavior</strong>, such as API calls, network traffic, and DNS queries. Inspector looks at <strong>software</strong>, such as installed packages, container images, and function code.</li>
+    <li>Neither service blocks traffic or fixes a problem. Each one creates <strong>findings</strong>, and you or an automatic workflow respond to them.</li>
+  </ul>
+
+  <h2>1.2 Where the Services Fit</h2>
+  <ul>
+    <li><strong>Amazon GuardDuty:</strong> detects threats and suspicious activity.</li>
+    <li><strong>Amazon Inspector:</strong> finds software vulnerabilities and unintended network exposure.</li>
+    <li><strong>Amazon Macie:</strong> finds sensitive data in Amazon S3 (Lesson 271.2, tab 12).</li>
+    <li><strong>AWS Security Hub:</strong> collects findings from several security services in one place.</li>
+    <li><strong>Amazon EventBridge:</strong> routes findings to targets such as AWS Lambda functions and Amazon SNS topics, so that a response can run automatically.</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 720 270" role="img" aria-label="Diagram of Amazon GuardDuty, Amazon Inspector, and Amazon Macie producing findings that go to AWS Security Hub and Amazon EventBridge.">
+      <defs><marker id="mp1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs>
+      <rect class="sv-boxb" x="10" y="20" width="200" height="64" rx="8"/><text class="sv-tb" x="110" y="48" text-anchor="middle">Amazon GuardDuty</text><text class="sv-tm" x="110" y="68" text-anchor="middle">Is someone attacking us?</text>
+      <rect class="sv-boxg" x="10" y="104" width="200" height="64" rx="8"/><text class="sv-tb" x="110" y="132" text-anchor="middle">Amazon Inspector</text><text class="sv-tm" x="110" y="152" text-anchor="middle">Are our workloads vulnerable?</text>
+      <rect class="sv-boxw" x="10" y="188" width="200" height="64" rx="8"/><text class="sv-tb" x="110" y="216" text-anchor="middle">Amazon Macie</text><text class="sv-tm" x="110" y="236" text-anchor="middle">Where is sensitive data?</text>
+      <rect class="sv-box" x="300" y="104" width="160" height="64" rx="8"/><text class="sv-tb" x="380" y="132" text-anchor="middle">Findings</text><text class="sv-tm" x="380" y="152" text-anchor="middle">one per issue</text>
+      <rect class="sv-box" x="550" y="40" width="160" height="56" rx="8"/><text class="sv-tb" x="630" y="74" text-anchor="middle">AWS Security Hub</text>
+      <rect class="sv-box" x="550" y="176" width="160" height="56" rx="8"/><text class="sv-tb" x="630" y="210" text-anchor="middle">Amazon EventBridge</text>
+      <line class="sv-line" x1="210" y1="52" x2="298" y2="124" marker-end="url(#mp1)"/><line class="sv-line" x1="210" y1="136" x2="298" y2="136" marker-end="url(#mp1)"/><line class="sv-line" x1="210" y1="220" x2="298" y2="150" marker-end="url(#mp1)"/>
+      <line class="sv-line" x1="460" y1="124" x2="548" y2="76" marker-end="url(#mp1)"/><line class="sv-line" x1="460" y1="150" x2="548" y2="196" marker-end="url(#mp1)"/>
+    </svg>
+    </div>
+    <figcaption>Image 1a — Each security service answers a different question, and all of them send findings to Security Hub and EventBridge (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>1.3 What the Services Have in Common</h2>
+  <ul>
+    <li>Both services are managed. You turn them on, and you do not run servers or write scanning code.</li>
+    <li>Both publish findings to <strong>Amazon EventBridge</strong> and to <strong>AWS Security Hub</strong>.</li>
+    <li>Both work with <strong>AWS Organizations</strong>. You can name a delegated administrator account that manages the service for the member accounts.</li>
+    <li>Both work Region by Region, so you turn them on in each Region that you use.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these two points:</p>
+    <ul>
+      <li><strong>GuardDuty</strong> detects <strong>threats</strong> from activity. <strong>Inspector</strong> finds <strong>vulnerabilities</strong> in workloads. A question about an attack in progress points to GuardDuty, and a question about unpatched software points to Inspector.</li>
+      <li>Neither service <strong>blocks</strong> an attack or <strong>fixes</strong> a flaw. They report, and another service or a person responds.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>GuardDuty = behavior and threats. Inspector = software and vulnerabilities. Macie = sensitive data.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Detect compromised credentials or suspicious activity in an AWS account"<br>→ Amazon GuardDuty</p>
+    <p><strong>Trigger 2:</strong> "Scan workloads for known software vulnerabilities"<br>→ Amazon Inspector</p>
+    <p><strong>Trigger 3:</strong> "Find sensitive data such as personal information in S3"<br>→ Amazon Macie</p>
+    <p><strong>Trigger 4:</strong> "See the findings of several security services in one place"<br>→ AWS Security Hub</p>
+    <p><strong>Trigger 5:</strong> "Start an automatic response when a finding appears"<br>→ An Amazon EventBridge rule</p>
+  </div>
+  <div class="res">
+    <h2>Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html" target="_blank" rel="noopener">What is Amazon GuardDuty?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html" target="_blank" rel="noopener">What is Amazon Inspector?</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Amazon GuardDuty</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>A Northwind developer pushes an access key to a public code repository by mistake. Two days later an attacker uses the key from another country to list S3 buckets and to start instances. At the same time, one EC2 instance in a private subnet starts to contact an address that is on a list of malicious servers. Northwind did not turn on any extra logging. The team needs a service that watches the account for this kind of activity without agents or log pipelines.</p>
+  </div>
+
+  <h2>2.1 What Amazon GuardDuty Is</h2>
+  <ul>
+    <li><strong>Amazon GuardDuty</strong> is a threat detection service. It continuously monitors, analyzes, and processes specific AWS data sources and logs in your environment.</li>
+    <li>It uses machine learning, anomaly detection, and threat intelligence to find activity that looks like an attack or misuse.</li>
+    <li>When GuardDuty finds a potential threat, it creates a <strong>finding</strong>.</li>
+    <li>GuardDuty is a managed service. You turn it on, and you do not install agents for its foundational monitoring.</li>
+    <li>When you turn GuardDuty on for the first time, you get a 30-day free trial.</li>
+  </ul>
+
+  <h2>2.2 Foundational Data Sources</h2>
+  <p>When you turn GuardDuty on in an account, it automatically starts to ingest these foundational data sources:</p>
+  <ul>
+    <li><strong>AWS CloudTrail management events:</strong> the API calls and user activity in the account.</li>
+    <li><strong>VPC flow logs:</strong> the network traffic of your Amazon EC2 instances.</li>
+    <li><strong>DNS logs:</strong> the DNS queries that resources in your VPCs make.</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 760 290" role="img" aria-label="Diagram of GuardDuty reading CloudTrail management events, VPC flow logs, DNS logs, and optional protection plans, and sending findings to the console, EventBridge, Security Hub, Detective, and S3.">
+      <defs><marker id="gd1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs>
+      <rect class="sv-boxg" x="10" y="20" width="200" height="50" rx="6"/><text class="sv-t" x="110" y="50" text-anchor="middle">CloudTrail management events</text>
+      <rect class="sv-boxg" x="10" y="80" width="200" height="50" rx="6"/><text class="sv-t" x="110" y="110" text-anchor="middle">VPC flow logs</text>
+      <rect class="sv-boxg" x="10" y="140" width="200" height="50" rx="6"/><text class="sv-t" x="110" y="170" text-anchor="middle">DNS logs</text>
+      <rect class="sv-boxw" x="10" y="210" width="200" height="60" rx="6"/><text class="sv-t" x="110" y="236" text-anchor="middle">Optional protection plans</text><text class="sv-tm" x="110" y="256" text-anchor="middle">S3, EKS, RDS, Lambda, more</text>
+      <rect class="sv-boxb" x="300" y="100" width="160" height="90" rx="8"/><text class="sv-tb" x="380" y="138" text-anchor="middle">Amazon</text><text class="sv-tb" x="380" y="158" text-anchor="middle">GuardDuty</text>
+      <rect class="sv-box" x="550" y="20" width="190" height="48" rx="6"/><text class="sv-t" x="645" y="50" text-anchor="middle">GuardDuty console</text>
+      <rect class="sv-box" x="550" y="82" width="190" height="48" rx="6"/><text class="sv-t" x="645" y="112" text-anchor="middle">Amazon EventBridge</text>
+      <rect class="sv-box" x="550" y="144" width="190" height="48" rx="6"/><text class="sv-t" x="645" y="174" text-anchor="middle">AWS Security Hub</text>
+      <rect class="sv-box" x="550" y="206" width="190" height="48" rx="6"/><text class="sv-t" x="645" y="228" text-anchor="middle">Amazon Detective</text><text class="sv-tm" x="645" y="244" text-anchor="middle">and an S3 bucket</text>
+      <line class="sv-line" x1="210" y1="45" x2="298" y2="120" marker-end="url(#gd1)"/><line class="sv-line" x1="210" y1="105" x2="298" y2="135" marker-end="url(#gd1)"/><line class="sv-line" x1="210" y1="165" x2="298" y2="155" marker-end="url(#gd1)"/><line class="sv-line" x1="210" y1="240" x2="298" y2="175" marker-end="url(#gd1)"/>
+      <text class="sv-tm" x="504" y="76" text-anchor="middle">findings</text>
+      <line class="sv-line" x1="460" y1="125" x2="548" y2="46" marker-end="url(#gd1)"/><line class="sv-line" x1="460" y1="140" x2="548" y2="106" marker-end="url(#gd1)"/><line class="sv-line" x1="460" y1="155" x2="548" y2="168" marker-end="url(#gd1)"/><line class="sv-line" x1="460" y1="170" x2="548" y2="228" marker-end="url(#gd1)"/>
+    </svg>
+    </div>
+    <figcaption>Image 2a — GuardDuty analyzes the foundational data sources and the optional protection plans, and it sends findings to several destinations (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>You do not have to turn on VPC flow logs or the other sources yourself. GuardDuty starts to ingest them when you enable the service.</li>
+  </ul>
+
+  <h2>2.3 Protection Plans</h2>
+  <p>Protection plans let GuardDuty monitor logs and events from other AWS services:</p>
+  <ul>
+    <li><strong>S3 Protection:</strong> monitors Amazon S3 data events in AWS CloudTrail, which are object-level activity.</li>
+    <li><strong>EKS Protection:</strong> EKS Audit Log Monitoring analyzes Kubernetes audit logs from your Amazon EKS clusters.</li>
+    <li><strong>Runtime Monitoring:</strong> monitors operating system-level events on Amazon EKS, Amazon EC2, and Amazon ECS, including AWS Fargate.</li>
+    <li><strong>Malware Protection:</strong> detects malware on Amazon EBS volumes of EC2 instances and container workloads, and in newly uploaded objects in Amazon S3 buckets.</li>
+    <li><strong>RDS Protection:</strong> analyzes the login activity of supported Amazon Aurora and Amazon RDS databases.</li>
+    <li><strong>Lambda Protection:</strong> monitors the network activity logs of Lambda functions, starting with VPC flow logs, to detect threats such as cryptomining or contact with malicious servers.</li>
+  </ul>
+  <ul>
+    <li>When you enable GuardDuty for the first time, it turns on all protection plans except Runtime Monitoring, and it includes them in the 30-day free trial.</li>
+    <li>You can use Malware Protection for S3 on its own, without turning on the rest of GuardDuty. All other protection plans need the GuardDuty service.</li>
+  </ul>
+
+  <h2>2.4 Extended Threat Detection</h2>
+  <ul>
+    <li><strong>Extended Threat Detection</strong> detects multi-stage attacks that span foundational data sources, several types of AWS resources, and time, within an AWS account.</li>
+    <li>It correlates separate signals into one attack sequence, instead of leaving you with many unrelated findings.</li>
+  </ul>
+
+  <h2>2.5 Hands-On Lab</h2>
+  <div class="lab-box">
+    <p class="lab-title">Hands-On Lab</p>
+    <p class="lab-sub">Lab Overview:</p>
+    <p>This lab gives you hands-on practice with <strong>Amazon GuardDuty</strong>, the threat detection service that you learned about in this tab.</p>
+    <p class="lab-sub">You can start the following lab:</p>
+    <ul>
+      <li><a class="lab-link" href="https://business.whizlabs.com/labs/introduction-to-amazon-guardduty" target="_blank" rel="noopener noreferrer">GLAB 268.10.1 — Introduction to Amazon GuardDuty</a></li>
+    </ul>
+  </div>
+  <div class="lab-expectation">
+    <p><strong>Important Lab Expectation:</strong></p>
+    <p>You must submit proof of completion of the lab on Canvas using the following document:</p>
+    <ul style="margin:0 0 12px;">
+      <li><a href="https://docs.google.com/document/d/1SL-eKeKp-2aVpw24NB_4kVs0d4WABRSr6z2Q8GNHC3Q/edit?usp=sharing" target="_blank" rel="noopener noreferrer"><strong>POC 268.10.1: Hands-On Labs Validation</strong></a></li>
+    </ul>
+    <p>If you do not complete the lab during class time, you must finish it after class. Failing to complete all labs before the next session may cause you to fall behind.</p>
+  </div>
+
+  <div class="qbox">
+    <h3>Exam-Style Question</h3>
+    <p><strong>Scenario:</strong> An EC2 instance in a private subnet starts to contact an IP address that is on a list of known malicious servers. The company has not turned on any extra logging or installed agents, and it wants to be alerted about this kind of activity. Which service meets the requirement?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Amazon Inspector.</li>
+      <li><strong>B.</strong> Amazon Macie.</li>
+      <li><strong>C.</strong> Amazon GuardDuty.</li>
+      <li><strong>D.</strong> AWS Config.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> GuardDuty analyzes VPC flow logs, DNS logs, and CloudTrail management events automatically, and it creates findings for activity that matches threat intelligence.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Inspector scans workloads for software vulnerabilities. It does not analyze network traffic for threats.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Macie finds sensitive data in S3 buckets.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>GuardDuty detects threats from network and API activity without agents.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>AWS Config records and evaluates resource configuration. It does not detect threats in traffic.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these three points:</p>
+    <ul>
+      <li>The foundational sources are <strong>CloudTrail management events, VPC flow logs, and DNS logs</strong>. GuardDuty ingests them <strong>without agents</strong> and without you turning on the logs.</li>
+      <li><strong>S3 data events</strong> (object-level activity) are analyzed only when <strong>S3 Protection</strong> is on. They are not a foundational source.</li>
+      <li>GuardDuty <strong>detects</strong>. It does not block traffic, and it does not find sensitive data. That is the job of other services.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Three logs come free: CloudTrail management, VPC flow, DNS. Everything else is a protection plan.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Detect threats in an AWS account without agents or extra logging"<br>→ Amazon GuardDuty</p>
+    <p><strong>Trigger 2:</strong> "Monitor Kubernetes audit logs for suspicious activity"<br>→ GuardDuty EKS Protection</p>
+    <p><strong>Trigger 3:</strong> "Detect malware in newly uploaded S3 objects"<br>→ GuardDuty Malware Protection for S3</p>
+    <p><strong>Trigger 4:</strong> "Detect suspicious logins to an Aurora or RDS database"<br>→ GuardDuty RDS Protection</p>
+    <p><strong>Trigger 5:</strong> "Detect multi-stage attacks across resources and time"<br>→ GuardDuty Extended Threat Detection</p>
+  </div>
+  <div class="res">
+    <h2>Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html" target="_blank" rel="noopener">What is Amazon GuardDuty?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/guardduty/" target="_blank" rel="noopener">Amazon GuardDuty</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. GuardDuty Findings and Management</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>GuardDuty now reports many findings for Northwind. Some are real threats, and some come from the security scanner that Northwind runs on purpose. The security team wants to be paged for serious findings, to stop seeing the harmless ones, to see the findings of all 12 accounts in one place, and to know what GuardDuty will cost before it goes to every Region.</p>
+  </div>
+
+  <h2>3.1 GuardDuty Findings</h2>
+  <ul>
+    <li>A <strong>finding</strong> is a detailed security alert. It describes the affected resource, the threat actor, and the severity of the activity.</li>
+    <li>Each finding has a <strong>severity</strong>. Use it to decide which findings need an immediate response.</li>
+    <li>GuardDuty stores findings for 90 days.</li>
+    <li>You can view findings in the GuardDuty console, and you can send them to other services.</li>
+  </ul>
+
+  <h2>3.2 Responding to Findings Automatically</h2>
+  <ul>
+    <li>GuardDuty creates an event in <strong>Amazon EventBridge</strong> when findings change: for a newly generated finding and for a newly aggregated finding.</li>
+    <li>An EventBridge rule can match findings, for example by severity, and send them to a target such as an <strong>AWS Lambda</strong> function or an <strong>Amazon SNS</strong> topic.</li>
+    <li>GuardDuty also sends findings to <strong>AWS Security Hub</strong>, to <strong>Amazon Detective</strong>, and to an <strong>Amazon S3</strong> bucket that you choose.</li>
+    <li>Example: a rule matches high-severity findings and sends a notification to the security team through SNS.</li>
+  </ul>
+
+  <h2>3.3 Suppression Rules</h2>
+  <ul>
+    <li>A <strong>suppression rule</strong> hides findings that you do not need, to reduce noise. You can suppress a whole finding type or only findings that match a filter.</li>
+    <li>GuardDuty still creates a suppressed finding, but it marks the finding as <strong>archived</strong>. You can view an archived finding for 90 days.</li>
+    <li>Archived findings are <strong>not sent</strong> to Security Hub, Amazon S3, Amazon Detective, or EventBridge.</li>
+    <li>In a multi-account setup, only the GuardDuty administrator account can create suppression rules.</li>
+  </ul>
+
+  <h2>3.4 Trusted IP Lists and Threat Lists</h2>
+  <ul>
+    <li>A <strong>trusted IP list</strong> names addresses that you trust, such as the exit address of your VPN. GuardDuty does not create findings for activity from these addresses.</li>
+    <li>A <strong>threat list</strong> names addresses that you know are malicious. GuardDuty creates a finding when it sees activity that involves them.</li>
+    <li>These lists apply to VPC flow log and CloudTrail findings. They do not apply to DNS findings.</li>
+    <li>A trusted IP list stops a finding from being created at all. A suppression rule creates the finding and archives it.</li>
+  </ul>
+
+  <h2>3.5 Using GuardDuty Across Accounts and Regions</h2>
+  <ul>
+    <li>GuardDuty works with <strong>AWS Organizations</strong>. Only the organization management account can designate a GuardDuty <strong>delegated administrator</strong>.</li>
+    <li>The administrator account manages GuardDuty for the member accounts in the organization, and it sees their findings in one place.</li>
+    <li>GuardDuty is a <strong>Regional service</strong>. Turn it on, and set up the administrator, in every Region that you use.</li>
+  </ul>
+
+  <h2>3.6 Amazon GuardDuty Pricing</h2>
+  <p><strong>Prices change often and differ by Region.</strong> Always check the current rates on the <a href="https://aws.amazon.com/guardduty/pricing/" target="_blank" rel="noopener">Amazon GuardDuty pricing</a> page, and estimate your own cost with the <a href="https://calculator.aws/" target="_blank" rel="noopener">AWS Pricing Calculator</a>.</p>
+  <ul>
+    <li>You get a <strong>30-day free trial</strong> when you turn GuardDuty on for the first time.</li>
+    <li>Foundational protection is billed by the <strong>volume</strong> of CloudTrail events, VPC flow logs, and DNS logs that GuardDuty analyzes.</li>
+    <li>Each optional protection plan has its own billing unit, for example the volume of data scanned for Malware Protection, and the number of login events analyzed for RDS Protection.</li>
+    <li>More activity and more protection plans cost more, so turn on the plans that match the services that you use.</li>
+  </ul>
+
+  <div class="qbox">
+    <h3>Exam-Style Question</h3>
+    <p><strong>Scenario:</strong> A company wants the security team to receive an email whenever GuardDuty reports a high-severity finding in any account of its organization. Which solution meets the requirement with the least effort?</p>
+    <ul class="opts">
+<li><strong>A.</strong> Create an Amazon EventBridge rule for high-severity GuardDuty findings that sends a notification to an Amazon SNS topic.</li>
+<li><strong>B.</strong> Read the GuardDuty console every morning.</li>
+<li><strong>C.</strong> Enable Amazon Inspector in every account.</li>
+<li><strong>D.</strong> Create a trusted IP list for the security team.</li>
+</ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> GuardDuty sends its findings to EventBridge, and a rule that matches the severity can notify an SNS topic automatically.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+<tr><td>A</td><td>Correct</td><td>An EventBridge rule routes high-severity findings to SNS.</td></tr>
+<tr><td>B</td><td>Incorrect</td><td>A daily manual check is slow and does not meet the requirement of a notification.</td></tr>
+<tr><td>C</td><td>Incorrect</td><td>Inspector finds vulnerabilities. It does not send GuardDuty findings.</td></tr>
+<tr><td>D</td><td>Incorrect</td><td>A trusted IP list stops findings for some addresses. It does not send alerts.</td></tr>
+</tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these three points:</p>
+    <ul>
+      <li>A <strong>trusted IP list</strong> prevents findings. A <strong>threat list</strong> adds findings. A <strong>suppression rule</strong> archives findings, and archived findings do not go to Security Hub or EventBridge.</li>
+      <li>Only the <strong>management account</strong> can designate the GuardDuty <strong>delegated administrator</strong>, and only the administrator can create suppression rules for the organization.</li>
+      <li>GuardDuty is <strong>Regional</strong>. A question about all Regions means turning it on in each Region.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Trusted = no finding. Threat list = finding. Suppression = archive. Admin account = one view.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Notify the security team automatically about serious findings"<br>→ An EventBridge rule, with SNS or Lambda as the target</p>
+    <p><strong>Trigger 2:</strong> "Stop findings for a known scanner without losing the record"<br>→ A suppression rule</p>
+    <p><strong>Trigger 3:</strong> "Never alert on traffic from the company VPN"<br>→ A trusted IP list</p>
+    <p><strong>Trigger 4:</strong> "Alert when activity involves known malicious addresses"<br>→ A threat list</p>
+    <p><strong>Trigger 5:</strong> "See GuardDuty findings from all accounts in one place"<br>→ A delegated administrator account in AWS Organizations</p>
+  </div>
+  <div class="res">
+    <h2>Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/guardduty/latest/ug/findings_suppression-rule.html" target="_blank" rel="noopener">Suppression rules in GuardDuty</a></li>
+      <li><span class="lbl">Pricing</span> <a href="https://aws.amazon.com/guardduty/pricing/" target="_blank" rel="noopener">Amazon GuardDuty pricing</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 4 ============ -->
+<section class="tab" id="tab4" role="tabpanel" aria-labelledby="b4">
+  <h1 class="tabh">4. Amazon Inspector</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>Northwind’s security review also found that the team does not know which EC2 instances run old packages, which container images in Amazon ECR contain known flaws, or which Lambda functions use vulnerable libraries. New instances and images appear every day, so a yearly scan is not enough. The team needs a service that finds these workloads on its own and keeps scanning them.</p>
+  </div>
+
+  <h2>4.1 What Amazon Inspector Is</h2>
+  <ul>
+    <li><strong>Amazon Inspector</strong> is an automated vulnerability management service. It discovers and scans Amazon EC2 instances, container images in Amazon ECR, and AWS Lambda functions.</li>
+    <li>It looks for known software vulnerabilities and for unintended network exposure.</li>
+    <li>Inspector automatically discovers your eligible resources and begins scanning them. It scans continuously, so a new instance or image is scanned as it appears.</li>
+    <li>Unlike traditional scanning software, Inspector has minimal impact on the performance of your fleet.</li>
+    <li>A vulnerability is usually a <strong>CVE</strong>, a public record of a known software flaw.</li>
+  </ul>
+
+  <div class="callout warn">
+<h4>What Has Changed</h4>
+<p>AWS has added scan targets since the three above. Amazon Inspector now also scans <strong>code repositories</strong>. Its code security feature, generally available since June 17, 2025, integrates with GitHub and GitLab and covers application source code, third-party dependencies, and infrastructure as code. Inspector can also scan <strong>Amazon Machine Images (AMIs)</strong> directly, without launching an instance or installing an agent, and it can run <strong>Center for Internet Security (CIS) benchmark</strong> assessments on EC2 instances. SAA-C03 questions still focus on EC2 instances, ECR images, and Lambda functions. For details, see <a href="https://aws.amazon.com/about-aws/whats-new/2025/06/amazon-inspector-code-security-shift-security-development" target="_blank" rel="noopener">Amazon Inspector launches code security</a>.</p>
+</div>
+
+  <h2>4.2 How Inspector Scans Each Resource</h2>
+  <h3>4.2.1 Amazon EC2 Instances</h3>
+  <ul>
+    <li><strong>Agent-based scanning:</strong> Inspector uses the <strong>AWS Systems Manager Agent (SSM Agent)</strong> to collect the software inventory of an instance, and then checks that inventory for vulnerabilities.</li>
+    <li><strong>Agentless scanning:</strong> Inspector can scan an instance without an agent. It takes a snapshot of the EBS volume and analyzes it.</li>
+    <li>Inspector chooses the best scan mode that is available for each instance.</li>
+    <li>Inspector also checks EC2 instances for <strong>network reachability</strong>, which shows unintended exposure to the network.</li>
+    <li><strong>Deep inspection</strong> finds package vulnerabilities for application programming language packages on Linux instances.</li>
+  </ul>
+  <h3>4.2.2 Container Images in Amazon ECR</h3>
+  <ul>
+    <li>Inspector scans container images when they are <strong>pushed</strong> to Amazon ECR.</li>
+    <li>Inspector can also rescan images that stay in the registry, so a flaw that becomes known later is still found.</li>
+  </ul>
+  <h3>4.2.3 AWS Lambda Functions</h3>
+  <ul>
+    <li><strong>Standard scanning</strong> checks the application dependencies of a function and of its layers, for example Python and Node.js packages.</li>
+    <li><strong>Code scanning</strong> checks your own function code for security problems, such as injection flaws, data leaks, and hardcoded secrets.</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 760 260" role="img" aria-label="Diagram of Amazon Inspector scanning EC2 instances, ECR container images, and Lambda functions, and sending findings to EventBridge, Security Hub, and an S3 report.">
+      <defs><marker id="in1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs>
+      <rect class="sv-boxg" x="10" y="20" width="190" height="60" rx="6"/><text class="sv-tb" x="105" y="46" text-anchor="middle">EC2 instances</text><text class="sv-tm" x="105" y="66" text-anchor="middle">SSM Agent or agentless</text>
+      <rect class="sv-boxg" x="10" y="100" width="190" height="60" rx="6"/><text class="sv-tb" x="105" y="126" text-anchor="middle">ECR container images</text><text class="sv-tm" x="105" y="146" text-anchor="middle">on push and rescans</text>
+      <rect class="sv-boxg" x="10" y="180" width="190" height="60" rx="6"/><text class="sv-tb" x="105" y="206" text-anchor="middle">Lambda functions</text><text class="sv-tm" x="105" y="226" text-anchor="middle">dependencies and code</text>
+      <rect class="sv-boxb" x="290" y="90" width="170" height="80" rx="8"/><text class="sv-tb" x="375" y="124" text-anchor="middle">Amazon Inspector</text><text class="sv-tm" x="375" y="146" text-anchor="middle">scans automatically</text>
+      <rect class="sv-boxw" x="550" y="20" width="200" height="50" rx="6"/><text class="sv-tb" x="650" y="50" text-anchor="middle">Findings with a score</text>
+      <rect class="sv-box" x="550" y="90" width="200" height="50" rx="6"/><text class="sv-t" x="650" y="120" text-anchor="middle">Amazon EventBridge</text>
+      <rect class="sv-box" x="550" y="150" width="200" height="50" rx="6"/><text class="sv-t" x="650" y="180" text-anchor="middle">AWS Security Hub</text>
+      <rect class="sv-box" x="550" y="210" width="200" height="44" rx="6"/><text class="sv-t" x="650" y="238" text-anchor="middle">Amazon S3 report</text>
+      <line class="sv-line" x1="200" y1="50" x2="288" y2="115" marker-end="url(#in1)"/><line class="sv-line" x1="200" y1="130" x2="288" y2="130" marker-end="url(#in1)"/><line class="sv-line" x1="200" y1="210" x2="288" y2="148" marker-end="url(#in1)"/>
+      <line class="sv-line" x1="460" y1="112" x2="548" y2="50" marker-end="url(#in1)"/><line class="sv-line" x1="460" y1="124" x2="548" y2="114" marker-end="url(#in1)"/><line class="sv-line" x1="460" y1="140" x2="548" y2="172" marker-end="url(#in1)"/><line class="sv-line" x1="460" y1="152" x2="548" y2="230" marker-end="url(#in1)"/>
+    </svg>
+    </div>
+    <figcaption>Image 4a — Inspector scans EC2 instances, ECR images, and Lambda functions, and it sends findings to several destinations (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>4.3 The Inspector Risk Score</h2>
+  <ul>
+    <li>Inspector assigns a <strong>risk score</strong> to each finding. The score starts from the CVE information and adjusts for factors such as network access and exploitability.</li>
+    <li>The score helps you decide which findings to fix first.</li>
+    <li>The Inspector dashboard has a risk-based remediation panel. It shows the findings that affect the largest number of instances and images.</li>
+  </ul>
+
+  <div class="qbox">
+    <h3>Exam-Style Question</h3>
+    <p><strong>Scenario:</strong> A company pushes new container images to Amazon ECR every day. The security team wants each image to be checked for known software vulnerabilities automatically, without running scanning servers. Which service meets the requirement?</p>
+    <ul class="opts">
+<li><strong>A.</strong> Amazon GuardDuty.</li>
+<li><strong>B.</strong> Amazon Macie.</li>
+<li><strong>C.</strong> AWS Shield.</li>
+<li><strong>D.</strong> Amazon Inspector.</li>
+</ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: D.</strong> Inspector scans container images in Amazon ECR when they are pushed, and it rescans images that stay in the registry.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+<tr><td>A</td><td>Incorrect</td><td>GuardDuty detects threats from activity. It does not scan images for vulnerabilities.</td></tr>
+<tr><td>B</td><td>Incorrect</td><td>Macie finds sensitive data in S3.</td></tr>
+<tr><td>C</td><td>Incorrect</td><td>Shield protects against DDoS attacks.</td></tr>
+<tr><td>D</td><td>Correct</td><td>Inspector scans ECR images for known vulnerabilities automatically.</td></tr>
+</tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these three points:</p>
+    <ul>
+      <li>Inspector scans <strong>EC2 instances, ECR container images, and Lambda functions</strong>. It does not scan S3 objects for sensitive data, and it does not detect threats from traffic.</li>
+      <li>For EC2, Inspector uses the <strong>SSM Agent</strong> or <strong>agentless</strong> scanning, which analyzes a snapshot of the EBS volume.</li>
+      <li>Inspector finds vulnerabilities. It does not <strong>patch</strong> them. Use a patching tool or rebuild the image.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Inspector scans three things: EC2, ECR, Lambda. SSM Agent or agentless for EC2. Score tells you what to fix first.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Scan container images in ECR for known vulnerabilities"<br>→ Amazon Inspector</p>
+    <p><strong>Trigger 2:</strong> "Scan EC2 instances for vulnerable software packages"<br>→ Amazon Inspector</p>
+    <p><strong>Trigger 3:</strong> "Scan EC2 instances without installing an agent"<br>→ Inspector agentless scanning</p>
+    <p><strong>Trigger 4:</strong> "Find injection flaws or hardcoded secrets in Lambda function code"<br>→ Inspector Lambda code scanning</p>
+    <p><strong>Trigger 5:</strong> "Prioritize the vulnerabilities to fix first"<br>→ The Inspector risk score</p>
+  </div>
+  <div class="res">
+    <h2>Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html" target="_blank" rel="noopener">What is Amazon Inspector?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/inspector/" target="_blank" rel="noopener">Amazon Inspector</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 5 ============ -->
+<section class="tab" id="tab5" role="tabpanel" aria-labelledby="b5">
+  <h1 class="tabh">5. Amazon Inspector in Practice</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>Northwind decides to turn on Amazon Inspector. The team has to answer practical questions: how to turn it on for all 12 accounts, what an EC2 instance needs so that it can be scanned, where the findings go, how to fix what Inspector finds, and what the service costs.</p>
+  </div>
+
+  <h2>5.1 Turning On Amazon Inspector</h2>
+  <ul>
+    <li>You activate Inspector for the resource types that you want to scan: EC2 instances, ECR container images, and Lambda functions.</li>
+    <li>With <strong>AWS Organizations</strong>, you designate an account as the Inspector <strong>delegated administrator</strong>. That account can manage findings data and certain settings for the member accounts.</li>
+    <li>Inspector works Region by Region, so activate it in each Region that you use.</li>
+  </ul>
+
+  <h2>5.2 What an EC2 Instance Needs</h2>
+  <ul>
+    <li>For agent-based scanning, the instance must run the <strong>SSM Agent</strong> and be managed by AWS Systems Manager. Many Amazon Machine Images (AMIs) include the SSM Agent.</li>
+    <li>Instances without the agent can still be scanned with <strong>agentless scanning</strong>.</li>
+  </ul>
+
+  <h2>5.3 Findings and Integrations</h2>
+  <ul>
+    <li>You manage findings in the Inspector console or with the API. You can view them by instance, by container image, and by Lambda function.</li>
+    <li>Inspector publishes findings to <strong>Amazon EventBridge</strong> as events, so that you can process them in near real time, for example to open a ticket.</li>
+    <li>If AWS Security Hub is active, Inspector also publishes findings to Security Hub.</li>
+    <li>Container image findings are also sent to Amazon ECR.</li>
+    <li>You can export findings to an Amazon S3 bucket as a report.</li>
+    <li>Inspector can also export a <strong>software bill of materials (SBOM)</strong>, which lists the software that your resources contain.</li>
+  </ul>
+
+  <h2>5.4 Fixing What Inspector Finds</h2>
+  <ul>
+    <li>For EC2 instances, patch the vulnerable packages. AWS Systems Manager Patch Manager can do this at scale (Lesson 268.8).</li>
+    <li>For container images, update the base image or the dependency, rebuild the image, and push it again. Inspector then scans the new image.</li>
+    <li>For Lambda functions, update the vulnerable dependency or fix the code, and deploy the function again.</li>
+    <li>Fix the findings with the highest risk score first.</li>
+  </ul>
+
+  <h2>5.5 Amazon Inspector Pricing</h2>
+  <p><strong>Prices change often and differ by Region.</strong> Always check the current rates on the <a href="https://aws.amazon.com/inspector/pricing/" target="_blank" rel="noopener">Amazon Inspector pricing</a> page, and estimate your own cost with the <a href="https://calculator.aws/" target="_blank" rel="noopener">AWS Pricing Calculator</a>.</p>
+  <ul>
+    <li>The cost depends on the number of resources that Inspector scans: EC2 instances, container images, and Lambda functions.</li>
+    <li>For container images, the cost depends on how often you build and push images, because each new image is scanned.</li>
+    <li>Each scan type has its own rate. Lambda code scanning is a separate option from standard scanning.</li>
+    <li>Activate only the scan types for the resources that you use.</li>
+  </ul>
+
+  <div class="qbox">
+    <h3>Exam-Style Question</h3>
+    <p><strong>Scenario:</strong> A company has many EC2 instances. The security team wants to find software vulnerabilities on them, but some instances do not run the SSM Agent and the team cannot install it. What should the team do?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Use Amazon GuardDuty instead.</li>
+      <li><strong>B.</strong> Use Amazon Inspector agentless scanning for those instances.</li>
+      <li><strong>C.</strong> Turn on VPC flow logs for the instances.</li>
+      <li><strong>D.</strong> Use Amazon Macie on the instances.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> Inspector can scan an instance without an agent. It takes a snapshot of the EBS volume and analyzes it.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>GuardDuty detects threats from activity. It does not scan for software vulnerabilities.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>Agentless scanning checks the instance through an EBS snapshot, with no agent.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>Flow logs show network traffic. They do not list vulnerable software.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Macie works with S3 objects, not with instances.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these three points:</p>
+    <ul>
+      <li>Inspector findings go to <strong>EventBridge</strong> and <strong>Security Hub</strong>. Container image findings also go to <strong>Amazon ECR</strong>.</li>
+      <li>The <strong>delegated administrator</strong> of Inspector manages the member accounts of an organization.</li>
+      <li>Cost follows the <strong>number of resources scanned</strong>. Many images and frequent builds raise the cost.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Turn on per resource type. Admin account for the organization. Fix the highest score first.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Scan all accounts of an organization with Inspector from one account"<br>→ A delegated administrator account</p>
+    <p><strong>Trigger 2:</strong> "Open a ticket automatically when Inspector finds a critical vulnerability"<br>→ An EventBridge rule on Inspector findings</p>
+    <p><strong>Trigger 3:</strong> "List the software that a workload contains"<br>→ An SBOM export from Inspector</p>
+    <p><strong>Trigger 4:</strong> "Patch vulnerable packages on many EC2 instances"<br>→ AWS Systems Manager Patch Manager</p>
+  </div>
+  <div class="res">
+    <h2>Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html" target="_blank" rel="noopener">What is Amazon Inspector?</a></li>
+      <li><span class="lbl">Pricing</span> <a href="https://aws.amazon.com/inspector/pricing/" target="_blank" rel="noopener">Amazon Inspector pricing</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 6 ============ -->
+<section class="tab" id="tab6" role="tabpanel" aria-labelledby="b6">
+  <h1 class="tabh">6. Comparison &amp; Scenarios</h1>
+
+  <h2>6.1 GuardDuty and Inspector Compared</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Question</th><th>Amazon GuardDuty</th><th>Amazon Inspector</th></tr></thead>
+    <tbody>
+      <tr><td>The question it answers</td><td>Is someone attacking or misusing my environment?</td><td>Are my workloads vulnerable?</td></tr>
+      <tr><td>What it analyzes</td><td>Activity: CloudTrail management events, VPC flow logs, DNS logs, and the optional protection plans.</td><td>Software: EC2 instances, ECR container images, and Lambda functions.</td></tr>
+      <tr><td>Does it need an agent?</td><td>No, for foundational monitoring.</td><td>EC2 uses the SSM Agent or agentless scanning.</td></tr>
+      <tr><td>What a finding tells you</td><td>A threat, with the affected resource, the threat actor, and a severity.</td><td>A vulnerability, with the affected resource and a risk score.</td></tr>
+      <tr><td>When it scans</td><td>Continuously, as activity happens.</td><td>Continuously, when a resource appears, changes, or a new CVE is published.</td></tr>
+      <tr><td>Where findings go</td><td>The console, EventBridge, Security Hub, Detective, and an S3 bucket.</td><td>The console, EventBridge, Security Hub, and an S3 report. Image findings also go to ECR.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>6.2 The Security Services Compared</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Service</th><th>What it does</th><th>Use it when</th></tr></thead>
+    <tbody>
+      <tr><td>Amazon GuardDuty</td><td>Detects threats from activity.</td><td>You need to know that an attack or misuse is happening.</td></tr>
+      <tr><td>Amazon Inspector</td><td>Finds vulnerabilities in workloads.</td><td>You need to find flaws in software before an attacker does.</td></tr>
+      <tr><td>Amazon Macie</td><td>Finds sensitive data in S3.</td><td>You need to know where personal information is stored.</td></tr>
+      <tr><td>AWS Security Hub</td><td>Collects findings from several services.</td><td>You want one place to see and prioritize findings.</td></tr>
+      <tr><td>Amazon EventBridge</td><td>Routes events to targets.</td><td>You want an automatic response to a finding.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>6.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>If the question says...</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Detect compromised credentials or suspicious API activity</td><td>Amazon GuardDuty</td></tr>
+      <tr><td>2</td><td>Detect an instance that talks to a known malicious server</td><td>Amazon GuardDuty</td></tr>
+      <tr><td>3</td><td>Detect threats without installing agents or turning on logs</td><td>Amazon GuardDuty (foundational data sources)</td></tr>
+      <tr><td>4</td><td>Detect malware in newly uploaded S3 objects</td><td>GuardDuty Malware Protection for S3</td></tr>
+      <tr><td>5</td><td>Monitor Kubernetes audit logs for threats</td><td>GuardDuty EKS Protection</td></tr>
+      <tr><td>6</td><td>Stop findings for a known scanner but keep the record</td><td>A GuardDuty suppression rule</td></tr>
+      <tr><td>7</td><td>Never create findings for the company VPN address</td><td>A GuardDuty trusted IP list</td></tr>
+      <tr><td>8</td><td>Scan EC2 instances, ECR images, and Lambda functions for vulnerabilities</td><td>Amazon Inspector</td></tr>
+      <tr><td>9</td><td>Scan EC2 instances without an agent</td><td>Inspector agentless scanning</td></tr>
+      <tr><td>10</td><td>Find injection flaws or hardcoded secrets in Lambda code</td><td>Inspector Lambda code scanning</td></tr>
+      <tr><td>11</td><td>Decide which vulnerability to fix first</td><td>The Inspector risk score</td></tr>
+      <tr><td>12</td><td>Find sensitive data such as personal information in S3</td><td>Amazon Macie</td></tr>
+      <tr><td>13</td><td>See findings from several security services in one place</td><td>AWS Security Hub</td></tr>
+      <tr><td>14</td><td>Start an automatic response when any of these services reports a finding</td><td>An Amazon EventBridge rule</td></tr>
+      <tr><td>15</td><td>Manage the security service for all accounts of an organization</td><td>A delegated administrator account</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>6.4 Lesson Summary</h2>
+  <p>This lesson covered the following points:</p>
+  <ul>
+    <li>GuardDuty detects threats from activity. It ingests CloudTrail management events, VPC flow logs, and DNS logs automatically, and optional protection plans add S3, EKS, RDS, Lambda, runtime, and malware monitoring.</li>
+    <li>GuardDuty findings carry a severity, go to EventBridge, Security Hub, Detective, and S3, and can be managed with suppression rules, trusted IP lists, and threat lists. A delegated administrator manages an organization, and the service is Regional.</li>
+    <li>Inspector finds vulnerabilities. It scans EC2 instances with the SSM Agent or agentless, ECR images on push and by rescan, and Lambda functions for dependencies and code.</li>
+    <li>The Inspector risk score helps you decide what to fix first. Findings go to EventBridge, Security Hub, and an S3 report.</li>
+    <li>Neither service blocks an attack or fixes a flaw. An EventBridge rule can start an automatic response, and patching tools or a rebuild fix the flaw.</li>
+    <li>Both services are billed by usage, so check the pricing pages and turn on only what you need.</li>
+  </ul>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>GuardDuty watches the activity. Inspector scans the software. Macie finds the data. Security Hub collects. EventBridge reacts.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 7 ============ -->
+<section class="tab" id="tab7" role="tabpanel" aria-labelledby="b7">
+  <h1 class="tabh">7. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer.</p>
+
+  <details>
+    <summary>Question 1: Explain the difference between threat detection and vulnerability management, and name the AWS service for each.</summary>
+    <p><em>Maps to:</em> Objectives 1 and 7 (Comprehension).</p>
+    <p>Threat detection asks whether someone is attacking or misusing the environment now, and Amazon GuardDuty answers it by analyzing activity such as API calls, network traffic, and DNS queries. Vulnerability management asks whether workloads contain flaws an attacker could use, and Amazon Inspector answers it by scanning EC2 instances, ECR images, and Lambda functions. Neither service blocks an attack or fixes a flaw.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Name the foundational data sources of GuardDuty and three optional protection plans.</summary>
+    <p><em>Maps to:</em> Objective 2 (Knowledge).</p>
+    <p>The foundational sources are AWS CloudTrail management events, VPC flow logs, and DNS logs, and GuardDuty ingests them automatically without agents. Optional protection plans include S3 Protection, EKS Protection, Malware Protection, RDS Protection, Lambda Protection, and Runtime Monitoring.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: Compare a trusted IP list, a threat list, and a suppression rule.</summary>
+    <p><em>Maps to:</em> Objectives 4 and 6 (Analysis).</p>
+    <p>A trusted IP list names addresses that you trust, and GuardDuty does not create findings for them. A threat list names known malicious addresses, and GuardDuty creates a finding when activity involves them. A suppression rule creates the finding but archives it, and archived findings are not sent to Security Hub, S3, Detective, or EventBridge.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Design an automatic response to a high-severity GuardDuty finding in a multi-account organization.</summary>
+    <p><em>Maps to:</em> Objective 8 (Synthesis).</p>
+    <p>Designate a GuardDuty delegated administrator account in AWS Organizations so that it sees the findings of all member accounts in each Region. In that account, create an Amazon EventBridge rule that matches high-severity GuardDuty findings and sends them to an Amazon SNS topic for the security team, or to a Lambda function that starts a response. Use suppression rules to remove known harmless findings.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: Describe how Amazon Inspector scans EC2 instances, ECR images, and Lambda functions.</summary>
+    <p><em>Maps to:</em> Objective 3 (Comprehension).</p>
+    <p>For EC2 instances Inspector uses the SSM Agent to collect the software inventory, or scans an EBS snapshot without an agent, and it also checks network reachability. For ECR images it scans when an image is pushed and rescans images that stay in the registry. For Lambda functions standard scanning checks the dependencies and code scanning checks the function code for problems such as injection flaws and hardcoded secrets.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: Explain the Inspector risk score and where Inspector sends its findings.</summary>
+    <p><em>Maps to:</em> Objective 5 (Comprehension).</p>
+    <p>The risk score starts from the CVE information and adjusts for factors such as network access and exploitability, so that you can fix the most serious findings first. Inspector shows findings in its console, publishes them to Amazon EventBridge, sends them to AWS Security Hub if it is active, sends image findings to Amazon ECR, and can export a findings report to Amazon S3.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>
