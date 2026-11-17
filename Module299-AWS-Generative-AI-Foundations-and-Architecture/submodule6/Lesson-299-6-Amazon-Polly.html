@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 299.6 - Amazon Polly</title>
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: light;
+    --page-bg: #ffffff;
+    --text: #1c2733;
+    --muted: #4f5b67;
+    --rule: #d5dce3;
+    --card: #f4f7fa;
+    --card-border: #ccd3da;
+    --hover: #ccd3da;
+    --h1: #611940;
+    --h3: #7a2455;
+    --link: #611940;
+    --code-bg: #f5f7f9;
+    --table-alt: #f6f8fa;
+    --problem-bg: #ffeef7;
+    --problem-bar: #611940;
+    --warn-bg: #fdf3e7;
+    --warn-bar: #c26a00;
+    --exam-bg: #eaf6ee;
+    --exam-bar: #2e7d4f;
+    --tip-bg: #e5fe77;
+    --tip-bar: #7a8f00;
+    --q-bg: #f7eef3;
+    --q-border: #611940;
+    --svg-box: #f7eef3;
+    --svg-stroke: #611940;
+    --svg-hot: #d9f6fd;
+    --svg-hot-stroke: #611940;
+    --focus: #611940;
+    --h2: #000000;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+      --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+      --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+      --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+      --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+      --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+      --focus: #71e2fd;
+      --h2: #ffffff;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+    --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+    --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+    --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+    --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+    --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+    --focus: #71e2fd;
+    --h2: #ffffff;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+  *, *::before, *::after { box-sizing: inherit; line-height: 1.5; }
+  body {
+    margin: 0; background: var(--page-bg); color: var(--text);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 17px;
+  }
+  .layout { display: flex; align-items: flex-start; max-width: 1280px; margin: 0 auto; padding: 28px 20px 60px; }
+  .side-wrap { width: 270px; flex: none; margin-right: 28px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); overflow-y: auto; }
+  .sidebar { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px; }
+  .tab-btn {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    border-left: 5px solid transparent; border-radius: 6px; padding: 10px 12px; margin: 0 0 2px;
+    font: inherit; font-size: 15px; color: var(--text); cursor: pointer;
+  }
+  .tab-btn:hover { background: var(--hover); }
+  .tab-btn[aria-selected="true"] { background: #611940; color: #ffffff; font-weight: 700; border-left-color: #71E2FD; }
+  .tab-btn:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible, .panel:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .content { flex: 1; min-width: 0; max-width: 900px; }
+  .brand { display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; margin: 0 0 14px; }
+  .brand img { display: block; width: 230px; max-width: 100%; height: auto; }
+  .page-title { color: var(--h2); font-size: 2.8rem; font-weight: 700; margin: 0 0 8px; }
+  .page-sub { color: var(--muted); font-size: 1.05rem; margin: 0 0 26px; max-width: 70ch; }
+  .js .panel { display: none; }
+  .js .panel.active { display: block; }
+  .panel { margin-bottom: 40px; }
+  .js .panel { margin-bottom: 0; }
+  .panel h1 { color: var(--h1); font-size: 2.35rem; font-weight: 700; margin: 6px 0 12px; }
+  h2 { color: var(--h2); font-size: 35px; font-weight: 700; margin: 34px 0 10px; }
+  h3 { color: var(--h3); font-size: 1.45rem; font-weight: 700; margin: 24px 0 8px; }
+  h4 { color: var(--h3); font-size: 1.15rem; font-weight: 700; margin: 18px 0 6px; }
+  p { margin: 0 0 14px; max-width: 76ch; }
+  ul, ol { margin: 0 0 16px; padding-left: 26px; max-width: 76ch; }
+  li { margin-bottom: 6px; }
+  a { color: var(--link); }
+  code { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 0.88em; }
+  pre.flowcode { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 14.5px; overflow-x: auto; margin: 6px 0 18px; white-space: pre; }
+  .table-scroll { overflow-x: auto; margin: 6px 0 22px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15.5px; }
+  th, td { border: 1px solid var(--rule); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #611940; color: #ffffff; font-weight: 600; border-color: #611940; }
+  tbody tr:nth-child(even) { background: var(--table-alt); }
+  .wide table { min-width: 860px; }
+  .callout { border-left: 5px solid; border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 22px 0; max-width: 880px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .label { font-weight: 700; display: block; margin-bottom: 6px; }
+  .tip { background: var(--tip-bg); border-color: var(--tip-bar); color: #1c2733; }
+  .tip a { color: #611940; }
+  .warn { background: var(--warn-bg); border-color: var(--warn-bar); }
+  .exam { background: var(--exam-bg); border-color: var(--exam-bar); }
+  .problem { border-left: 6px solid var(--problem-bar); background: var(--problem-bg); border-radius: 0 12px 12px 0; padding: 22px 25px; margin: 28px 0; }
+  .problem h2.ps-heading { font-size: 1.35rem; margin: 0 0 8px; }
+  .problem p:last-child { margin-bottom: 0; }
+  .overview-box { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 24px 14px; margin: 0 0 24px; }
+  .overview-box h2 { margin-top: 20px; }
+  figure.diagram { margin: 14px 0 26px; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 14px 8px; overflow-x: auto; background: var(--card); }
+  figure.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
+  figure.diagram figcaption { color: var(--muted); font-size: 14.5px; padding: 8px 4px 6px; }
+  .s-box { fill: var(--svg-box); stroke: var(--svg-stroke); stroke-width: 1.5; }
+  .s-hot { fill: var(--svg-hot); stroke: var(--svg-hot-stroke); stroke-width: 1.5; }
+  .s-line { stroke: var(--svg-stroke); stroke-width: 2; fill: none; }
+  .s-mark { fill: var(--svg-stroke); }
+  .s-t { fill: var(--text); font-size: 14.5px; }
+  .s-b { fill: var(--text); font-size: 15px; font-weight: 700; }
+  .s-m { fill: var(--muted); font-size: 13.5px; }
+  .exam-question { background: var(--q-bg); border: 2px solid var(--q-border); border-radius: 8px; padding: 16px 22px; margin: 22px 0; max-width: 880px; }
+  .exam-question .label { font-weight: 700; margin-bottom: 2px; }
+  .exam-question .note { color: var(--muted); font-size: 14.5px; }
+  .exam-question details { border-top: 1px solid var(--rule); margin-top: 12px; padding-top: 10px; }
+  .exam-question summary, .kc-list summary { cursor: pointer; font-weight: 700; color: var(--link); }
+  .lab-box { border: 2px dashed #333333; background: #fdf3d7; color: #1c2733; border-radius: 4px; padding: 20px 24px 18px; margin: 30px 0 0; max-width: 880px; }
+  .lab-box .lab-title { text-align: center; color: #611940; font-size: 1.9rem; font-weight: 700; margin: 0 0 16px; }
+  .lab-box .lab-sub { color: #611940; font-weight: 700; font-size: 1.2rem; margin: 0 0 6px; }
+  .lab-box a.lab-link { color: #611940; font-weight: 700; text-decoration: underline; }
+  .lab-expect { border: 1.5px solid #333333; background: #ffffff; color: #1c2733; border-radius: 4px; padding: 14px 24px; margin: 0 0 26px; max-width: 880px; }
+  .lab-expect p:last-child { margin-bottom: 0; }
+  .lab-expect a { color: #611940; font-weight: 700; }
+  .resources ul { list-style: none; padding-left: 0; }
+  .rtype { display: inline-block; font-size: 13px; font-weight: 700; color: #ffffff; background: #611940; border-radius: 4px; padding: 1px 8px; margin-right: 8px; }
+  .kc-list { list-style: none; padding-left: 0; max-width: none; counter-reset: kc; }
+  .kc-list > li { counter-increment: kc; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px; margin-bottom: 14px; }
+  .kc-list .q { font-weight: 600; margin-bottom: 8px; }
+  .kc-list .q::before { content: "Question " counter(kc) ". "; color: var(--h1); }
+  .kc-list details { background: var(--exam-bg); border-left: 4px solid var(--exam-bar); border-radius: 0 6px 6px 0; padding: 10px 14px; }
+  .kc-list details p:first-of-type { margin-top: 10px; }
+  .panel-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .panel-nav button { background: var(--card); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 16px; font: inherit; font-size: 15px; font-weight: 600; color: var(--link); cursor: pointer; max-width: 48%; text-align: left; }
+  .panel-nav button:hover { background: var(--hover); }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 2px solid var(--rule); color: var(--muted); font-size: 14.5px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 900px) {
+    .layout { display: block; padding: 16px 14px 50px; }
+    .side-wrap { width: 100%; margin: 0 0 24px; position: static; max-height: none; overflow: visible; }
+    .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .tab-btn { margin: 0; }
+    h2 { font-size: 1.4rem; }
+    .page-title { font-size: 2.15rem; }
+    .panel h1 { font-size: 1.85rem; }
+    h3 { font-size: 1.28rem; }
+  }
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .sidebar { grid-template-columns: 1fr; }
+    .lab-box { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="side-wrap" aria-label="Lesson navigation">
+    <div class="sidebar" role="tablist" aria-orientation="vertical" aria-label="Lesson tabs">
+      <button class="tab-btn" role="tab" id="tab-0" aria-controls="overview" aria-selected="true" tabindex="0">Overview and Objectives</button>
+      <button class="tab-btn" role="tab" id="tab-1" aria-controls="intro" aria-selected="false" tabindex="-1">1. Introduction to Amazon Polly</button>
+      <button class="tab-btn" role="tab" id="tab-2" aria-controls="engines" aria-selected="false" tabindex="-1">2. Voices and Engines</button>
+      <button class="tab-btn" role="tab" id="tab-3" aria-controls="control" aria-selected="false" tabindex="-1">3. Controlling Speech</button>
+      <button class="tab-btn" role="tab" id="tab-4" aria-controls="ops" aria-selected="false" tabindex="-1">4. Real-Time, Long Audio, and Streaming</button>
+      <button class="tab-btn" role="tab" id="tab-5" aria-controls="arch" aria-selected="false" tabindex="-1">5. Architecture, Security, and Cost</button>
+      <button class="tab-btn" role="tab" id="tab-6" aria-controls="comparison" aria-selected="false" tabindex="-1">6. Comparison and Scenarios</button>
+      <button class="tab-btn" role="tab" id="tab-7" aria-controls="knowledge-check" aria-selected="false" tabindex="-1">7. Knowledge Check</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo." width="230" height="33"></div>
+    <h1 class="page-title" style="border:none;padding:0;">Amazon Polly</h1>
+    <p class="page-sub">How Amazon Polly turns text into speech: the four voice engines, SSML, lexicons and speech marks, real-time, long audio, and streaming synthesis, and the architecture, security, and cost of a speech pipeline.</p>
+    <div class="sr-only" id="live" aria-live="polite"></div>
+
+<section class="panel active" id="overview" role="tabpanel" aria-labelledby="tab-0" tabindex="0">
+
+  <div class="overview-box">
+    <h2>Lesson Overview</h2>
+    <p>Amazon Polly is a managed text-to-speech (TTS) service. You send it text, and it returns lifelike speech, so an application can talk. You call it through an application programming interface (API), and you need no machine learning (ML) expertise. This lesson follows FlashCart Inc., a fictional online marketplace that wants to read articles aloud, voice its phone menu, and add spoken help to its mobile app. In this lesson, you will study:</p>
+    <ul>
+      <li><strong>Introduction to Amazon Polly:</strong> what the service does, how you call it, and common use cases.</li>
+      <li><strong>Voices and Engines:</strong> the standard, neural, long-form, and generative engines, and how to choose a voice.</li>
+      <li><strong>Controlling Speech:</strong> Speech Synthesis Markup Language (SSML), pronunciation lexicons, and speech marks.</li>
+      <li><strong>Real-Time, Long Audio, and Streaming:</strong> the three ways to synthesize speech, with their limits.</li>
+      <li><strong>Architecture, Security, and Cost:</strong> caching, pipelines, throttling, data privacy, and the pricing model.</li>
+      <li><strong>Comparison and Scenarios:</strong> how Polly compares with other AWS artificial intelligence (AI) services, and an SAA-C03 cheat sheet.</li>
+      <li><strong>Knowledge Check:</strong> open-ended questions with model answers.</li>
+    </ul>
+  </div>
+
+  <div class="overview-box">
+    <h2>Learning Objectives</h2>
+    <p>At the end of this lesson, learners will be able to:</p>
+    <ol>
+      <li>Define Amazon Polly and TTS, and state where Polly fits in the AWS AI layers.</li>
+      <li>Describe the four voice engines, and the features, Regions, and limits that differ between them.</li>
+      <li>Select a voice and an engine for a use case.</li>
+      <li>Apply SSML tags to control pauses, speaking rate, pitch, volume, and pronunciation, and state which tags each engine supports.</li>
+      <li>Use pronunciation lexicons and speech marks, and explain how they differ.</li>
+      <li>Choose between synchronous synthesis, an asynchronous synthesis task, and bidirectional streaming.</li>
+      <li>Design a speech pipeline that caches audio and works with Amazon Lex, Amazon Connect, Amazon Transcribe, or Amazon Translate.</li>
+      <li>Address throttling, security, data privacy, and cost.</li>
+    </ol>
+  </div>
+
+  <div class="overview-box">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#intro">Introduction to Amazon Polly</a></li>
+      <li><a href="#engines">Voices and Engines</a></li>
+      <li><a href="#control">Controlling Speech</a></li>
+      <li><a href="#ops">Real-Time, Long Audio, and Streaming</a></li>
+      <li><a href="#arch">Architecture, Security, and Cost</a></li>
+      <li><a href="#comparison">Comparison and Scenarios</a></li>
+      <li><a href="#knowledge-check">Knowledge Check</a></li>
+    </ol>
+  </div>
+</section>
+
+<section class="panel" id="intro" role="tabpanel" aria-labelledby="tab-1" tabindex="0">
+  <h1>1. Introduction to Amazon Polly</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart Inc. publishes a daily buying guide, runs a customer phone line, and has a mobile app for shoppers with low vision. Today the guide is text only, the phone menu uses a recording that a voice actor made two years ago, and every menu change costs a new studio session.</p>
+    <p>The engineering manager wants spoken output that the team can change in minutes. The team has no speech scientists. She asks what Polly can do, what formats the audio comes in, and whether FlashCart may store and reuse the audio that Polly creates.</p>
+    <p>She also wants to know whether the service can read the same text in several languages.</p>
+    <p><strong>Your challenge:</strong> Advise the manager. Your answer should:</p>
+    <ul>
+      <li>Explain what Polly does and why it needs no ML expertise.</li>
+      <li>Name the audio formats and say what FlashCart can do with the audio.</li>
+      <li>Say how Polly handles several languages and voices.</li>
+      </ul>
+  </div>
+
+  <h2>1.1 What Amazon Polly Is</h2>
+  <ul>
+    <li>Amazon Polly is a service that turns text into lifelike speech. You send the text to the Polly API, and Polly returns the audio at once as a stream that you can play, or save as a standard audio file such as MP3.</li>
+    <li>It uses deep learning, and it lets existing applications speak as a first-class feature, in cars, mobile apps, devices, and appliances.</li>
+    <li>It includes many lifelike voices in many languages, so that you can choose the voice and the language for your listeners.</li>
+    <li>It supports Speech Synthesis Markup Language (SSML) tags, such as prosody, so that you can change the speaking rate, pitch, or volume.</li>
+    <li>It sits in the AI services layer, with Amazon Rekognition, Amazon Textract, Amazon Comprehend, Amazon Translate, and Amazon Transcribe. Polly goes from text to speech, and Transcribe goes the other way, from speech to text.</li>
+  </ul>
+
+  <h2>1.2 From Text to Audio</h2>
+  <figure class="diagram">
+    <img src="data:image/webp;base64,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" alt="A diagram with a line of text on the left that reads Hi! My name is Stéphane and this is a demo of Amazon Polly. An arrow leads to an audio waveform and a speaker icon on the right. A vertical watermark on the right edge reads not for distribution, Stephane Maarek." width="1400" height="175" style="display:block;width:100%;max-width:900px;height:auto;border:1px solid var(--rule);">
+    <figcaption>Image 1a — Polly turns text into speech. (Source: Stephane Maarek.)</figcaption>
+  </figure>
+
+  <h2>1.3 How You Call Polly</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 260" role="img" aria-labelledby="t1b d1b" xmlns="http://www.w3.org/2000/svg">
+      <title id="t1b">How an application uses Amazon Polly</title>
+      <desc id="d1b">An application sends text, either plain text or SSML, together with a voice and an engine to Amazon Polly. Polly returns an audio stream in MP3, Ogg Vorbis, or raw PCM format, and it can also return speech marks as JSON.</desc>
+      <defs><marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="20" width="210" height="80" rx="8" class="s-box"/>
+      <text x="120" y="52" text-anchor="middle" class="s-b">Text</text>
+      <text x="120" y="76" text-anchor="middle" class="s-m">plain text or SSML</text>
+      <rect x="15" y="150" width="210" height="80" rx="8" class="s-box"/>
+      <text x="120" y="182" text-anchor="middle" class="s-b">Voice and engine</text>
+      <text x="120" y="206" text-anchor="middle" class="s-m">for example Joanna, neural</text>
+      <rect x="290" y="85" width="190" height="90" rx="8" class="s-hot"/>
+      <text x="385" y="124" text-anchor="middle" class="s-b">Amazon Polly</text>
+      <text x="385" y="148" text-anchor="middle" class="s-m">text to speech</text>
+      <rect x="545" y="20" width="165" height="80" rx="8" class="s-box"/>
+      <text x="627" y="52" text-anchor="middle" class="s-b">Audio stream</text>
+      <text x="627" y="76" text-anchor="middle" class="s-m">MP3, Ogg Vorbis, PCM</text>
+      <rect x="545" y="150" width="165" height="80" rx="8" class="s-box"/>
+      <text x="627" y="182" text-anchor="middle" class="s-b">Speech marks</text>
+      <text x="627" y="206" text-anchor="middle" class="s-m">JSON, optional</text>
+      <line x1="227" y1="60" x2="288" y2="115" class="s-line" marker-end="url(#ar1)"/>
+      <line x1="227" y1="190" x2="288" y2="145" class="s-line" marker-end="url(#ar1)"/>
+      <line x1="482" y1="115" x2="543" y2="65" class="s-line" marker-end="url(#ar1)"/>
+      <line x1="482" y1="145" x2="543" y2="190" class="s-line" marker-end="url(#ar1)"/>
+    </svg>
+    <figcaption>Image 1b — An application sends text, a voice, and an engine to Amazon Polly. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>You send text, either plain text or SSML, and you choose a voice. You can also choose the engine, the output format, and the sampling rate.</li>
+    <li>Polly supports MP3, Ogg Vorbis, and raw PCM audio stream formats. You can stream the audio to your users in near real time.</li>
+    <li>Polly works with all AWS SDK languages, such as Java, Node.js, .NET, PHP, Python, Ruby, Go, and C++, with the AWS mobile SDKs, and with an HTTP API.</li>
+    <li>To try it, open the Polly console, type text, and listen to the result or save it as an audio file.</li>
+    <li>If you do not name an engine, Polly uses the standard engine, and a voice that the standard engine does not support causes an error.</li>
+  </ul>
+
+  <h2>1.4 Languages and Voices</h2>
+  <ul>
+    <li>Polly includes dozens of voices in many languages. The supported languages page lists them, and the available voices page shows which engines each voice supports.</li>
+    <li>A voice can be bilingual. For example, the voice Aditi can speak Indian English or Hindi. If you do not give a language code, Polly uses the default language of the voice.</li>
+    <li>To read one text in several languages, translate the text first with Amazon Translate, and then synthesize each version with a voice for its language.</li>
+  </ul>
+
+  <h2>1.5 Common Use Cases</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Use case</th><th scope="col">What you do</th><th scope="col">FlashCart example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Content for a global audience</strong></td><td>Add speech to websites, blog posts, and news feeds.</td><td>Let shoppers listen to the daily buying guide.</td></tr>
+      <tr><td><strong>Accessibility</strong></td><td>Help people with reading disabilities, and blind and visually impaired people, use digital content.</td><td>Read product pages aloud in the mobile app.</td></tr>
+      <tr><td><strong>Interactive voice response (IVR)</strong></td><td>Voice the prompts in telephone menus and automated assistants.</td><td>Say “Your order has shipped” on the phone line.</td></tr>
+      <tr><td><strong>E-learning and training</strong></td><td>Narrate lessons and quizzes.</td><td>Narrate seller onboarding courses.</td></tr>
+      <tr><td><strong>Announcements and notifications</strong></td><td>Create public announcements and alerts.</td><td>Announce pickup counter updates in a store.</td></tr>
+      <tr><td><strong>Devices and games</strong></td><td>Add voice output to devices, avatars, and games.</td><td>Let a delivery locker speak instructions.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>1.6 Reusing the Audio</h2>
+  <ul>
+    <li>You can cache and replay the speech that Polly generates at no additional cost, and there are no restrictions on storing and reusing it.</li>
+    <li>You own the audio that Polly creates from your text. If you send text that belongs to someone else, you need the rights to use it.</li>
+    <li>For fixed prompts, such as a phone menu, create the audio once and store it, instead of synthesizing it for every call.</li>
+  </ul>
+
+  <h2>1.7 Hands-On Lab</h2>
+  <div class="lab-box">
+    <p class="lab-title">Hands-On Lab</p>
+    <p class="lab-sub">Lab Overview:</p>
+    <p>For the GLAB, you have to <strong>watch the following videos on Whizlabs</strong> for the <strong>step-by-step instructions</strong>, and click the blue <strong>Sandbox</strong> button to start the <strong>AWS sandbox</strong>.</p>
+    <p>Whizlabs videos, in section <strong>7. Machine Learning</strong> of the course:</p>
+    <ol>
+      <li>Amazon Polly</li>
+      <li>Amazon Polly - Demo</li>
+    </ol>
+    <figure class="diagram">
+      <img alt="The Whizlabs course section 7. Machine Learning, with 6 lectures and a total time of 50 minutes 54 seconds. It lists the lecture Amazon Polly (5 minutes 23 seconds, not started) and the lecture Amazon Polly - Demo (5 minutes 56 seconds, not started). The Amazon Polly - Demo lecture has a blue Sandbox Enabled badge, and a red box marks the badge and the Start button." height="181" src="data:image/webp;base64,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" style="display:block;width:100%;max-width:900px;height:auto;border:1px solid var(--rule);" width="1002">
+      <figcaption>Image 1c — The Whizlabs videos for the lab. The Amazon Polly - Demo video has a blue Sandbox Enabled badge: click it to start the AWS sandbox. (Source: Whizlabs.)</figcaption>
+    </figure>
+    <ul>
+      <li>Video 2, <strong>Amazon Polly - Demo</strong>, is marked <strong>Sandbox Enabled</strong>, as in the screenshot. Click the blue <strong>Sandbox</strong> button to start the AWS sandbox, then follow the steps from the video in the sandbox.</li>
+      <li>Watch the videos <strong>in order</strong>: the overview first, then the demo.</li>
+    </ul>
+  </div>
+  <div class="lab-expect">
+    <p><strong>Important Lab Expectation:</strong></p>
+    <p>You must submit proof of completion of the lab on Canvas using the following document:</p>
+    <ul><li><a href="https://docs.google.com/document/d/1DDaqqAnMSG-eFrL5ehG9pNgZYg00mIAf2Cmc_iYyHpY/edit?usp=sharing" target="_blank" rel="noopener noreferrer">POC 299.6.1: Hands-On Labs Validation</a></li></ul>
+    <p>If you do not complete all labs during class time, you must finish them after class. Failing to complete all labs before the next session may cause you to fall behind.</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Polly goes from text to speech. It does not convert speech to text: that is Amazon Transcribe. It does not translate: that is Amazon Translate. Also remember that the default engine is standard, so a voice that only a neural, long-form, or generative engine supports needs the engine in the request.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Polly talks. Transcribe listens. Translate converts.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Turn text into lifelike speech”<br>→ Amazon Polly</p>
+    <p><strong>Trigger 2:</strong> “Voice an interactive phone menu”<br>→ Amazon Polly, with Amazon Lex and Amazon Connect</p>
+    <p><strong>Trigger 3:</strong> “Make written content accessible to listeners”<br>→ Amazon Polly</p>
+    <p><strong>Trigger 4:</strong> “Reuse generated speech with no extra cost”<br>→ Cache and replay the Polly audio</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company wants its mobile app to read articles aloud to users in near real time. It has no speech experts and wants the least operational effort. Which solution fits best?</p>
+    <ol type="A">
+      <li>Call Amazon Polly to synthesize the text and stream the audio to the app.</li>
+      <li>Train a speech synthesis model on Amazon SageMaker AI, and host it on an endpoint.</li>
+      <li>Use Amazon Transcribe to convert the articles to audio.</li>
+      <li>Use Amazon Comprehend to read the articles aloud.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Polly is a managed text-to-speech service. The app sends text to the API and plays the audio stream that comes back.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. Polly is made for this need.</td></tr>
+          <tr><td>B</td><td>Wrong. It works, but it needs ML expertise and more operational effort.</td></tr>
+          <tr><td>C</td><td>Wrong. Transcribe converts speech to text, which is the opposite direction.</td></tr>
+          <tr><td>D</td><td>Wrong. Comprehend analyzes text. It does not produce speech.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>1.8 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/what-is.html" target="_blank" rel="noopener">What Is Amazon Polly?</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/polly/faqs/" target="_blank" rel="noopener">Amazon Polly FAQs</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/polly/features/" target="_blank" rel="noopener">Amazon Polly Features</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html" target="_blank" rel="noopener">Available Voices</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/polly/pricing/" target="_blank" rel="noopener">Amazon Polly Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="engines" role="tabpanel" aria-labelledby="tab-2" tabindex="0">
+  <h1>2. Voices and Engines</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart wants three kinds of voice. The phone menu needs a clear voice at very low cost, because millions of short prompts are played every month. The audio version of the buying guide needs a natural narrator for articles that are several minutes long. The in-app helper needs the most expressive, conversational voice.</p>
+    <p>A developer asks which engine to pick, and why her newscaster-style demo works with one voice but fails with another. Another developer wants to highlight each word on screen as it is spoken, and he heard that this does not work with every engine.</p>
+    <p>The architect must match each need with an engine.</p>
+    <p><strong>Your challenge:</strong> Choose the voices and engines. Your answer should:</p>
+    <ul>
+      <li>Name an engine for each of the three needs.</li>
+      <li>Explain the newscaster result.</li>
+      <li>Say which engines support speech marks.</li>
+      </ul>
+  </div>
+
+  <h2>2.1 Four Engines</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 250" role="img" aria-labelledby="t2a d2a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t2a">The four Amazon Polly voice engines</title>
+      <desc id="d2a">Four engines in a row. Standard uses concatenative synthesis, has the widest Region coverage, and supports nearly all SSML tags. Neural uses a neural network and a vocoder, and supports the Newscaster style on select voices. Long-form is built for long narration and is available in US East, N. Virginia. Generative uses the largest model and is the most expressive, but it has no speech marks.</desc>
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="10" y="30" width="160" height="190" rx="8" class="s-box"/>
+      <text x="90" y="62" text-anchor="middle" class="s-b">Standard</text>
+      <text x="90" y="92" text-anchor="middle" class="s-m">concatenates</text>
+      <text x="90" y="110" text-anchor="middle" class="s-m">recorded speech</text>
+      <text x="90" y="140" text-anchor="middle" class="s-m">widest Region</text>
+      <text x="90" y="158" text-anchor="middle" class="s-m">coverage</text>
+      <text x="90" y="188" text-anchor="middle" class="s-m">nearly all SSML tags</text>
+      <rect x="190" y="30" width="160" height="190" rx="8" class="s-box"/>
+      <text x="270" y="62" text-anchor="middle" class="s-b">Neural</text>
+      <text x="270" y="92" text-anchor="middle" class="s-m">neural network</text>
+      <text x="270" y="110" text-anchor="middle" class="s-m">and vocoder</text>
+      <text x="270" y="140" text-anchor="middle" class="s-m">more natural</text>
+      <text x="270" y="158" text-anchor="middle" class="s-m">speech</text>
+      <text x="270" y="188" text-anchor="middle" class="s-m">Newscaster style</text>
+      <rect x="370" y="30" width="160" height="190" rx="8" class="s-box"/>
+      <text x="450" y="62" text-anchor="middle" class="s-b">Long-form</text>
+      <text x="450" y="92" text-anchor="middle" class="s-m">deep learning</text>
+      <text x="450" y="110" text-anchor="middle" class="s-m">for long content</text>
+      <text x="450" y="140" text-anchor="middle" class="s-m">news, training,</text>
+      <text x="450" y="158" text-anchor="middle" class="s-m">marketing video</text>
+      <text x="450" y="188" text-anchor="middle" class="s-m">few Regions</text>
+      <rect x="550" y="30" width="160" height="190" rx="8" class="s-hot"/>
+      <text x="630" y="62" text-anchor="middle" class="s-b">Generative</text>
+      <text x="630" y="92" text-anchor="middle" class="s-m">largest model</text>
+      <text x="630" y="110" text-anchor="middle" class="s-m">most expressive</text>
+      <text x="630" y="140" text-anchor="middle" class="s-m">streaming input</text>
+      <text x="630" y="158" text-anchor="middle" class="s-m">and output</text>
+      <text x="630" y="188" text-anchor="middle" class="s-m">no speech marks</text>
+    </svg>
+    <figcaption>Image 2a — The four Amazon Polly voice engines. (Original diagram for this course.)</figcaption>
+  </figure>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col"></th><th scope="col">Standard</th><th scope="col">Neural</th><th scope="col">Long-form</th><th scope="col">Generative</th></tr></thead>
+    <tbody>
+      <tr><td><strong>How it works</strong></td><td>Concatenates phonemes of recorded speech.</td><td>A neural network and a vocoder.</td><td>Deep learning designed for long content.</td><td>A billion-parameter model, the largest Polly model.</td></tr>
+      <tr><td><strong>Sound</strong></td><td>Natural.</td><td>Higher quality than standard.</td><td>Human-like, expressive, for long narration.</td><td>Most human-like, emotionally engaged, and conversational.</td></tr>
+      <tr><td><strong>Real-time and asynchronous</strong></td><td>Yes.</td><td>Yes.</td><td>Yes.</td><td>Yes. It also has bidirectional streaming.</td></tr>
+      <tr><td><strong>Speech marks</strong></td><td>Yes.</td><td>Yes.</td><td>All speech marks.</td><td>Not available.</td></tr>
+      <tr><td><strong>Newscaster style</strong></td><td>No.</td><td>Select neural voices.</td><td>No.</td><td>No.</td></tr>
+      <tr><td><strong>Regions</strong></td><td>The widest coverage.</td><td>A subset of the Regions.</td><td>US East (N. Virginia) only.</td><td>A smaller set of Regions.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>If you do not name an engine in a request, Polly uses the standard engine. Name the engine that the voice supports.</li>
+    <li>The available voices page shows which engines each voice supports. Many voices exist in more than one engine.</li>
+  </ul>
+
+  <h2>2.2 Neural Voices and the Newscaster Style</h2>
+  <ul>
+    <li>The neural engine can produce higher-quality voices than the standard engine, and it is available in a subset of the Regions.</li>
+    <li>The Newscaster speaking style makes a voice sound like a TV or radio newscaster. It works only with the neural engine, for the US English voices Matthew and Joanna, the British English voice Amy, and the US Spanish voice Lupe.</li>
+    <li>That is why a newscaster demo works with one voice and fails with another: the style is limited to select neural voices.</li>
+  </ul>
+
+  <h2>2.3 Long-Form Voices</h2>
+  <ul>
+    <li>The long-form engine is built for content that holds a listener’s attention for a long time, such as news articles, training materials, and marketing videos.</li>
+    <li>It offers a small set of voices, in US English and Spain Spanish, and it is available only in the US East (N. Virginia) Region.</li>
+    <li>It supports real-time and asynchronous synthesis, and all speech marks.</li>
+  </ul>
+
+  <h2>2.4 Generative Voices</h2>
+  <ul>
+    <li>The generative engine is the largest Polly model. It turns text into speech codes with a billion-parameter transformer, and then a decoder makes the audio in a streamable way.</li>
+    <li>It gives emotionally engaged, colloquial speech, for example for a customer assistant, a virtual trainer, or an advertiser.</li>
+    <li>It supports bidirectional streaming, so that text can go in while audio comes out. It does not support the Newscaster style, and speech marks are not available.</li>
+    <li>It is available in a limited set of Regions, and the number of voices keeps growing, so check the generative voices page for the current list.</li>
+    <li>Because updates to the model can change how a voice sounds, content that is synthesized over a long period, such as a season of podcasts, can vary slightly.</li>
+    <li>AWS says that a built-in safety mechanism reduces the risk of hallucinated speech, but it does not remove it. Do not assume complete protection.</li>
+  </ul>
+
+  <h2>2.5 Brand Voice</h2>
+  <ul>
+    <li>Brand Voice is a custom engagement. You work with the Polly team to build a neural voice that only your organization uses.</li>
+    <li>You start by contacting your AWS account manager. The cost and the timeline depend on your goals.</li>
+  </ul>
+
+  <h2>2.6 Choosing an Engine</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Need</th><th scope="col">Engine</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Many short prompts, lowest cost, widest Region choice</strong></td><td>Standard</td></tr>
+      <tr><td><strong>Natural speech, speech marks, or the Newscaster style</strong></td><td>Neural</td></tr>
+      <tr><td><strong>Long narration of articles and training</strong></td><td>Long-form</td></tr>
+      <tr><td><strong>The most expressive conversational voice, with streaming</strong></td><td>Generative</td></tr>
+      <tr><td><strong>A voice that only your company has</strong></td><td>Brand Voice</td></tr>
+      </tbody>
+  </table></div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Do not pick the generative engine when you need speech marks or the Newscaster style: it supports neither. Also, a voice works only with the engines that it supports, and a request without an engine uses standard. Finally, engines are not available in every Region, and long-form is limited to US East (N. Virginia).</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Standard is wide, neural is natural, long-form is long, generative is expressive.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Lowest cost for many short prompts”<br>→ The standard engine</p>
+    <p><strong>Trigger 2:</strong> “Make a voice sound like a TV newscaster”<br>→ The Newscaster style on select neural voices</p>
+    <p><strong>Trigger 3:</strong> “Narrate long articles, training, or videos”<br>→ The long-form engine</p>
+    <p><strong>Trigger 4:</strong> “The most expressive, conversational voice”<br>→ The generative engine</p>
+    <p><strong>Trigger 5:</strong> “A voice that only the company uses”<br>→ Polly Brand Voice</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A developer needs speech marks to highlight each word as it is spoken, and she wants natural-sounding speech. Which engine meets the requirement?</p>
+    <ol type="A">
+      <li>The neural engine.</li>
+      <li>The generative engine.</li>
+      <li>No engine supports speech marks.</li>
+      <li>Brand Voice is the only option.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> The neural engine supports speech marks and has higher quality than standard. The generative engine does not support speech marks.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. Neural supports speech marks and natural speech.</td></tr>
+          <tr><td>B</td><td>Wrong. Speech marks are not available with generative voices.</td></tr>
+          <tr><td>C</td><td>Wrong. Standard, neural, and long-form voices support speech marks.</td></tr>
+          <tr><td>D</td><td>Wrong. Brand Voice is a custom neural voice engagement. It is not the only option.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>2.7 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/NTTS-main.html" target="_blank" rel="noopener">Neural Voices</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/long-form-voices.html" target="_blank" rel="noopener">Long-Form Voices</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/generative-voices.html" target="_blank" rel="noopener">Generative Voices</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html" target="_blank" rel="noopener">Available Voices</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="control" role="tabpanel" aria-labelledby="tab-3" tabindex="0">
+  <h1>3. Controlling Speech</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s first audio sounds right, except in places. The product name “FlashCart” is split into two words, the abbreviation “FX-200” is read letter by letter, and a long list of numbers runs together with no pauses. The marketing team also wants a slow, emphasized voice for a sale announcement.</p>
+    <p>The mobile team wants to highlight each word on screen as it is spoken, and to move the mouth of a cartoon mascot with the speech. The security team asks whether the pronunciation fixes can be stored once and applied to every request.</p>
+    <p>The developer tried a whispering effect and word emphasis, and Polly returned an error with the neural voice.</p>
+    <p><strong>Your challenge:</strong> Choose the right control for each problem. Your answer should:</p>
+    <ul>
+      <li>Name the tool for pauses, speed, and emphasis, and the tool for fixed pronunciations.</li>
+      <li>Name the feature for word highlighting and mouth movement.</li>
+      <li>Explain the error that the developer saw.</li>
+      </ul>
+  </div>
+
+  <h2>3.1 Plain Text and SSML</h2>
+  <ul>
+    <li>You can send plain text, or text marked up with Speech Synthesis Markup Language (SSML), a standard XML-based markup for speech synthesis. SSML needs <code>&lt;speak&gt;</code> tags around the text, and the request must say that the text type is SSML.</li>
+    <li>With SSML you can add pauses, change the speaking rate, pitch, and volume, specify how numbers and dates are spoken, and give a phonetic pronunciation.</li>
+    <li>The SSML in a request must be valid and well formed. Polly returns an error for invalid SSML.</li>
+    <li>SSML tags are not billed as characters.</li>
+  </ul>
+
+  <h2>3.2 Which Tags Each Engine Supports</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Tag and use</th><th scope="col">Standard</th><th scope="col">Neural</th><th scope="col">Long-form</th><th scope="col">Generative</th></tr></thead>
+    <tbody>
+      <tr><td><strong><code>&lt;break&gt;</code></strong> adds a pause</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+      <tr><td><strong><code>&lt;prosody&gt;</code></strong> changes volume, rate, and pitch</td><td>Yes</td><td>Partly</td><td>Partly</td><td>Partly</td></tr>
+      <tr><td><strong><code>&lt;say-as&gt;</code></strong> controls how numbers and dates are spoken</td><td>Yes</td><td>Partly</td><td>Yes</td><td>Yes</td></tr>
+      <tr><td><strong><code>&lt;phoneme&gt;</code></strong> gives a phonetic pronunciation</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Partly</td></tr>
+      <tr><td><strong><code>&lt;sub&gt;</code></strong> replaces text with a spoken alias</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+      <tr><td><strong><code>&lt;lang&gt;</code></strong> speaks words in another language</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+      <tr><td><strong><code>&lt;emphasis&gt;</code></strong> stresses a word</td><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+      <tr><td><strong>Whispering effect</strong></td><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+      <tr><td><strong>Breathing sounds</strong></td><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+      <tr><td><strong>Newscaster style</strong></td><td>No</td><td>Select voices</td><td>No</td><td>No</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>The standard engine supports all tags except the newscaster tag.</li>
+    <li>If you use an SSML tag that the standard, neural, or long-form engine does not support, you get an error. That is the developer’s result with the whispering effect and emphasis on a neural voice.</li>
+    <li>Other limits: the <code>&lt;audio&gt;</code>, <code>&lt;lexicon&gt;</code>, <code>&lt;lookup&gt;</code>, and <code>&lt;voice&gt;</code> tags are not supported, a single <code>&lt;break&gt;</code> can last up to 10 seconds, and the <code>&lt;prosody&gt;</code> rate cannot go below minus 80 percent.</li>
+  </ul>
+
+  <h2>3.3 Pronunciation Lexicons</h2>
+  <ul>
+    <li>A pronunciation lexicon lets you change how Polly says particular words, such as company names, acronyms, foreign words, and new words. Examples are a stylized name, such as “P!nk,” an acronym, such as “ROTFL,” and a phrase like “C’est la vie” in a non-French voice.</li>
+    <li>For example, a lexicon can map the acronym AWS to “Amazon Web Services,” or a stylized spelling of a name to the name itself. You can also give the pronunciation with a phonetic alphabet.</li>
+    <li>You store a lexicon with the Polly API, and then you name it in the <code>SynthesizeSpeech</code> request. A lexicon is stored in an AWS Region and is used from that Region.</li>
+    <li>A lexicon is applied only if its language is the same as the language of the voice.</li>
+    <li>Limits: up to 100 lexicons in an account, a name of up to 20 alphanumeric characters, up to 40,000 characters in a lexicon, up to 100 characters in each replacement, and up to five lexicons in one request. A larger lexicon adds latency.</li>
+  </ul>
+
+  <h2>3.4 Speech Marks</h2>
+  <ul>
+    <li>Speech marks are metadata that Polly returns with the speech, so that your application can do speech-synchronized animation and karaoke-style highlighting.</li>
+    <li>There are four kinds: <strong>sentence</strong>, <strong>word</strong>, <strong>viseme</strong>, and <strong>ssml</strong>.</li>
+    <li>A word or a sentence mark tells you when it is spoken. A viseme mark describes the shape of the lips for a sound, which you can use to move an avatar’s mouth. An ssml mark follows an SSML element in the text.</li>
+    <li>Speech marks come as a JSON stream: standalone JSON objects, each on its own line. You request them with the <code>SpeechMarkTypes</code> parameter and the JSON output format.</li>
+    <li>Speech marks are not available with generative voices.</li>
+    <li>You are charged for a request for speech and for a request for speech marks. If you request 1,000 characters of speech and the speech marks for the same text, you pay for 2,000 characters.</li>
+  </ul>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Need</th><th scope="col">Use</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Pauses, speed, volume, and phonetic pronunciation in one text</strong></td><td>SSML</td></tr>
+      <tr><td><strong>A fixed pronunciation for a name or acronym everywhere</strong></td><td>A pronunciation lexicon</td></tr>
+      <tr><td><strong>Highlight each word as it is spoken</strong></td><td>Word speech marks</td></tr>
+      <tr><td><strong>Move an avatar’s mouth with the speech</strong></td><td>Viseme speech marks</td></tr>
+      </tbody>
+  </table></div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Speech marks are metadata, not audio, and you pay for them as a separate request. They do not work with generative voices. Also, many SSML tags, such as emphasis, whispering, and breathing sounds, work only with standard voices. A slide that lists them as Polly features can lead you to expect them on every engine.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>SSML shapes one request. A lexicon shapes every request. Speech marks tell you when each word is spoken.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Control pauses, speaking rate, and pitch”<br>→ SSML</p>
+    <p><strong>Trigger 2:</strong> “Pronounce a company name or an acronym the same way every time”<br>→ A pronunciation lexicon</p>
+    <p><strong>Trigger 3:</strong> “Highlight each word on screen as it is spoken”<br>→ Word speech marks</p>
+    <p><strong>Trigger 4:</strong> “Synchronize an avatar’s lip movements with the speech”<br>→ Viseme speech marks</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company’s name is pronounced wrongly in every announcement. The company wants to fix the pronunciation once for all requests, in the same Region, with no change to the text. Which solution meets the requirement?</p>
+    <ol type="A">
+      <li>Create a pronunciation lexicon and name it in each SynthesizeSpeech request.</li>
+      <li>Add a speech mark of type word to each request.</li>
+      <li>Use the generative engine, which pronounces every name correctly.</li>
+      <li>Move the audio to Amazon S3.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> A pronunciation lexicon stores pronunciations that Polly applies when you name the lexicon in a request.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. A lexicon is made for fixed pronunciations.</td></tr>
+          <tr><td>B</td><td>Wrong. Speech marks describe timing. They do not change pronunciation.</td></tr>
+          <tr><td>C</td><td>Wrong. No engine guarantees every name, and generative does not support speech marks or all tags.</td></tr>
+          <tr><td>D</td><td>Wrong. Storage does not change how a word is spoken.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>3.5 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/supportedtags.html" target="_blank" rel="noopener">Supported SSML Tags</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/ssml.html" target="_blank" rel="noopener">Generating Speech From SSML Documents</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/managing-lexicons.html" target="_blank" rel="noopener">Managing Lexicons</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/speechmarks.html" target="_blank" rel="noopener">Speech Marks</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="ops" role="tabpanel" aria-labelledby="tab-4" tabindex="0">
+  <h1>4. Real-Time, Long Audio, and Streaming</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s phone line needs a spoken answer within a fraction of a second. The editorial team wants to turn 30-minute buying guides into audio files overnight. The new in-app assistant produces its answer one phrase at a time, and the product team wants the voice to start before the whole answer is ready.</p>
+    <p>A developer calls the real-time API with a full guide, and the request fails. Another asks why the audio of a long article is cut off after 10 minutes.</p>
+    <p>The architect must choose the right way to synthesize for each case.</p>
+    <p><strong>Your challenge:</strong> Choose the synthesis operation. Your answer should:</p>
+    <ul>
+      <li>Name the operation for phone answers, for long guides, and for the streaming assistant.</li>
+      <li>State the size limits of each.</li>
+      <li>Explain the failure and the cut-off.</li>
+      </ul>
+  </div>
+
+  <h2>4.1 Three Ways to Synthesize</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col"></th><th scope="col">SynthesizeSpeech</th><th scope="col">StartSpeechSynthesisTask</th><th scope="col">StartSpeechSynthesisStream</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Mode</strong></td><td>Real time. The audio comes back in the response.</td><td>Asynchronous. The audio is saved in Amazon S3.</td><td>Bidirectional stream. Text goes in while audio comes out.</td></tr>
+      <tr><td><strong>Text limit</strong></td><td>Up to 3,000 billed characters, or 6,000 characters in total.</td><td>Up to 100,000 billed characters, or 200,000 in total.</td><td>Up to 3,000 billed characters, or 6,000 in total, in each text event.</td></tr>
+      <tr><td><strong>Audio limit</strong></td><td>The audio stream is limited to 10 minutes. The rest is cut off.</td><td>Made for long audio files.</td><td>Streams as the text arrives.</td></tr>
+      <tr><td><strong>Engines</strong></td><td>All four.</td><td>All four.</td><td>Generative only.</td></tr>
+      <tr><td><strong>Speech marks</strong></td><td>Yes, except for generative.</td><td>Yes, except for generative.</td><td>No.</td></tr>
+      <tr><td><strong>Best for</strong></td><td>Short prompts and live answers.</td><td>Articles, books, and overnight jobs.</td><td>Conversational assistants.</td></tr>
+      </tbody>
+  </table></div>
+  <p>SSML tags are not counted as billed characters, and you can name up to five lexicons in a request or a task.</p>
+
+  <h2>4.2 Long Audio With a Synthesis Task</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 260" role="img" aria-labelledby="t4a d4a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t4a">An asynchronous speech synthesis task</title>
+      <desc id="d4a">An application sends a long text to StartSpeechSynthesisTask, with an Amazon S3 bucket for the output and an optional Amazon SNS topic. Amazon Polly synthesizes the speech as a task and saves the audio file in the S3 bucket. Polly can publish the task status to the SNS topic.</desc>
+      <defs><marker id="ar4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="30" width="190" height="80" rx="8" class="s-box"/>
+      <text x="110" y="62" text-anchor="middle" class="s-b">Long text</text>
+      <text x="110" y="86" text-anchor="middle" class="s-m">an article or a chapter</text>
+      <rect x="265" y="30" width="190" height="80" rx="8" class="s-hot"/>
+      <text x="360" y="62" text-anchor="middle" class="s-b">Polly synthesis task</text>
+      <text x="360" y="86" text-anchor="middle" class="s-m">runs asynchronously</text>
+      <rect x="515" y="30" width="190" height="80" rx="8" class="s-box"/>
+      <text x="610" y="62" text-anchor="middle" class="s-b">Audio file</text>
+      <text x="610" y="86" text-anchor="middle" class="s-m">saved in Amazon S3</text>
+      <rect x="265" y="160" width="190" height="70" rx="8" class="s-box"/>
+      <text x="360" y="188" text-anchor="middle" class="s-b">Amazon SNS topic</text>
+      <text x="360" y="210" text-anchor="middle" class="s-m">optional task status</text>
+      <line x1="207" y1="70" x2="263" y2="70" class="s-line" marker-end="url(#ar4a)"/>
+      <line x1="457" y1="70" x2="513" y2="70" class="s-line" marker-end="url(#ar4a)"/>
+      <line x1="360" y1="112" x2="360" y2="158" class="s-line" marker-end="url(#ar4a)"/>
+    </svg>
+    <figcaption>Image 4a — An asynchronous speech synthesis task. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>You call <code>StartSpeechSynthesisTask</code> with the text, the voice, the output format, and the name of an Amazon S3 bucket. You can add an S3 key prefix, and an Amazon SNS topic to receive status notifications.</li>
+    <li>Polly runs the task asynchronously and saves the audio file in your bucket.</li>
+    <li>You can check on a task with <code>GetSpeechSynthesisTask</code> and list tasks with <code>ListSpeechSynthesisTasks</code>. The task object is available for 72 hours.</li>
+    <li>The output format can be MP3, Ogg Vorbis, or PCM, or JSON for speech marks.</li>
+  </ul>
+
+  <h2>4.3 Bidirectional Streaming</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 230" role="img" aria-labelledby="t4b d4b" xmlns="http://www.w3.org/2000/svg">
+      <title id="t4b">Bidirectional streaming with the generative engine</title>
+      <desc id="d4b">An application sends text events to Amazon Polly over one stream, and Polly sends audio events back on the same stream at the same time, so the audio can start before all the text is known. This works only with generative voices.</desc>
+      <defs><marker id="ar4b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="55" width="200" height="110" rx="8" class="s-box"/>
+      <text x="115" y="100" text-anchor="middle" class="s-b">Your application</text>
+      <text x="115" y="124" text-anchor="middle" class="s-m">for example a</text>
+      <text x="115" y="142" text-anchor="middle" class="s-m">conversational assistant</text>
+      <rect x="480" y="55" width="230" height="110" rx="8" class="s-hot"/>
+      <text x="595" y="100" text-anchor="middle" class="s-b">Amazon Polly</text>
+      <text x="595" y="124" text-anchor="middle" class="s-m">generative voice</text>
+      <text x="595" y="142" text-anchor="middle" class="s-m">StartSpeechSynthesisStream</text>
+      <line x1="217" y1="85" x2="478" y2="85" class="s-line" marker-end="url(#ar4b)"/>
+      <text x="348" y="74" text-anchor="middle" class="s-m">text events</text>
+      <line x1="478" y1="135" x2="217" y2="135" class="s-line" marker-end="url(#ar4b)"/>
+      <text x="348" y="158" text-anchor="middle" class="s-m">audio events</text>
+    </svg>
+    <figcaption>Image 4b — Text events go in and audio events come back on one stream. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>Bidirectional streaming sends text to Polly and receives audio at the same time over one stream. It suits a conversational assistant that generates its answer in pieces.</li>
+    <li>It works only with generative voices, in a subset of the Regions that support them. It supports SSML and lexicons, but not speech marks.</li>
+    <li>Up to 8 concurrent stream requests are supported, and 8 requests per second can start a stream.</li>
+  </ul>
+
+  <h2>4.4 Audio Formats and Sampling Rates</h2>
+  <ul>
+    <li>Polly supports MP3, Ogg Vorbis, and raw PCM audio.</li>
+    <li>For MP3 and Ogg Vorbis, the sampling rates are 8, 16, 22.05, and 24 kHz. The default is 22.05 kHz for standard voices and 24 kHz for neural, long-form, and generative voices. For PCM, the rates are 8 and 16 kHz, with 16 kHz as the default.</li>
+    <li>Choose a rate that balances bandwidth and audio quality for your application.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>A single SynthesizeSpeech call is limited to 3,000 billed characters and 10 minutes of audio. For a long text, use an asynchronous synthesis task, or split the text. Also remember that streaming input and output together works only with the generative engine, and that a synthesis task writes its audio to Amazon S3, not to the response.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>A short answer is a call. A whole chapter is a task. A live conversation is a stream.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Convert an 80,000-character article to an audio file in Amazon S3”<br>→ StartSpeechSynthesisTask</p>
+    <p><strong>Trigger 2:</strong> “A short spoken prompt in real time”<br>→ SynthesizeSpeech</p>
+    <p><strong>Trigger 3:</strong> “Start speaking while the text is still being generated”<br>→ Bidirectional streaming with a generative voice</p>
+    <p><strong>Trigger 4:</strong> “Get a notification when a long audio task finishes”<br>→ An Amazon SNS topic on the synthesis task</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A publisher must convert 500 articles, each about 60,000 characters long, into MP3 files stored in Amazon S3, with no servers to manage. Which approach fits best?</p>
+    <ol type="A">
+      <li>Start an Amazon Polly asynchronous synthesis task for each article, with an S3 bucket for the output.</li>
+      <li>Call SynthesizeSpeech once for each article from an Amazon EC2 instance.</li>
+      <li>Use bidirectional streaming for every article.</li>
+      <li>Use Amazon Transcribe to produce the MP3 files.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> A synthesis task takes up to 100,000 billed characters and saves the audio file in Amazon S3. SynthesizeSpeech is limited to 3,000 billed characters.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. It is managed and made for long audio.</td></tr>
+          <tr><td>B</td><td>Wrong. The text is far above the limit of SynthesizeSpeech, and it needs servers.</td></tr>
+          <tr><td>C</td><td>Wrong. Streaming is for generative voices and conversational use, and it does not save files.</td></tr>
+          <tr><td>D</td><td>Wrong. Transcribe converts speech to text.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>4.5 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/API_SynthesizeSpeech.html" target="_blank" rel="noopener">SynthesizeSpeech API Reference</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/APIReference/API_StartSpeechSynthesisTask.html" target="_blank" rel="noopener">StartSpeechSynthesisTask API Reference</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/limits.html" target="_blank" rel="noopener">Quotas in Amazon Polly</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="arch" role="tabpanel" aria-labelledby="tab-5" tabindex="0">
+  <h1>5. Architecture, Security, and Cost</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart wants three things: audio for every new buying guide as soon as it is published, a voice for its phone menu that answers callers, and a way to keep the cost of the same prompts from growing with every call.</p>
+    <p>A launch campaign pushes the number of simultaneous requests above what Polly allowed, and some requests failed with a throttling error. The security team asks who can use Polly and what AWS does with the text. The finance team asks how Polly is billed.</p>
+    <p>The architect must draw the designs and answer both teams.</p>
+    <p><strong>Your challenge:</strong> Design the solution. Your answer should:</p>
+    <ul>
+      <li>Show how a new article becomes an audio file, and how a phone call is answered.</li>
+      <li>Explain how to avoid throttling and how to keep cost down.</li>
+      <li>Describe access control, privacy, and billing.</li>
+      </ul>
+  </div>
+
+  <h2>5.1 A Pipeline for New Articles</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 300" role="img" aria-labelledby="t5a d5a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t5a">A pipeline that turns new articles into audio</title>
+      <desc id="d5a">A new article is saved to Amazon S3. An S3 event starts an AWS Lambda function, which starts an Amazon Polly synthesis task. Polly saves the audio file in an S3 bucket and publishes the task status to an Amazon SNS topic. A website serves the audio file through Amazon CloudFront.</desc>
+      <defs><marker id="ar5a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="10" y="30" width="110" height="70" rx="8" class="s-box"/>
+      <text x="65" y="58" text-anchor="middle" class="s-b">New article</text>
+      <text x="65" y="80" text-anchor="middle" class="s-m">saved to S3</text>
+      <rect x="150" y="30" width="115" height="70" rx="8" class="s-box"/>
+      <text x="207" y="58" text-anchor="middle" class="s-b">AWS Lambda</text>
+      <text x="207" y="80" text-anchor="middle" class="s-m">starts the task</text>
+      <rect x="300" y="30" width="190" height="70" rx="8" class="s-hot"/>
+      <text x="395" y="58" text-anchor="middle" class="s-b">Amazon Polly</text>
+      <text x="395" y="80" text-anchor="middle" class="s-m">synthesis task</text>
+      <rect x="525" y="30" width="185" height="70" rx="8" class="s-box"/>
+      <text x="617" y="58" text-anchor="middle" class="s-b">Amazon S3</text>
+      <text x="617" y="80" text-anchor="middle" class="s-m">audio file saved</text>
+      <rect x="525" y="190" width="185" height="70" rx="8" class="s-box"/>
+      <text x="617" y="218" text-anchor="middle" class="s-b">Amazon CloudFront</text>
+      <text x="617" y="240" text-anchor="middle" class="s-m">serves the audio</text>
+      <rect x="300" y="190" width="190" height="70" rx="8" class="s-box"/>
+      <text x="395" y="218" text-anchor="middle" class="s-b">Amazon SNS</text>
+      <text x="395" y="240" text-anchor="middle" class="s-m">task status</text>
+      <line x1="122" y1="65" x2="148" y2="65" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="267" y1="65" x2="298" y2="65" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="492" y1="65" x2="523" y2="65" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="617" y1="102" x2="617" y2="188" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="395" y1="102" x2="395" y2="188" class="s-line" marker-end="url(#ar5a)"/>
+    </svg>
+    <figcaption>Image 5a — A new article is turned into an audio file. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ol>
+    <li>A new article is saved to an Amazon S3 bucket.</li>
+    <li>The upload event starts an AWS Lambda function, which starts a Polly synthesis task with an output bucket and an SNS topic.</li>
+    <li>Polly saves the audio file in S3 and publishes the status to the SNS topic.</li>
+    <li>The website serves the audio file through Amazon CloudFront, so that listeners get it fast.</li>
+  </ol>
+  <p>The same design can feed audio to a mobile app, or add a spoken version to a newsletter.</p>
+
+  <h2>5.2 Voice Menus and Voice Assistants</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 210" role="img" aria-labelledby="t5b d5b" xmlns="http://www.w3.org/2000/svg">
+      <title id="t5b">A voice menu with Amazon Connect, Amazon Lex, and Amazon Polly</title>
+      <desc id="d5b">A caller speaks to an Amazon Connect contact center. Amazon Lex understands what the caller wants. Amazon Polly speaks the answer back to the caller.</desc>
+      <defs><marker id="ar5b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="10" y="50" width="120" height="90" rx="8" class="s-box"/>
+      <text x="70" y="88" text-anchor="middle" class="s-b">Caller</text>
+      <text x="70" y="112" text-anchor="middle" class="s-m">phone call</text>
+      <rect x="165" y="50" width="150" height="90" rx="8" class="s-box"/>
+      <text x="240" y="88" text-anchor="middle" class="s-b">Amazon Connect</text>
+      <text x="240" y="112" text-anchor="middle" class="s-m">contact center</text>
+      <rect x="350" y="50" width="150" height="90" rx="8" class="s-hot"/>
+      <text x="425" y="88" text-anchor="middle" class="s-b">Amazon Lex</text>
+      <text x="425" y="112" text-anchor="middle" class="s-m">understands</text>
+      <rect x="535" y="50" width="175" height="90" rx="8" class="s-hot"/>
+      <text x="622" y="88" text-anchor="middle" class="s-b">Amazon Polly</text>
+      <text x="622" y="112" text-anchor="middle" class="s-m">speaks the answer</text>
+      <line x1="132" y1="95" x2="163" y2="95" class="s-line" marker-end="url(#ar5b)"/>
+      <line x1="317" y1="95" x2="348" y2="95" class="s-line" marker-end="url(#ar5b)"/>
+      <line x1="502" y1="95" x2="533" y2="95" class="s-line" marker-end="url(#ar5b)"/>
+      <text x="360" y="180" text-anchor="middle" class="s-m">Amazon Lex is the topic of Lesson 299.7.</text>
+    </svg>
+    <figcaption>Image 5b — A caller, Amazon Connect, Amazon Lex, and Amazon Polly. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>With Amazon Lex, you can build voice user interfaces. With Amazon Connect, Polly speech is used for cloud-based self-service contact centers.</li>
+    <li>Polly can also voice IVR systems, announcement systems, and IoT devices.</li>
+    <li>Polly can chain with other services: Amazon Transcribe, Amazon Translate, and Polly together let a person speak in one language and hear another (Lesson 299.5).</li>
+  </ul>
+
+  <h2>5.3 Throttling and Scaling</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Operation</th><th scope="col">Default limit</th></tr></thead>
+    <tbody>
+      <tr><td><strong><code>SynthesizeSpeech</code> with standard voices</strong></td><td>80 requests per second, with a burst of 100, and up to 80 concurrent requests.</td></tr>
+      <tr><td><strong><code>SynthesizeSpeech</code> with neural or long-form voices</strong></td><td>8 requests per second, with a burst of 10. Neural allows up to 18 concurrent requests, and long-form up to 26.</td></tr>
+      <tr><td><strong><code>SynthesizeSpeech</code> with generative voices</strong></td><td>8 requests per second, and up to 26 concurrent requests.</td></tr>
+      <tr><td><strong><code>StartSpeechSynthesisTask</code></strong></td><td>10 requests per second for standard and neural voices, and 1 per second for long-form and generative voices.</td></tr>
+      <tr><td><strong><code>StartSpeechSynthesisStream</code></strong></td><td>8 requests per second, and up to 8 concurrent requests.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>Excess requests are rejected with an HTTP 400 status and a <code>ThrottlingException</code> header.</li>
+    <li>Retry throttled requests with exponential backoff and jitter, which spreads the load over a short time.</li>
+    <li>Use the Amazon Polly metrics in Amazon CloudWatch to analyze usage and forecast growth.</li>
+    <li>You can ask for an increase of the adjustable quotas in the console. First calculate the requests per second that you need. Playing the audio takes seconds, which lowers the rate of calls.</li>
+    <li>The best way to avoid throttling is to not call Polly at all for repeated content: cache the audio.</li>
+  </ul>
+
+  <h2>5.4 Security and Data Privacy</h2>
+  <ul>
+    <li>Use AWS Identity and Access Management (IAM) policies and roles to control who can call Polly and who can read the audio in Amazon S3.</li>
+    <li>AWS says that it protects content with encryption at rest and in transit, and that only authorized employees can access it.</li>
+    <li>Polly may store and use the text that it processes to provide the service and, unless you opt out, to improve Polly and other Amazon AI technologies. To opt out, use an AWS Organizations AI services opt-out policy.</li>
+    <li>Content is stored at rest in the Region where you use Polly, and a portion may be stored in another Region for improvement of the service unless you opt out.</li>
+    <li>You own your content and the audio that Polly creates from it.</li>
+    <li>Polly is a HIPAA eligible service under the AWS Business Associate Addendum, and with that in place PHI is handled as the addendum says.</li>
+  </ul>
+
+  <h2>5.5 The Cost Model</h2>
+  <ul>
+    <li>You pay for the number of characters that you send, and the price depends on the engine. Check the pricing page for current rates and the free tier.</li>
+    <li>SSML tags are not billed as characters.</li>
+    <li>A request for speech marks is billed separately, so speech and speech marks for the same text cost twice the characters.</li>
+    <li>Caching and replaying speech costs nothing extra, so synthesize fixed prompts once and store the audio.</li>
+    <li>Choose the cheapest engine that meets the quality need. Use standard for short prompts, and use the premium engines where their quality matters.</li>
+    <li>Brand Voice is a custom engagement. Its cost depends on the goals, so contact your AWS account manager.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Do not synthesize the same fixed prompt for every call. Caching costs nothing and avoids throttling. Also remember that neural, long-form, and generative engines have much lower default request rates than standard, so a traffic spike hits them first. Polly may store and use your text to improve the service unless you opt out with an AWS Organizations policy.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Synthesize once, store, and replay.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Reduce the cost of repeated spoken prompts”<br>→ Cache the Polly audio in Amazon S3 and replay it</p>
+    <p><strong>Trigger 2:</strong> “Throttling errors on Polly requests”<br>→ Retry with exponential backoff and jitter, cache audio, and request a quota increase</p>
+    <p><strong>Trigger 3:</strong> “Voice a self-service phone menu”<br>→ Amazon Connect and Amazon Lex with Amazon Polly</p>
+    <p><strong>Trigger 4:</strong> “Stop AWS from using text to improve its services”<br>→ An AWS Organizations AI services opt-out policy</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company plays the same 40 prompts to millions of callers, and the Polly bill and throttling errors keep growing. Which change fixes both with the least effort?</p>
+    <ol type="A">
+      <li>Synthesize each prompt once, store the audio in Amazon S3, and play the stored files.</li>
+      <li>Move to the generative engine for every prompt.</li>
+      <li>Ask callers to speak more slowly.</li>
+      <li>Add a speech mark request to every call.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Caching and replaying Polly audio costs nothing extra, and it removes the repeated requests that cause the cost and the throttling.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. Synthesize once and reuse.</td></tr>
+          <tr><td>B</td><td>Wrong. Generative voices cost more and have lower default request rates.</td></tr>
+          <tr><td>C</td><td>Wrong. The caller’s speed has no effect on Polly calls.</td></tr>
+          <tr><td>D</td><td>Wrong. Speech marks add a separate charge.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>5.6 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/polly/latest/dg/limits.html" target="_blank" rel="noopener">Quotas in Amazon Polly</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/polly/faqs/" target="_blank" rel="noopener">Amazon Polly FAQs: Billing and Data Privacy</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_ai-opt-out.html" target="_blank" rel="noopener">Managing AI Services Opt-Out Policies</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/polly/pricing/" target="_blank" rel="noopener">Amazon Polly Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="comparison" role="tabpanel" aria-labelledby="tab-6" tabindex="0">
+  <h1>6. Comparison and Scenarios</h1>
+
+  <h2>6.1 Choosing Between AWS AI Services</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">If you need to</th><th scope="col">Use</th><th scope="col">What it does</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Convert text to speech</strong></td><td>Amazon Polly</td><td>Lifelike speech from text, in many voices and languages.</td></tr>
+      <tr><td><strong>Convert speech to text</strong></td><td>Amazon Transcribe</td><td>Automatic speech recognition for recorded and live audio.</td></tr>
+      <tr><td><strong>Translate text</strong></td><td>Amazon Translate</td><td>Neural machine translation between supported languages.</td></tr>
+      <tr><td><strong>Understand text</strong></td><td>Amazon Comprehend</td><td>Language, entities, key phrases, and sentiment.</td></tr>
+      <tr><td><strong>Build a chatbot with voice and text</strong></td><td>Amazon Lex</td><td>Conversational interfaces. It is the topic of the next lesson.</td></tr>
+      <tr><td><strong>Run a cloud contact center</strong></td><td>Amazon Connect</td><td>A contact center that uses Polly and Lex for voice.</td></tr>
+      </tbody>
+  </table></div>
+  <p>These services chain well: Transcribe turns speech into text, Translate converts it, Comprehend analyzes it, and Polly speaks the result.</p>
+
+  <h2>6.2 Polly Options Compared</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Option</th><th scope="col">Best for</th><th scope="col">Remember</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Standard engine</strong></td><td>Short prompts at the lowest cost.</td><td>Widest Regions. All SSML tags except newscaster.</td></tr>
+      <tr><td><strong>Neural engine</strong></td><td>Natural speech.</td><td>Speech marks. Newscaster on select voices.</td></tr>
+      <tr><td><strong>Long-form engine</strong></td><td>Long narration.</td><td>US East (N. Virginia) only.</td></tr>
+      <tr><td><strong>Generative engine</strong></td><td>The most expressive voice.</td><td>No speech marks. Streaming input and output.</td></tr>
+      <tr><td><strong>SSML</strong></td><td>Pauses, rate, pitch, and pronunciation in one request.</td><td>Tag support differs by engine.</td></tr>
+      <tr><td><strong>Lexicon</strong></td><td>Fixed pronunciations for all requests.</td><td>Up to five in a request.</td></tr>
+      <tr><td><strong>Speech marks</strong></td><td>Highlighting and lip sync.</td><td>Billed as a separate request.</td></tr>
+      <tr><td><strong>Synthesis task</strong></td><td>Long audio saved in Amazon S3.</td><td>Up to 100,000 billed characters.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">#</th><th scope="col">If the question says…</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Convert text to lifelike speech with no ML expertise</td><td>Amazon Polly</td></tr>
+      <tr><td>2</td><td>A short spoken prompt in real time</td><td><code>SynthesizeSpeech</code></td></tr>
+      <tr><td>3</td><td>An article of tens of thousands of characters saved as an audio file</td><td><code>StartSpeechSynthesisTask</code>, with an Amazon S3 bucket</td></tr>
+      <tr><td>4</td><td>Start speaking while the text is still being generated</td><td>Bidirectional streaming with a generative voice</td></tr>
+      <tr><td>5</td><td>Pronounce a company name or acronym the same way every time</td><td>A pronunciation lexicon</td></tr>
+      <tr><td>6</td><td>Add pauses, and change speed, pitch, and volume</td><td>SSML</td></tr>
+      <tr><td>7</td><td>Highlight each word on screen as it is spoken</td><td>Word speech marks</td></tr>
+      <tr><td>8</td><td>Move an avatar’s mouth with the speech</td><td>Viseme speech marks</td></tr>
+      <tr><td>9</td><td>Make a voice sound like a TV newscaster</td><td>The Newscaster style, on select neural voices</td></tr>
+      <tr><td>10</td><td>The most expressive, conversational voice</td><td>The generative engine</td></tr>
+      <tr><td>11</td><td>Narrate long articles and training</td><td>The long-form engine</td></tr>
+      <tr><td>12</td><td>A voice that only the company uses</td><td>Polly Brand Voice</td></tr>
+      <tr><td>13</td><td>Cut the cost of repeated prompts and avoid throttling</td><td>Cache the audio in Amazon S3 and replay it</td></tr>
+      <tr><td>14</td><td>Voice a self-service phone menu</td><td>Amazon Connect and Amazon Lex with Amazon Polly</td></tr>
+      <tr><td>15</td><td>Speech in one language, speech out in another</td><td>Amazon Transcribe, Amazon Translate, and Amazon Polly</td></tr>
+      <tr><td>16</td><td>Stop AWS from using text to improve its AI services</td><td>An AWS Organizations AI services opt-out policy</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.4 Scenario Practice</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Scenario</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>A bank plays 50 fixed prompts to millions of callers.</td><td>Synthesize each prompt once with the standard engine, store the audio, and replay it.</td></tr>
+      <tr><td>A publisher turns thousands of long articles into audio.</td><td>Asynchronous synthesis tasks that save to Amazon S3.</td></tr>
+      <tr><td>A language app highlights each word as it is read.</td><td>Word speech marks with a neural voice.</td></tr>
+      <tr><td>A virtual trainer needs a lively voice that streams its answer.</td><td>A generative voice with bidirectional streaming.</td></tr>
+      <tr><td>A company name is pronounced wrongly.</td><td>A pronunciation lexicon.</td></tr>
+      <tr><td>A news site wants a newscaster read-out in US English.</td><td>The Newscaster style on a neural voice such as Matthew or Joanna.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.5 Lesson Summary</h2>
+  <ul>
+    <li>Amazon Polly is a managed text-to-speech service in the AI services layer. You send text and get lifelike audio in MP3, Ogg Vorbis, or PCM, with no ML expertise. You can cache and reuse the audio at no extra cost.</li>
+    <li>Polly has four engines: standard, neural, long-form, and generative. They differ in quality, Regions, speech marks, the Newscaster style, and request rates. A request without an engine uses standard.</li>
+    <li>SSML controls pauses, rate, pitch, volume, and pronunciation, but tag support differs by engine: emphasis, whispering, and breathing sounds work only with standard voices. Lexicons fix pronunciations for all requests, and speech marks give word, sentence, viseme, and SSML timing.</li>
+    <li>SynthesizeSpeech handles up to 3,000 billed characters and 10 minutes of audio. A synthesis task handles up to 100,000 billed characters and saves to Amazon S3. Bidirectional streaming works with generative voices.</li>
+    <li>Polly pairs with Lex and Connect for voice menus, and with Transcribe and Translate for speech in one language and out in another. It may store and use your text to improve the service unless you opt out.</li>
+  </ul>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Pictures go to Rekognition. Documents go to Textract. Speech goes to Transcribe. Text goes to Comprehend, Translate, or Polly.</p>
+  </div>
+</section>
+
+<section class="panel" id="knowledge-check" role="tabpanel" aria-labelledby="tab-7" tabindex="0">
+  <h1>7. Knowledge Check</h1>
+  <p>Answer each question in your own words before you open the model answer.</p>
+  <ol class="kc-list">
+    <li>
+      <p class="q">Explain what Amazon Polly is, and why FlashCart can use it with no ML engineers.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Polly is a managed text-to-speech service. FlashCart sends text to the API and gets lifelike audio back as a stream or a file. AWS runs the deep learning models and the infrastructure, so no ML expertise is needed.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Which audio formats does Polly support, and what can you do with the audio?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Polly supports MP3, Ogg Vorbis, and raw PCM. You can play the audio in near real time, or save it as a file. You can cache and replay the speech at no additional cost, with no restriction on storing and reusing it, and you own the audio.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Name the four Polly engines and how they differ.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Standard concatenates recorded speech and has the widest Region coverage. Neural uses a neural network and a vocoder for more natural speech and supports the Newscaster style on select voices. Long-form is for long narration and is available only in US East (N. Virginia). Generative is the largest model and the most expressive, with streaming input and output, but it has no speech marks.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Why does a newscaster demo work with one voice and fail with another?</p>
+      <details><summary>Show the model answer</summary>
+        <p>The Newscaster style works only with the neural engine, for select voices: the US English voices Matthew and Joanna, the British English voice Amy, and the US Spanish voice Lupe. Other voices and engines do not support it.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What happens if a request names no engine, or an SSML tag that the engine does not support?</p>
+      <details><summary>Show the model answer</summary>
+        <p>A request without an engine uses the standard engine, and a voice that standard does not support causes an error. An SSML tag that the standard, neural, or long-form engine does not support also returns an error. For example, emphasis, whispering, and breathing sounds work only with standard voices.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What can SSML do, and what are some limits?</p>
+      <details><summary>Show the model answer</summary>
+        <p>SSML lets you add pauses, change the speaking rate, pitch, and volume, control how numbers and dates are spoken, and give phonetic pronunciations. Tags are not billed. Limits: the audio, lexicon, lookup, and voice tags are not supported, a break can last up to 10 seconds, and the prosody rate cannot go below minus 80 percent.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What is a pronunciation lexicon, and how do you use it?</p>
+      <details><summary>Show the model answer</summary>
+        <p>A lexicon changes how Polly says particular words, such as company names, acronyms, and foreign words. You store it with the Polly API in a Region, and you name it in the synthesis request, up to five in one request. It applies only if its language matches the voice. An account can have up to 100 lexicons.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What are speech marks, and what are their limits?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Speech marks are metadata that come back as a JSON stream with the speech. The four kinds are sentence, word, viseme, and ssml. They support highlighting and lip sync. They are billed as a separate request, so speech and marks for the same text cost twice the characters, and they are not available with generative voices.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Compare SynthesizeSpeech, a synthesis task, and bidirectional streaming.</p>
+      <details><summary>Show the model answer</summary>
+        <p>SynthesizeSpeech returns audio in the response, for up to 3,000 billed characters and 10 minutes of audio. A synthesis task is asynchronous, takes up to 100,000 billed characters, and saves the audio to Amazon S3, with an optional SNS topic. Bidirectional streaming sends text events and receives audio events at the same time, and it works only with generative voices.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Draw a pipeline that turns each new article into an audio file.</p>
+      <details><summary>Show the model answer</summary>
+        <p>An article is saved to Amazon S3. An S3 event starts a Lambda function, which starts a Polly synthesis task with an output bucket and an SNS topic. Polly saves the audio in S3 and publishes the status. The website serves the audio through Amazon CloudFront.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How do you stop throttling and control cost for repeated prompts?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Synthesize each fixed prompt once, store the audio, and replay it, because caching costs nothing extra. Retry throttled requests with exponential backoff and jitter, watch the Polly metrics in CloudWatch, and ask for a quota increase if needed. Standard allows 80 requests per second, while neural, long-form, and generative allow 8.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What does AWS do with the text that Polly processes, and how can an organization opt out?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Polly may store and use text inputs to provide the service and, unless you opt out, to improve Polly and other Amazon AI technologies. You own your content and the audio. To opt out, use an AWS Organizations AI services opt-out policy. Polly is HIPAA eligible under the AWS Business Associate Addendum.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How is Polly billed?</p>
+      <details><summary>Show the model answer</summary>
+        <p>You pay for the characters that you send, and the price depends on the engine. SSML tags are not billed. Speech marks are billed as a separate request. Caching and replaying audio is free, and Brand Voice is a custom engagement priced by scope.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How does Polly work with Lex, Connect, Transcribe, and Translate?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Lex builds the voice interface, and Connect uses Polly speech for self-service contact centers. Transcribe, Translate, and Polly together turn speech in one language into speech in another: Transcribe makes text, Translate converts it, and Polly speaks it.</p>
+      </details>
+    </li>
+  </ol>
+</section>
+
+    <footer>
+      <p>Copyright © 2026 Per Scholas. All rights reserved.</p>
+      <p>Sources: AWS documentation and the Amazon Polly FAQs, paraphrased. The slide image is credited in its caption. Diagrams are original to this course.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  var panels = tabs.map(function (t) { return document.getElementById(t.getAttribute('aria-controls')); });
+  var live = document.getElementById('live');
+  var current = 0;
+
+  function label(i) { return tabs[i].textContent.trim(); }
+
+  function show(i, opts) {
+    opts = opts || {};
+    if (i < 0 || i >= tabs.length) { return; }
+    current = i;
+    tabs.forEach(function (t, k) {
+      var on = k === i;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.setAttribute('tabindex', on ? '0' : '-1');
+      panels[k].classList.toggle('active', on);
+    });
+    if (!opts.keepScroll) { window.scrollTo(0, 0); }
+    if (opts.focusTab) { tabs[i].focus(); }
+    if (opts.focusHeading) {
+      var h = panels[i].querySelector('h1');
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    }
+    if (opts.updateHash) {
+      try { history.replaceState(null, '', '#' + panels[i].id); } catch (e) {}
+    }
+    if (live) {
+      live.textContent = '';
+      setTimeout(function () { live.textContent = 'Tab ' + (i + 1) + ' of ' + tabs.length + ': ' + label(i); }, 50);
+    }
+  }
+
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { show(i, { updateHash: true }); });
+    t.addEventListener('keydown', function (e) {
+      var n = null;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { n = (i + 1) % tabs.length; }
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { n = (i - 1 + tabs.length) % tabs.length; }
+      else if (e.key === 'Home') { n = 0; }
+      else if (e.key === 'End') { n = tabs.length - 1; }
+      if (n !== null) { e.preventDefault(); show(n, { focusTab: true, updateHash: true, keepScroll: true }); }
+    });
+  });
+
+  panels.forEach(function (p, i) {
+    var nav = document.createElement('div');
+    nav.className = 'panel-nav';
+    var prev = document.createElement('button');
+    var next = document.createElement('button');
+    prev.type = 'button'; next.type = 'button';
+    if (i > 0) {
+      prev.textContent = '\u2190 Previous: ' + label(i - 1);
+      prev.addEventListener('click', function () { show(i - 1, { updateHash: true, focusHeading: true }); });
+    } else { prev.style.visibility = 'hidden'; prev.setAttribute('aria-hidden', 'true'); prev.tabIndex = -1; }
+    if (i < panels.length - 1) {
+      next.textContent = 'Next: ' + label(i + 1) + ' \u2192';
+      next.addEventListener('click', function () { show(i + 1, { updateHash: true, focusHeading: true }); });
+    } else { next.style.visibility = 'hidden'; next.setAttribute('aria-hidden', 'true'); next.tabIndex = -1; }
+    nav.appendChild(prev); nav.appendChild(next);
+    p.appendChild(nav);
+  });
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) { return; }
+    var id = a.getAttribute('href').slice(1);
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { e.preventDefault(); show(idx, { updateHash: true, focusHeading: true }); }
+  });
+
+  function fromHash() {
+    var id = window.location.hash.replace('#', '');
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { show(idx, { keepScroll: true }); }
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+</body>
+</html>

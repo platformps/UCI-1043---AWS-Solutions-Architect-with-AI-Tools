@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 299.3 - Amazon Comprehend</title>
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: light;
+    --page-bg: #ffffff;
+    --text: #1c2733;
+    --muted: #4f5b67;
+    --rule: #d5dce3;
+    --card: #f4f7fa;
+    --card-border: #ccd3da;
+    --hover: #ccd3da;
+    --h1: #611940;
+    --h3: #7a2455;
+    --link: #611940;
+    --code-bg: #f5f7f9;
+    --table-alt: #f6f8fa;
+    --problem-bg: #ffeef7;
+    --problem-bar: #611940;
+    --warn-bg: #fdf3e7;
+    --warn-bar: #c26a00;
+    --exam-bg: #eaf6ee;
+    --exam-bar: #2e7d4f;
+    --tip-bg: #e5fe77;
+    --tip-bar: #7a8f00;
+    --q-bg: #f7eef3;
+    --q-border: #611940;
+    --svg-box: #f7eef3;
+    --svg-stroke: #611940;
+    --svg-hot: #d9f6fd;
+    --svg-hot-stroke: #611940;
+    --focus: #611940;
+    --h2: #000000;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+      --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+      --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+      --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+      --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+      --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+      --focus: #71e2fd;
+      --h2: #ffffff;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+    --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+    --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+    --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+    --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+    --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+    --focus: #71e2fd;
+    --h2: #ffffff;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+  *, *::before, *::after { box-sizing: inherit; line-height: 1.5; }
+  body {
+    margin: 0; background: var(--page-bg); color: var(--text);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 17px;
+  }
+  .layout { display: flex; align-items: flex-start; max-width: 1280px; margin: 0 auto; padding: 28px 20px 60px; }
+  .side-wrap { width: 270px; flex: none; margin-right: 28px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); overflow-y: auto; }
+  .sidebar { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px; }
+  .tab-btn {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    border-left: 5px solid transparent; border-radius: 6px; padding: 10px 12px; margin: 0 0 2px;
+    font: inherit; font-size: 15px; color: var(--text); cursor: pointer;
+  }
+  .tab-btn:hover { background: var(--hover); }
+  .tab-btn[aria-selected="true"] { background: #611940; color: #ffffff; font-weight: 700; border-left-color: #71E2FD; }
+  .tab-btn:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible, .panel:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .content { flex: 1; min-width: 0; max-width: 900px; }
+  .brand { display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; margin: 0 0 14px; }
+  .brand img { display: block; width: 230px; max-width: 100%; height: auto; }
+  .page-title { color: var(--h2); font-size: 2.8rem; font-weight: 700; margin: 0 0 8px; }
+  .page-sub { color: var(--muted); font-size: 1.05rem; margin: 0 0 26px; max-width: 70ch; }
+  .js .panel { display: none; }
+  .js .panel.active { display: block; }
+  .panel { margin-bottom: 40px; }
+  .js .panel { margin-bottom: 0; }
+  .panel h1 { color: var(--h1); font-size: 2.35rem; font-weight: 700; margin: 6px 0 12px; }
+  h2 { color: var(--h2); font-size: 35px; font-weight: 700; margin: 34px 0 10px; }
+  h3 { color: var(--h3); font-size: 1.45rem; font-weight: 700; margin: 24px 0 8px; }
+  h4 { color: var(--h3); font-size: 1.15rem; font-weight: 700; margin: 18px 0 6px; }
+  p { margin: 0 0 14px; max-width: 76ch; }
+  ul, ol { margin: 0 0 16px; padding-left: 26px; max-width: 76ch; }
+  li { margin-bottom: 6px; }
+  a { color: var(--link); }
+  code { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 0.88em; }
+  pre.flowcode { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 14.5px; overflow-x: auto; margin: 6px 0 18px; white-space: pre; }
+  .table-scroll { overflow-x: auto; margin: 6px 0 22px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15.5px; }
+  th, td { border: 1px solid var(--rule); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #611940; color: #ffffff; font-weight: 600; border-color: #611940; }
+  tbody tr:nth-child(even) { background: var(--table-alt); }
+  .wide table { min-width: 860px; }
+  .callout { border-left: 5px solid; border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 22px 0; max-width: 880px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .label { font-weight: 700; display: block; margin-bottom: 6px; }
+  .tip { background: var(--tip-bg); border-color: var(--tip-bar); color: #1c2733; }
+  .tip a { color: #611940; }
+  .warn { background: var(--warn-bg); border-color: var(--warn-bar); }
+  .exam { background: var(--exam-bg); border-color: var(--exam-bar); }
+  .problem { border-left: 6px solid var(--problem-bar); background: var(--problem-bg); border-radius: 0 12px 12px 0; padding: 22px 25px; margin: 28px 0; }
+  .problem h2.ps-heading { font-size: 1.35rem; margin: 0 0 8px; }
+  .problem p:last-child { margin-bottom: 0; }
+  .overview-box { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 24px 14px; margin: 0 0 24px; }
+  .overview-box h2 { margin-top: 20px; }
+  figure.diagram { margin: 14px 0 26px; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 14px 8px; overflow-x: auto; background: var(--card); }
+  figure.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
+  figure.diagram figcaption { color: var(--muted); font-size: 14.5px; padding: 8px 4px 6px; }
+  .s-box { fill: var(--svg-box); stroke: var(--svg-stroke); stroke-width: 1.5; }
+  .s-hot { fill: var(--svg-hot); stroke: var(--svg-hot-stroke); stroke-width: 1.5; }
+  .s-line { stroke: var(--svg-stroke); stroke-width: 2; fill: none; }
+  .s-mark { fill: var(--svg-stroke); }
+  .s-t { fill: var(--text); font-size: 14.5px; }
+  .s-b { fill: var(--text); font-size: 15px; font-weight: 700; }
+  .s-m { fill: var(--muted); font-size: 13.5px; }
+  .exam-question { background: var(--q-bg); border: 2px solid var(--q-border); border-radius: 8px; padding: 16px 22px; margin: 22px 0; max-width: 880px; }
+  .exam-question .label { font-weight: 700; margin-bottom: 2px; }
+  .exam-question .note { color: var(--muted); font-size: 14.5px; }
+  .exam-question details { border-top: 1px solid var(--rule); margin-top: 12px; padding-top: 10px; }
+  .exam-question summary, .kc-list summary { cursor: pointer; font-weight: 700; color: var(--link); }
+  .lab-box { border: 2px dashed #333333; background: #fdf3d7; color: #1c2733; border-radius: 4px; padding: 20px 24px 18px; margin: 30px 0 0; max-width: 880px; }
+  .lab-box .lab-title { text-align: center; color: #611940; font-size: 1.9rem; font-weight: 700; margin: 0 0 16px; }
+  .lab-box .lab-sub { color: #611940; font-weight: 700; font-size: 1.2rem; margin: 0 0 6px; }
+  .lab-box a.lab-link { color: #611940; font-weight: 700; text-decoration: underline; }
+  .lab-expect { border: 1.5px solid #333333; background: #ffffff; color: #1c2733; border-radius: 4px; padding: 14px 24px; margin: 0 0 26px; max-width: 880px; }
+  .lab-expect p:last-child { margin-bottom: 0; }
+  .lab-expect a { color: #611940; font-weight: 700; }
+  .resources ul { list-style: none; padding-left: 0; }
+  .rtype { display: inline-block; font-size: 13px; font-weight: 700; color: #ffffff; background: #611940; border-radius: 4px; padding: 1px 8px; margin-right: 8px; }
+  .kc-list { list-style: none; padding-left: 0; max-width: none; counter-reset: kc; }
+  .kc-list > li { counter-increment: kc; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px; margin-bottom: 14px; }
+  .kc-list .q { font-weight: 600; margin-bottom: 8px; }
+  .kc-list .q::before { content: "Question " counter(kc) ". "; color: var(--h1); }
+  .kc-list details { background: var(--exam-bg); border-left: 4px solid var(--exam-bar); border-radius: 0 6px 6px 0; padding: 10px 14px; }
+  .kc-list details p:first-of-type { margin-top: 10px; }
+  .panel-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .panel-nav button { background: var(--card); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 16px; font: inherit; font-size: 15px; font-weight: 600; color: var(--link); cursor: pointer; max-width: 48%; text-align: left; }
+  .panel-nav button:hover { background: var(--hover); }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 2px solid var(--rule); color: var(--muted); font-size: 14.5px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 900px) {
+    .layout { display: block; padding: 16px 14px 50px; }
+    .side-wrap { width: 100%; margin: 0 0 24px; position: static; max-height: none; overflow: visible; }
+    .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .tab-btn { margin: 0; }
+    h2 { font-size: 1.4rem; }
+    .page-title { font-size: 2.15rem; }
+    .panel h1 { font-size: 1.85rem; }
+    h3 { font-size: 1.28rem; }
+  }
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .sidebar { grid-template-columns: 1fr; }
+    .lab-box { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="side-wrap" aria-label="Lesson navigation">
+    <div class="sidebar" role="tablist" aria-orientation="vertical" aria-label="Lesson tabs">
+      <button class="tab-btn" role="tab" id="tab-0" aria-controls="overview" aria-selected="true" tabindex="0">Overview and Objectives</button>
+      <button class="tab-btn" role="tab" id="tab-1" aria-controls="intro" aria-selected="false" tabindex="-1">1. Introduction to Amazon Comprehend</button>
+      <button class="tab-btn" role="tab" id="tab-2" aria-controls="insights" aria-selected="false" tabindex="-1">2. Built-In Text Analysis</button>
+      <button class="tab-btn" role="tab" id="tab-3" aria-controls="custom" aria-selected="false" tabindex="-1">3. Custom Models, PII, and Toxicity</button>
+      <button class="tab-btn" role="tab" id="tab-4" aria-controls="arch" aria-selected="false" tabindex="-1">4. Architecture, Security, and Cost</button>
+      <button class="tab-btn" role="tab" id="tab-5" aria-controls="comparison" aria-selected="false" tabindex="-1">5. Comparison and Scenarios</button>
+      <button class="tab-btn" role="tab" id="tab-6" aria-controls="knowledge-check" aria-selected="false" tabindex="-1">6. Knowledge Check</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo." width="230" height="33"></div>
+    <h1 class="page-title" style="border:none;padding:0;">Amazon Comprehend</h1>
+    <p class="page-sub">How Amazon Comprehend finds meaning in text: language, entities, key phrases, sentiment, custom models, personal data and toxicity, and the architecture, security, and cost of a text analysis pipeline.</p>
+    <div class="sr-only" id="live" aria-live="polite"></div>
+
+<section class="panel active" id="overview" role="tabpanel" aria-labelledby="tab-0" tabindex="0">
+
+  <div class="overview-box">
+    <h2>Lesson Overview</h2>
+    <p>Amazon Comprehend is a managed natural language processing (NLP) service. It uses machine learning (ML) to find meaning and insights in text: the language, the people, places, and brands that are mentioned, the key phrases, and whether the writer is positive or negative. You call it through an application programming interface (API), so you need no NLP expertise. This lesson follows FlashCart Inc., a fictional online marketplace that gets thousands of customer reviews, support emails, and chat messages every day. In this lesson, you will study:</p>
+    <ul>
+      <li><strong>Introduction to Amazon Comprehend:</strong> what the service does, how you call it, the languages it supports, and common use cases.</li>
+      <li><strong>Built-In Text Analysis:</strong> language detection, entities, key phrases, sentiment, targeted sentiment, and syntax.</li>
+      <li><strong>Custom Models, PII, and Toxicity:</strong> custom classification, custom entity recognition, personally identifiable information (PII) detection and redaction, and toxicity detection.</li>
+      <li><strong>Architecture, Security, and Cost:</strong> real-time, batch, and asynchronous processing, an event-driven pipeline, throttling, access control, data privacy, and the pricing model.</li>
+      <li><strong>Comparison and Scenarios:</strong> how Comprehend compares with other AWS AI services, and an SAA-C03 cheat sheet.</li>
+      <li><strong>Knowledge Check:</strong> open-ended questions with model answers.</li>
+    </ul>
+  </div>
+
+  <div class="overview-box">
+    <h2>Learning Objectives</h2>
+    <p>At the end of this lesson, learners will be able to:</p>
+    <ol>
+      <li>Define Amazon Comprehend and NLP, and state where Comprehend fits in the AWS AI layers.</li>
+      <li>Describe the languages that Comprehend supports, and how Amazon Translate extends them.</li>
+      <li>Explain how confidence scores help you interpret Comprehend results.</li>
+      <li>Apply language detection, entity recognition, key phrase extraction, sentiment analysis, targeted sentiment, and syntax analysis to a text analysis need.</li>
+      <li>Differentiate custom classification from custom entity recognition, and describe how a custom model is trained and used.</li>
+      <li>Choose PII detection and redaction or toxicity detection for a privacy or moderation need.</li>
+      <li>Choose between real-time, batch, and asynchronous processing for a workload.</li>
+      <li>Design an event-driven text analysis pipeline that addresses security, privacy, throttling, and cost.</li>
+    </ol>
+  </div>
+
+  <div class="overview-box">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#intro">Introduction to Amazon Comprehend</a></li>
+      <li><a href="#insights">Built-In Text Analysis</a></li>
+      <li><a href="#custom">Custom Models, PII, and Toxicity</a></li>
+      <li><a href="#arch">Architecture, Security, and Cost</a></li>
+      <li><a href="#comparison">Comparison and Scenarios</a></li>
+      <li><a href="#knowledge-check">Knowledge Check</a></li>
+    </ol>
+  </div>
+</section>
+
+<section class="panel" id="intro" role="tabpanel" aria-labelledby="tab-1" tabindex="0">
+  <h1>1. Introduction to Amazon Comprehend</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart Inc. gets thousands of product reviews, support emails, and social media posts every day. Two analysts read a small sample and write a weekly summary, so the company hears about a problem with a product days after customers start complaining.</p>
+    <p>The engineering manager wants every message analyzed as it arrives: which language it is in, which products and places it mentions, whether the customer is happy, and what the main points are. The team has no machine learning or NLP engineers.</p>
+    <p>She also asks which languages the service can read, because FlashCart sells in several countries.</p>
+    <p><strong>Your challenge:</strong> Advise the manager. Your answer should:</p>
+    <ul>
+      <li>Explain what Comprehend does and why it needs no NLP expertise.</li>
+      <li>Name the insights that it returns, and how to judge whether to trust a result.</li>
+      <li>Say which languages it supports and what to do for other languages.</li>
+      </ul>
+  </div>
+
+  <h2>1.1 What Amazon Comprehend Is</h2>
+  <ul>
+    <li>Amazon Comprehend is a natural language processing (NLP) service that uses machine learning to find meaning and insights in text.</li>
+    <li>NLP is a way for computers to analyze, understand, and get meaning from text. It can extract important phrases, sentiment, syntax, key entities such as a brand, a date, a place, or a person, and the language of the text.</li>
+    <li>It is fully managed and continuously trained, so you do not manage scaling, code maintenance, or training data.</li>
+    <li>You call the Comprehend APIs and give the text, or the location of the source documents. The APIs return entities, key phrases, sentiment, and language in a JSON format.</li>
+    <li>It sits in the artificial intelligence (AI) services layer, with Amazon Rekognition and Amazon Textract, which you studied in Lessons 299.1 and 299.2.</li>
+  </ul>
+
+  <h2>1.2 Where the Text Comes From</h2>
+  <figure class="diagram">
+    <img src="data:image/webp;base64,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" alt="A diagram that shows five sources of text: Facebook, Twitter, Instagram, an email, and a document. Lines from all five sources lead to the Amazon Comprehend icon, with the label Analyse and extract." width="700" height="404" style="display:block;width:100%;max-width:620px;height:auto;border:1px solid var(--rule);">
+    <figcaption>Image 1a — Text from social media, email, and documents goes into Amazon Comprehend. (Source: Chetan Agrawal.)</figcaption>
+  </figure>
+  <p>The source of the text can be web pages, social media feeds, emails, or articles. Comprehend reads data from Amazon Simple Storage Service (Amazon S3), and you can write the results to a storage service, a database, or a data warehouse.</p>
+
+  <h2>1.3 How You Call Comprehend</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 250" role="img" aria-labelledby="t1b d1b" xmlns="http://www.w3.org/2000/svg">
+      <title id="t1b">How an application calls Amazon Comprehend</title>
+      <desc id="d1b">An application sends text to Amazon Comprehend, which can read the text from an Amazon S3 bucket or take it in the request. Comprehend returns a JSON response with insights such as language, entities, key phrases, and sentiment, each with a confidence score.</desc>
+      <defs><marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="255" y="10" width="210" height="60" rx="8" class="s-box"/>
+      <text x="360" y="36" text-anchor="middle" class="s-b">Amazon S3 bucket</text>
+      <text x="360" y="58" text-anchor="middle" class="s-m">UTF-8 text files</text>
+      <rect x="15" y="110" width="170" height="90" rx="8" class="s-box"/>
+      <text x="100" y="150" text-anchor="middle" class="s-b">Your application</text>
+      <text x="100" y="174" text-anchor="middle" class="s-m">or AWS Lambda</text>
+      <rect x="255" y="110" width="210" height="90" rx="8" class="s-hot"/>
+      <text x="360" y="148" text-anchor="middle" class="s-b">Amazon Comprehend</text>
+      <text x="360" y="172" text-anchor="middle" class="s-m">pre-trained models</text>
+      <rect x="540" y="110" width="170" height="100" rx="8" class="s-box"/>
+      <text x="625" y="140" text-anchor="middle" class="s-b">JSON response</text>
+      <text x="625" y="164" text-anchor="middle" class="s-m">language, entities,</text>
+      <text x="625" y="182" text-anchor="middle" class="s-m">phrases, sentiment,</text>
+      <text x="625" y="200" text-anchor="middle" class="s-m">and confidence</text>
+      <line x1="187" y1="155" x2="253" y2="155" class="s-line" marker-end="url(#ar1)"/>
+      <text x="220" y="100" text-anchor="middle" class="s-m">request</text>
+      <line x1="467" y1="155" x2="538" y2="155" class="s-line" marker-end="url(#ar1)"/>
+      <line x1="360" y1="72" x2="360" y2="108" class="s-line" marker-end="url(#ar1)"/>
+      <text x="374" y="96" text-anchor="start" class="s-m">reads the text</text>
+      <text x="360" y="236" text-anchor="middle" class="s-m">A real-time call can also send the text in the request.</text>
+    </svg>
+    <figcaption>Image 1b — An application calls Amazon Comprehend with text. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>Comprehend analyzes text in UTF-8 format with its built-in models. It offers synchronous and asynchronous operations (tab 4).</li>
+    <li>Requests to the API and the console use a secure connection, and AWS Identity and Access Management (IAM) controls who can call each action.</li>
+    <li>For text analysis APIs, an HTTP status code of 200 means that the text was processed. If the text cannot be processed or goes over a service limit, you get an error code.</li>
+  </ul>
+
+  <h2>1.4 What Comprehend Can Do</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Capability</th><th scope="col">What it returns</th><th scope="col">Learn more</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Language detection</strong></td><td>The dominant language of the text, with a confidence score.</td><td>Section 2.1</td></tr>
+      <tr><td><strong>Entity recognition</strong></td><td>Named entities, such as people, places, organizations, and dates.</td><td>Section 2.2</td></tr>
+      <tr><td><strong>Key phrase extraction</strong></td><td>The key phrases or talking points.</td><td>Section 2.3</td></tr>
+      <tr><td><strong>Sentiment analysis</strong></td><td>Positive, negative, neutral, or mixed, for the whole text.</td><td>Section 2.4</td></tr>
+      <tr><td><strong>Targeted sentiment</strong></td><td>The sentiment toward each entity in the text.</td><td>Section 2.5</td></tr>
+      <tr><td><strong>Syntax analysis</strong></td><td>Word boundaries and parts of speech.</td><td>Section 2.6</td></tr>
+      <tr><td><strong>Custom classification</strong></td><td>Your own labels for documents, learned from your examples.</td><td>Section 3.1</td></tr>
+      <tr><td><strong>Custom entity recognition</strong></td><td>Terms that are specific to your business, such as policy numbers.</td><td>Section 3.2</td></tr>
+      <tr><td><strong>PII detection and redaction</strong></td><td>Personally identifiable information, found and masked.</td><td>Section 3.4</td></tr>
+      <tr><td><strong>Toxicity detection</strong></td><td>A score for toxic content in text.</td><td>Section 3.5</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>1.5 Languages</h2>
+  <ul>
+    <li>Comprehend can analyze text in German, English, Spanish, Italian, Portuguese, French, Japanese, Korean, Hindi, Arabic, Chinese (Simplified), and Chinese (Traditional).</li>
+    <li>Language detection identifies text in more than 100 languages.</li>
+    <li>For a language that Comprehend does not analyze, use Amazon Translate to convert the text into a supported language first, and then use Comprehend. Amazon Translate is the topic of Lesson 299.4.</li>
+    <li>Support differs by feature, so check the supported languages page for the feature that you plan to use.</li>
+  </ul>
+
+  <h2>1.6 Confidence Scores</h2>
+  <ul>
+    <li>Comprehend returns a confidence score for each result. A low score means that the service has low confidence that the result is correct.</li>
+    <li>A high score, close to 1, means high confidence. Comprehend scores run from 0 to 1.</li>
+    <li>Use the score to decide what to trust. For example, send low-confidence results to a person, or ignore them.</li>
+  </ul>
+
+  <h2>1.7 Common Use Cases</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Use case</th><th scope="col">What you do</th><th scope="col">FlashCart example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Voice of customer analytics</strong></td><td>Gauge whether feedback is positive, neutral, negative, or mixed across calls, emails, and social media.</td><td>Track how customers feel about a new product line each day.</td></tr>
+      <tr><td><strong>Semantic search</strong></td><td>Index key phrases, entities, and sentiment, so that search follows the intent and the context and not only keywords.</td><td>Let shoppers search reviews for “runs small.”</td></tr>
+      <tr><td><strong>Protect privacy</strong></td><td>Detect and redact PII in emails, tickets, reviews, and posts before you index or share them.</td><td>Remove names and card numbers from support tickets before analysts see them.</td></tr>
+      <tr><td><strong>Moderate conversations</strong></td><td>Detect toxic content in text.</td><td>Filter abusive messages in the seller chat.</td></tr>
+      <tr><td><strong>Organize requests</strong></td><td>Classify text with your own labels.</td><td>Route each support ticket to the right team.</td></tr>
+      </tbody>
+  </table></div>
+  <p>Amazon Comprehend Medical is a separate service. It finds information in clinical text, such as physician’s notes and discharge summaries, and it detects protected health information (PHI). It is outside this lesson.</p>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Comprehend analyzes text that is already machine-readable. It does not read images or scanned pages, so scanned letters need Amazon Textract first, and speech needs Amazon Transcribe first. Also, Comprehend works in a fixed list of languages, so text in another language needs Amazon Translate before analysis.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Comprehend comprehends text: who, what, where, how it feels, and what language.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Find the sentiment of customer reviews with no NLP expertise”<br>→ Amazon Comprehend sentiment analysis</p>
+    <p><strong>Trigger 2:</strong> “Find people, places, and brands mentioned in text”<br>→ Amazon Comprehend entity recognition</p>
+    <p><strong>Trigger 3:</strong> “Identify the language of a piece of text”<br>→ Amazon Comprehend language detection</p>
+    <p><strong>Trigger 4:</strong> “Analyze text in a language that Comprehend does not support”<br>→ Amazon Translate first, and then Comprehend</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company stores thousands of customer reviews as text files in Amazon S3. It wants to know whether each review is positive, negative, neutral, or mixed, with no machine learning expertise and the least operational effort. Which solution fits best?</p>
+    <ol type="A">
+      <li>Call Amazon Comprehend sentiment analysis on the reviews.</li>
+      <li>Train a custom language model on Amazon SageMaker AI, and host it on an endpoint.</li>
+      <li>Use Amazon Rekognition to analyze the review files.</li>
+      <li>Use Amazon Textract to analyze the review files.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Comprehend is a pre-trained, fully managed NLP service. Its sentiment analysis returns positive, negative, neutral, or mixed, with scores.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. Comprehend returns the sentiment of text with no model to build.</td></tr>
+          <tr><td>B</td><td>Wrong. It works, but it needs machine learning expertise and more operational effort.</td></tr>
+          <tr><td>C</td><td>Wrong. Rekognition analyzes images and video.</td></tr>
+          <tr><td>D</td><td>Wrong. Textract extracts text from documents, and the reviews are already text.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>1.8 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/dg/what-is.html" target="_blank" rel="noopener">What Is Amazon Comprehend?</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/comprehend/features/" target="_blank" rel="noopener">Amazon Comprehend Features</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/comprehend/faqs/" target="_blank" rel="noopener">Amazon Comprehend FAQs</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/dg/supported-languages.html" target="_blank" rel="noopener">Languages Supported in Amazon Comprehend</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="insights" role="tabpanel" aria-labelledby="tab-2" tabindex="0">
+  <h1>2. Built-In Text Analysis</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s marketing team collects reviews in many countries. They want to know which language each review is in, which brands and places it mentions, the main talking points, and whether the customer is happy.</p>
+    <p>A review says, “I loved the burger, but the service was slow.” The overall feeling is mixed, but the support team wants to know exactly what was good and what was bad, so that they can fix the right thing.</p>
+    <p>The analytics lead also asks whether Comprehend can tell a noun from a verb, because a search team wants to index only the important words.</p>
+    <p><strong>Your challenge:</strong> Match the needs to Comprehend features. Your answer should:</p>
+    <ul>
+      <li>Name the feature for the language, the entities, the key phrases, and the overall sentiment.</li>
+      <li>Explain how targeted sentiment differs from sentiment analysis.</li>
+      <li>Say what syntax analysis returns.</li>
+      </ul>
+  </div>
+
+  <h2>2.1 Language Detection</h2>
+  <ul>
+    <li>The language detection API identifies the language of text in more than 100 languages.</li>
+    <li>It returns the dominant language, as a language code, with a confidence score. For example, a short paragraph in Italian returns the code <code>it</code> and a score of 1.0.</li>
+    <li>Run it first when your reviews come from many countries. Then send each text to the right analysis, or to Amazon Translate.</li>
+  </ul>
+
+  <h2>2.2 Entity Recognition</h2>
+  <ul>
+    <li>The entity recognition API returns the named entities in the text, such as people, places, and organizations, grouped into categories automatically.</li>
+    <li>Each entity comes with a category and a confidence score. For example, in a short company description, “Amazon.com, Inc.” is an organization, “Seattle, WA” is a location, and a founding date is a date.</li>
+    <li>Use it to find which brands, products, places, and dates a message mentions.</li>
+  </ul>
+
+  <h2>2.3 Key Phrase Extraction</h2>
+  <ul>
+    <li>The key phrase API returns the key phrases, or talking points, in the text, with a confidence score for each one.</li>
+    <li>For a long review of cameras, it returns phrases such as “my instant film camera” and “power and convenience.”</li>
+    <li>Use it to summarize what a message is about, and to build search filters.</li>
+  </ul>
+
+  <h2>2.4 Sentiment Analysis</h2>
+  <ul>
+    <li>The sentiment analysis API returns the overall sentiment of a text: positive, negative, neutral, or mixed.</li>
+    <li>It also returns a score for each of the four values. A review that praises the quality but complains about the fit can return a high score for mixed.</li>
+    <li>It gives one answer for the whole text.</li>
+  </ul>
+
+  <h2>2.5 Targeted Sentiment</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 300" role="img" aria-labelledby="t2a d2a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t2a">Sentiment and targeted sentiment on one sentence</title>
+      <desc id="d2a">The sentence I loved the burger, but the service was slow. The words burger and service are outlined. Targeted sentiment labels burger as positive and service as negative, and I as neutral. Sentiment analysis gives one result for the whole sentence, which is mixed.</desc>
+      <defs><marker id="ar2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <text class="s-b" x="360" y="30" text-anchor="middle">One sentence goes in</text>
+      <g class="s-b" style="font-size:24px;font-weight:600"><text x="30" y="80">I</text><text x="62" y="80">loved</text><text x="144" y="80">the</text><text x="196" y="80">burger,</text><text x="300" y="80">but</text><text x="352" y="80">the</text><text x="404" y="80">service</text><text x="508" y="80">was</text><text x="568" y="80">slow.</text></g>
+      <rect x="22" y="52" width="26" height="36" fill="none" stroke="#611940" stroke-width="3"/>
+      <rect x="188" y="52" width="92" height="36" fill="none" stroke="#611940" stroke-width="3"/>
+      <rect x="396" y="52" width="100" height="36" fill="none" stroke="#611940" stroke-width="3"/>
+      <rect x="10" y="96" width="120" height="22" fill="#611940"/><text x="17" y="111" font-size="12.5" font-weight="600" fill="#ffffff" font-family="inherit">I: neutral</text>
+      <rect x="160" y="96" width="150" height="22" fill="#611940"/><text x="167" y="111" font-size="12.5" font-weight="600" fill="#ffffff" font-family="inherit">burger: positive</text>
+      <rect x="385" y="96" width="150" height="22" fill="#611940"/><text x="392" y="111" font-size="12.5" font-weight="600" fill="#ffffff" font-family="inherit">service: negative</text>
+      <rect x="15" y="150" width="330" height="130" rx="8" class="s-box"/>
+      <text class="s-b" x="180" y="180" text-anchor="middle">Sentiment analysis</text>
+      <text class="s-m" x="180" y="204" text-anchor="middle">One result for the whole text</text>
+      <text class="s-b" x="180" y="248" text-anchor="middle">Mixed</text>
+      <rect x="375" y="150" width="330" height="130" rx="8" class="s-hot"/>
+      <text class="s-b" x="540" y="180" text-anchor="middle">Targeted sentiment</text>
+      <text class="s-m" x="540" y="204" text-anchor="middle">One result for each entity</text>
+      <text class="s-m" x="540" y="230" text-anchor="middle">burger: positive</text>
+      <text class="s-m" x="540" y="252" text-anchor="middle">service: negative</text>
+    </svg>
+    <figcaption>Image 2a — Sentiment analysis and targeted sentiment on one sentence. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>Targeted sentiment gives more detail. It finds the entities in the text and returns the sentiment toward each one.</li>
+    <li>For “I loved the burger, but the service was slow,” it returns positive for the burger and negative for the service, while the writer, “I,” is neutral.</li>
+    <li>Use it to find what customers like and dislike about each product or part of the experience.</li>
+  </ul>
+
+  <h2>2.6 Syntax Analysis</h2>
+  <ul>
+    <li>The syntax API tokenizes the text, which means that it finds the word boundaries, and it labels each word with a part of speech, such as a noun, a verb, or an adjective.</li>
+    <li>For “I love my fast, new Kindle Fire!” it labels “I” and “my” as pronouns, “love” as a verb, “fast” and “new” as adjectives, “Kindle” and “Fire” as proper nouns, and the comma and the exclamation mark as punctuation.</li>
+    <li>It also returns where each word begins and ends in the text, and a confidence score.</li>
+    <li>Use it when you need to know the grammar, for example to index only the nouns.</li>
+  </ul>
+
+  <h2>2.7 Choosing the Right Feature</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">You want to know</th><th scope="col">Use</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Which language is this text in?</strong></td><td>Language detection</td></tr>
+      <tr><td><strong>Which people, places, brands, or dates are mentioned?</strong></td><td>Entity recognition</td></tr>
+      <tr><td><strong>What are the main points?</strong></td><td>Key phrase extraction</td></tr>
+      <tr><td><strong>How does the writer feel overall?</strong></td><td>Sentiment analysis</td></tr>
+      <tr><td><strong>How does the writer feel about each thing?</strong></td><td>Targeted sentiment</td></tr>
+      <tr><td><strong>Which words are nouns, verbs, or adjectives?</strong></td><td>Syntax analysis</td></tr>
+      </tbody>
+  </table></div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Sentiment analysis gives one result for the whole text, so a mixed review hides which part was good and which part was bad. Use targeted sentiment to get the sentiment for each entity. Also remember that Comprehend returns scores, not certainty: keep the confidence score with the result.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Sentiment is the weather of the whole text. Targeted sentiment is the weather for each place in it.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Overall positive, negative, neutral, or mixed”<br>→ Sentiment analysis</p>
+    <p><strong>Trigger 2:</strong> “Positive about one thing and negative about another in the same review”<br>→ Targeted sentiment</p>
+    <p><strong>Trigger 3:</strong> “Find the nouns and verbs in text”<br>→ Syntax analysis</p>
+    <p><strong>Trigger 4:</strong> “Find the main talking points of a document”<br>→ Key phrase extraction</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A restaurant chain reads reviews such as “I loved the burger, but the service was slow.” It wants to know the sentiment toward the burger and toward the service separately. Which Comprehend feature meets the requirement?</p>
+    <ol type="A">
+      <li>Targeted sentiment.</li>
+      <li>Sentiment analysis.</li>
+      <li>Syntax analysis.</li>
+      <li>Language detection.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Targeted sentiment returns the sentiment toward each entity in the text, such as the burger and the service.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. It gives a sentiment for each entity.</td></tr>
+          <tr><td>B</td><td>Wrong. It gives one sentiment for the whole review, which here is mixed.</td></tr>
+          <tr><td>C</td><td>Wrong. It labels parts of speech and says nothing about feelings.</td></tr>
+          <tr><td>D</td><td>Wrong. It identifies the language of the text only.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>2.8 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/dg/how-sentiment.html" target="_blank" rel="noopener">Sentiment Analysis</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/dg/how-targeted-sentiment.html" target="_blank" rel="noopener">Targeted Sentiment</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/dg/how-entities.html" target="_blank" rel="noopener">Entities</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/dg/how-key-phrases.html" target="_blank" rel="noopener">Key Phrases</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/dg/how-syntax.html" target="_blank" rel="noopener">Syntax Analysis</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/dg/how-languages.html" target="_blank" rel="noopener">Dominant Language</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="custom" role="tabpanel" aria-labelledby="tab-3" tabindex="0">
+  <h1>3. Custom Models, PII, and Toxicity</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s support inbox mixes three kinds of messages: questions about an order, return and refund requests, and product questions. A person sorts them by hand. The team wants an automatic router that uses FlashCart’s own categories, which no general service knows.</p>
+    <p>FlashCart’s seller protection program also uses claim numbers, such as CLM-4821, that Comprehend’s built-in entity types do not recognize. And support tickets often contain names, addresses, and card numbers that analysts should not see.</p>
+    <p>Finally, the seller chat has a few abusive messages, and the community manager wants them flagged automatically.</p>
+    <p><strong>Your challenge:</strong> Choose the right Comprehend feature for each need. Your answer should:</p>
+    <ul>
+      <li>Name the feature that sorts tickets into FlashCart’s own categories, and the feature that finds claim numbers.</li>
+      <li>Say how to remove personal data before analysts read the tickets.</li>
+      <li>Say how to flag abusive chat messages.</li>
+      </ul>
+  </div>
+
+  <h2>3.1 Custom Classification</h2>
+  <ul>
+    <li>Custom classification lets you build your own text classification model with your business-specific labels, without learning machine learning.</li>
+    <li>To train it, you give example texts, each marked with the label that applies. A comma-separated values (CSV) file with the text and the label is the typical form. Comprehend trains a custom model for you.</li>
+    <li>Then you submit new text, and you get back the labels with a confidence score for each match.</li>
+    <li>Typical uses are to categorize inbound requests by problem type, to moderate website comments, to triage customer feedback, and to organize workgroup documents.</li>
+  </ul>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Text</th><th scope="col">Label</th><th scope="col">Confidence score</th></tr></thead>
+    <tbody>
+      <tr><td>“Where is my package?”</td><td>Order status</td><td>0.92</td></tr>
+      <tr><td>“I want my money back.”</td><td>Return and refund</td><td>1.00</td></tr>
+      <tr><td>“Does this jacket have a hood?”</td><td>Product question</td><td>0.91</td></tr>
+      </tbody>
+  </table></div>
+  <p>These values are an illustration of the shape of the output. They are not real results.</p>
+
+  <h2>3.2 Custom Entity Recognition</h2>
+  <ul>
+    <li>Custom entity recognition customizes Comprehend to find terms that are specific to your domain, such as policy numbers, claim numbers, or product codes.</li>
+    <li>It uses AutoML. Comprehend learns from a small set of examples, such as a list of claim numbers, and trains a private custom model.</li>
+    <li>The model then finds those terms in other text, including text in PDF, plain text, and Microsoft Word documents.</li>
+    <li>Example: in “My policy code is 456-YQT,” the model returns 456-YQT as a Policy_ID entity with a confidence score.</li>
+  </ul>
+
+  <h2>3.3 Training and Using a Custom Model</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col"></th><th scope="col">Built-in feature</th><th scope="col">Custom model</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Setup</strong></td><td>None. Call the API.</td><td>You supply examples, and Comprehend trains a model for you.</td></tr>
+      <tr><td><strong>Who can use it</strong></td><td>Anyone with access to the API.</td><td>Your private model, in your account.</td></tr>
+      <tr><td><strong>Categories</strong></td><td>AWS defines the categories.</td><td>You define the labels or the entity types.</td></tr>
+      <tr><td><strong>Real-time use</strong></td><td>A real-time call.</td><td>You create an endpoint to run real-time analysis with the model.</td></tr>
+      <tr><td><strong>Batch use</strong></td><td>Asynchronous jobs.</td><td>Asynchronous jobs.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>3.4 PII Detection and Redaction</h2>
+  <ul>
+    <li>Comprehend can detect and redact personally identifiable information (PII) in customer emails, support tickets, product reviews, social media posts, and more. It needs no machine learning experience.</li>
+    <li>A common design analyzes support tickets and knowledge articles, finds the PII, and redacts the text before the documents go into a search index. The search then holds no PII.</li>
+    <li>Examples of what it finds: a name, a credit or debit card number, a date and time, a bank account number, and a bank routing number, each with a score.</li>
+    <li>Redacting PII helps you protect privacy and follow local laws and regulations.</li>
+    <li>PII detection works on English and Spanish text. You can detect PII with real-time analysis or with an asynchronous job.</li>
+    <li>AWS says that its use of text inputs to improve its services does not apply to Comprehend Detect PII.</li>
+  </ul>
+
+  <h2>3.5 Toxicity Detection</h2>
+  <ul>
+    <li>Toxicity detection is an NLP-based way to find toxic content in text.</li>
+    <li>It works out of the box, so you can moderate conversation between people on an online platform, and the inputs and outputs of generative AI.</li>
+    <li>It returns an overall toxicity score between 0 and 1, where 1 is the highest confidence, and a score for each category of toxic content: graphic, harassment or abuse, hate speech, insult, profanity, sexual, and violence or threat.</li>
+    <li>Toxicity detection currently supports English only. A request can hold up to 10 text strings, and each string can be up to 1 KB.</li>
+    <li>Choose a threshold, and flag or block messages above it.</li>
+  </ul>
+
+  <h2>3.6 Which One Do You Need?</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Need</th><th scope="col">Use</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Sort text into my own categories</strong></td><td>Custom classification</td></tr>
+      <tr><td><strong>Find my own terms, such as claim numbers</strong></td><td>Custom entity recognition</td></tr>
+      <tr><td><strong>Remove names and card numbers from text</strong></td><td>PII detection and redaction</td></tr>
+      <tr><td><strong>Flag abusive messages</strong></td><td>Toxicity detection</td></tr>
+      <tr><td><strong>Find people, places, and brands that everyone knows</strong></td><td>Built-in entity recognition</td></tr>
+      </tbody>
+  </table></div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Built-in entity recognition does not know your own terms, such as claim numbers. Use custom entity recognition for those. Also, custom classification needs labeled examples that you supply: Comprehend cannot guess your categories. And redaction must happen before you index or share the text, not after.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Built-in for the world’s words, custom for yours.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Sort support tickets into the company’s own categories”<br>→ Custom classification</p>
+    <p><strong>Trigger 2:</strong> “Find policy numbers or claim numbers in text”<br>→ Custom entity recognition</p>
+    <p><strong>Trigger 3:</strong> “Remove personal data before text is indexed or shared”<br>→ PII detection and redaction</p>
+    <p><strong>Trigger 4:</strong> “Flag abusive messages on a chat platform”<br>→ Toxicity detection</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company wants to remove names, card numbers, and bank account numbers from support tickets before it indexes the tickets in a search service. It has no machine learning expertise. Which solution fits best?</p>
+    <ol type="A">
+      <li>Use Amazon Comprehend PII detection and redaction on the tickets before indexing.</li>
+      <li>Train a custom entity recognizer on Amazon SageMaker AI and host it on an endpoint.</li>
+      <li>Use Amazon Rekognition to find personal data in the tickets.</li>
+      <li>Use Amazon Textract to redact the personal data.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Comprehend detects and redacts PII in text with no machine learning expertise, so the search index holds no PII.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. It is managed and made for this need.</td></tr>
+          <tr><td>B</td><td>Wrong. It needs expertise and more effort.</td></tr>
+          <tr><td>C</td><td>Wrong. Rekognition analyzes images and video.</td></tr>
+          <tr><td>D</td><td>Wrong. Textract extracts text from documents. It does not redact PII.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>3.7 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/dg/how-document-classification.html" target="_blank" rel="noopener">Custom Classification</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/dg/custom-entity-recognition.html" target="_blank" rel="noopener">Custom Entity Recognition</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/dg/how-pii.html" target="_blank" rel="noopener">Detecting PII Entities</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/APIReference/API_DetectToxicContent.html" target="_blank" rel="noopener">DetectToxicContent API Reference</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/comprehend/features/" target="_blank" rel="noopener">Amazon Comprehend Features</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="arch" role="tabpanel" aria-labelledby="tab-4" tabindex="0">
+  <h1>4. Architecture, Security, and Cost</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart wants every review analyzed within seconds of arrival, and the support team must be alerted when a customer is very upset. Volume is uneven: a product launch can send a flood of reviews in an hour.</p>
+    <p>The security team asks who can call Comprehend, what AWS does with the text, and whether personal data stays protected. The data team also has a large archive of past reviews that they want to analyze once, in bulk.</p>
+    <p>The architect must choose the processing mode for each case and draw the pipeline.</p>
+    <p><strong>Your challenge:</strong> Design the solution. Your answer should:</p>
+    <ul>
+      <li>Choose real-time, batch, or asynchronous processing for new reviews and for the archive.</li>
+      <li>Show how a review leads to analysis, storage, and an alert.</li>
+      <li>Describe access control, data privacy, throttling, and the billing model.</li>
+      </ul>
+  </div>
+
+  <h2>4.1 Real-Time, Batch, and Asynchronous Processing</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 290" role="img" aria-labelledby="t4a d4a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t4a">Three ways to process text with Amazon Comprehend</title>
+      <desc id="d4a">Three rows. In the real-time row, an application sends one document and gets the result in the response. In the batch row, an application sends up to 25 documents in one request and gets the results in the response. In the asynchronous row, a job reads documents from Amazon S3 and writes the results to Amazon S3.</desc>
+      <defs><marker id="ar4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="20" width="150" height="70" rx="8" class="s-box"/>
+      <text x="90" y="50" text-anchor="middle" class="s-b">Your application</text>
+      <text x="90" y="72" text-anchor="middle" class="s-m">one document</text>
+      <rect x="270" y="20" width="180" height="70" rx="8" class="s-hot"/>
+      <text x="360" y="50" text-anchor="middle" class="s-b">Amazon Comprehend</text>
+      <text x="360" y="72" text-anchor="middle" class="s-m">real-time call</text>
+      <rect x="555" y="20" width="150" height="70" rx="8" class="s-box"/>
+      <text x="630" y="50" text-anchor="middle" class="s-b">Result</text>
+      <text x="630" y="72" text-anchor="middle" class="s-m">in the response</text>
+      <rect x="15" y="110" width="150" height="70" rx="8" class="s-box"/>
+      <text x="90" y="140" text-anchor="middle" class="s-b">Your application</text>
+      <text x="90" y="162" text-anchor="middle" class="s-m">up to 25 documents</text>
+      <rect x="270" y="110" width="180" height="70" rx="8" class="s-hot"/>
+      <text x="360" y="140" text-anchor="middle" class="s-b">Amazon Comprehend</text>
+      <text x="360" y="162" text-anchor="middle" class="s-m">batch call</text>
+      <rect x="555" y="110" width="150" height="70" rx="8" class="s-box"/>
+      <text x="630" y="140" text-anchor="middle" class="s-b">Results</text>
+      <text x="630" y="162" text-anchor="middle" class="s-m">in the response</text>
+      <rect x="15" y="200" width="150" height="70" rx="8" class="s-box"/>
+      <text x="90" y="230" text-anchor="middle" class="s-b">Amazon S3</text>
+      <text x="90" y="252" text-anchor="middle" class="s-m">input documents</text>
+      <rect x="270" y="200" width="180" height="70" rx="8" class="s-hot"/>
+      <text x="360" y="230" text-anchor="middle" class="s-b">Comprehend job</text>
+      <text x="360" y="252" text-anchor="middle" class="s-m">runs asynchronously</text>
+      <rect x="555" y="200" width="150" height="70" rx="8" class="s-box"/>
+      <text x="630" y="230" text-anchor="middle" class="s-b">Amazon S3</text>
+      <text x="630" y="252" text-anchor="middle" class="s-m">output results</text>
+      <line x1="167" y1="55" x2="268" y2="55" class="s-line" marker-end="url(#ar4a)"/>
+      <line x1="452" y1="55" x2="553" y2="55" class="s-line" marker-end="url(#ar4a)"/>
+      <line x1="167" y1="145" x2="268" y2="145" class="s-line" marker-end="url(#ar4a)"/>
+      <line x1="452" y1="145" x2="553" y2="145" class="s-line" marker-end="url(#ar4a)"/>
+      <line x1="167" y1="235" x2="268" y2="235" class="s-line" marker-end="url(#ar4a)"/>
+      <line x1="452" y1="235" x2="553" y2="235" class="s-line" marker-end="url(#ar4a)"/>
+    </svg>
+    <figcaption>Image 4a — Three ways to process text with Amazon Comprehend. (Original diagram for this course.)</figcaption>
+  </figure>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Mode</th><th scope="col">How it works</th><th scope="col">Limits to know</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Real-time, one document</strong></td><td>You send one document and get the result in the same call.</td><td>Up to 100 KB for entities, key phrases, and dominant language. Up to 5 KB for sentiment, targeted sentiment, and syntax.</td></tr>
+      <tr><td><strong>Real-time, batch</strong></td><td>You send several documents in one request and get all the results in the response.</td><td>Up to 25 documents in a request, and up to 5 KB for each document.</td></tr>
+      <tr><td><strong>Asynchronous job</strong></td><td>You store documents in Amazon S3, start a job, and read the results from Amazon S3 when the job finishes. You give the job an IAM role that lets Comprehend read and write the buckets.</td><td>Each asynchronous operation supports up to 10 active jobs. The size limits depend on the type of job.</td></tr>
+      <tr><td><strong>Custom model, real-time</strong></td><td>You create an endpoint for the model and call it.</td><td>You manage the endpoint.</td></tr>
+      </tbody>
+  </table></div>
+  <p>Use real-time calls for new reviews that need an answer now. Use asynchronous jobs for large archives and for scheduled runs, such as daily, weekly, or monthly text analytics. Check the guidelines and quotas page for the current limits.</p>
+
+  <h2>4.2 An Event-Driven Text Analysis Pipeline</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 310" role="img" aria-labelledby="t4b d4b" xmlns="http://www.w3.org/2000/svg">
+      <title id="t4b">An event-driven text analysis pipeline</title>
+      <desc id="d4b">A customer review is saved to Amazon S3. An S3 event starts an AWS Lambda function, which calls Amazon Comprehend for sentiment and for PII detection. The function stores the redacted text and the results in Amazon DynamoDB. A strongly negative review also sends an alert to the support team through Amazon SNS.</desc>
+      <defs><marker id="ar4b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="10" y="40" width="105" height="70" rx="8" class="s-box"/>
+      <text x="62" y="70" text-anchor="middle" class="s-b">Review</text>
+      <text x="62" y="92" text-anchor="middle" class="s-m">saved to S3</text>
+      <rect x="150" y="40" width="115" height="70" rx="8" class="s-box"/>
+      <text x="207" y="70" text-anchor="middle" class="s-b">Amazon S3</text>
+      <text x="207" y="92" text-anchor="middle" class="s-m">upload event</text>
+      <rect x="300" y="40" width="115" height="70" rx="8" class="s-box"/>
+      <text x="357" y="70" text-anchor="middle" class="s-b">AWS Lambda</text>
+      <text x="357" y="92" text-anchor="middle" class="s-m">function</text>
+      <rect x="450" y="40" width="260" height="70" rx="8" class="s-hot"/>
+      <text x="580" y="70" text-anchor="middle" class="s-b">Amazon Comprehend</text>
+      <text x="580" y="92" text-anchor="middle" class="s-m">sentiment and PII detection</text>
+      <rect x="300" y="200" width="115" height="70" rx="8" class="s-box"/>
+      <text x="357" y="228" text-anchor="middle" class="s-b">DynamoDB</text>
+      <text x="357" y="250" text-anchor="middle" class="s-m">stores results</text>
+      <rect x="450" y="200" width="260" height="70" rx="8" class="s-box"/>
+      <text x="580" y="226" text-anchor="middle" class="s-b">Amazon SNS</text>
+      <text x="580" y="248" text-anchor="middle" class="s-m">alert to support when</text>
+      <text x="580" y="264" text-anchor="middle" class="s-m">a review is very negative</text>
+      <line x1="117" y1="75" x2="148" y2="75" class="s-line" marker-end="url(#ar4b)"/>
+      <line x1="267" y1="75" x2="298" y2="75" class="s-line" marker-end="url(#ar4b)"/>
+      <line x1="417" y1="75" x2="448" y2="75" class="s-line" marker-end="url(#ar4b)"/>
+      <line x1="357" y1="112" x2="357" y2="198" class="s-line" marker-end="url(#ar4b)"/>
+      <line x1="580" y1="112" x2="580" y2="198" class="s-line" marker-end="url(#ar4b)"/>
+    </svg>
+    <figcaption>Image 4b — A review triggers analysis, storage, and an alert. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ol>
+    <li>A review is saved to an Amazon S3 bucket.</li>
+    <li>The upload event starts an AWS Lambda function.</li>
+    <li>The function calls Comprehend, for example sentiment analysis and PII detection.</li>
+    <li>The function stores the redacted text and the results, for example in Amazon DynamoDB.</li>
+    <li>If the sentiment is strongly negative, the function publishes a message to an Amazon Simple Notification Service (Amazon SNS) topic, and the support team gets an alert.</li>
+  </ol>
+  <p>For call recordings, Amazon Transcribe turns the speech into text first, and Comprehend then analyzes the text. Amazon Transcribe is covered later in this module.</p>
+
+  <h2>4.3 Throttling</h2>
+  <ul>
+    <li>Comprehend applies dynamic throttling to real-time requests. It gradually allows more requests when processing capacity is available.</li>
+    <li>To control how your application uses real-time operations, turn on billing alerts or add rate limiting in the application.</li>
+    <li>For large volumes, use batch calls or asynchronous jobs.</li>
+  </ul>
+
+  <h2>4.4 Security and Access Control</h2>
+  <ul>
+    <li>Use IAM policies and roles to control who can call each Comprehend action and which resources they can use.</li>
+    <li>Requests to the API and the console use a secure connection.</li>
+    <li>AWS says that it protects content with encryption at rest and in transit, and that only authorized employees can access it.</li>
+    <li>Give the Lambda function a role with only the Comprehend actions that it needs, and give an asynchronous job only the bucket access that it needs.</li>
+  </ul>
+
+  <h2>4.5 Data Privacy</h2>
+  <ul>
+    <li>Comprehend may store and use the text that it processes to provide the service and, unless you opt out, to improve Comprehend and other Amazon AI technologies. This does not apply to Amazon Comprehend Medical and Comprehend Detect PII.</li>
+    <li>To opt out, use an AWS Organizations AI services opt-out policy.</li>
+    <li>Processed content is encrypted and stored at rest in the Region where you use Comprehend. A portion may be stored in another Region for improvement of the service.</li>
+    <li>You always own your content, and AWS uses it only with your consent.</li>
+  </ul>
+
+  <h2>4.6 Calling Comprehend From SQL With Aurora Machine Learning</h2>
+  <p>The course slides describe a way to use Comprehend without leaving the database. Amazon Aurora machine learning lets an application call ML services directly from SQL queries, with no application-level ML code. Aurora supports Amazon SageMaker AI and Amazon Comprehend, for example for sentiment analysis.</p>
+  <ul>
+    <li>Aurora does not train or host the models. The inference runs in the AWS ML service.</li>
+    <li>The data stays in Aurora, and only the fields that are needed go to the ML service.</li>
+    <li>Typical uses are fraud detection, ads targeting, sentiment analysis, and product recommendations.</li>
+  </ul>
+  <p>Check the Aurora documentation for the supported database engines and Regions.</p>
+
+  <h2>4.7 The Cost Model</h2>
+  <ul>
+    <li>Prices depend on the feature that you use and on how much text you analyze, and there are pricing tiers and discounts. Check the pricing page.</li>
+    <li>A real-time endpoint for a custom model is a resource that you create and manage. Delete endpoints that you do not need.</li>
+    <li>Analyze each piece of text once, and store the results instead of calling Comprehend again.</li>
+    <li>Use asynchronous jobs for bulk work, and send only the text that you need to analyze.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Asynchronous jobs read from and write to Amazon S3, and they need an IAM role that lets Comprehend access the buckets. Real-time calls have small document size limits, so do not send a long document to a real-time sentiment call. Also remember that Comprehend may store and use your text to improve the service unless you opt out with an AWS Organizations policy.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Small and urgent, go real-time. Big and scheduled, go asynchronous.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Analyze a large archive of text files in Amazon S3 once”<br>→ An asynchronous Comprehend job</p>
+    <p><strong>Trigger 2:</strong> “Analyze up to 25 short documents in one call”<br>→ A batch real-time operation</p>
+    <p><strong>Trigger 3:</strong> “Sentiment analysis from a SQL query in the database”<br>→ Amazon Aurora machine learning with Comprehend</p>
+    <p><strong>Trigger 4:</strong> “Stop AWS from using text to improve its services”<br>→ An AWS Organizations AI services opt-out policy</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company has 20 million product reviews stored as text files in Amazon S3. It needs the sentiment of every review once, with no servers to manage. Which approach is the best fit?</p>
+    <ol type="A">
+      <li>Start Amazon Comprehend asynchronous sentiment analysis jobs on the S3 bucket.</li>
+      <li>Call the real-time sentiment API once for every review from an Amazon EC2 instance.</li>
+      <li>Train a custom language model on Amazon SageMaker AI.</li>
+      <li>Use Amazon Textract to read the files.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Asynchronous jobs read documents from Amazon S3 and write the results to Amazon S3, which suits a large archive that is analyzed once.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. It is managed and made for bulk work.</td></tr>
+          <tr><td>B</td><td>Wrong. It uses servers, makes a huge number of calls, and risks throttling.</td></tr>
+          <tr><td>C</td><td>Wrong. It needs expertise and effort that the built-in model avoids.</td></tr>
+          <tr><td>D</td><td>Wrong. The files are already text.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>4.8 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/comprehend/latest/dg/guidelines-and-limits.html" target="_blank" rel="noopener">Amazon Comprehend Guidelines and Quotas</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/comprehend/faqs/" target="_blank" rel="noopener">Amazon Comprehend FAQs: Data Privacy</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_ai-opt-out.html" target="_blank" rel="noopener">Managing AI Services Opt-Out Policies</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/comprehend/pricing/" target="_blank" rel="noopener">Amazon Comprehend Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="comparison" role="tabpanel" aria-labelledby="tab-5" tabindex="0">
+  <h1>5. Comparison and Scenarios</h1>
+
+  <h2>5.1 Choosing Between AWS AI Services</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">If the input is</th><th scope="col">Use</th><th scope="col">What it does</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Text that is already machine-readable</strong></td><td>Amazon Comprehend</td><td>Natural language processing: language, entities, key phrases, sentiment, and more.</td></tr>
+      <tr><td><strong>Scanned documents, forms, and tables</strong></td><td>Amazon Textract</td><td>Extracts text, handwriting, form fields, and tables.</td></tr>
+      <tr><td><strong>Photos and video</strong></td><td>Amazon Rekognition</td><td>Finds objects, scenes, faces, scene text, and unsafe content.</td></tr>
+      <tr><td><strong>Text in a language that Comprehend does not analyze</strong></td><td>Amazon Translate, then Amazon Comprehend</td><td>Translates the text, and then analyzes it.</td></tr>
+      <tr><td><strong>Speech</strong></td><td>Amazon Transcribe, then Amazon Comprehend</td><td>Converts audio to text, and then analyzes it.</td></tr>
+      <tr><td><strong>A custom model that you design</strong></td><td>Amazon SageMaker AI</td><td>Builds, trains, and deploys your own machine learning models.</td></tr>
+      </tbody>
+  </table></div>
+  <p>A common pipeline chains the services: Textract or Transcribe produces the text, Translate converts it if needed, and Comprehend analyzes what it means.</p>
+
+  <h2>5.2 Comprehend Features Compared</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Feature</th><th scope="col">Best for</th><th scope="col">Remember</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Sentiment analysis</strong></td><td>The overall feeling of a text.</td><td>Positive, negative, neutral, or mixed. One result for the text.</td></tr>
+      <tr><td><strong>Targeted sentiment</strong></td><td>The feeling toward each entity.</td><td>Finds the entities first.</td></tr>
+      <tr><td><strong>Entity recognition</strong></td><td>People, places, organizations, and dates.</td><td>Built-in categories.</td></tr>
+      <tr><td><strong>Key phrases</strong></td><td>The main talking points.</td><td>Each with a confidence score.</td></tr>
+      <tr><td><strong>Custom classification</strong></td><td>Your own categories.</td><td>You supply labeled examples.</td></tr>
+      <tr><td><strong>Custom entity recognition</strong></td><td>Your own terms.</td><td>AutoML from a small set of examples.</td></tr>
+      <tr><td><strong>PII detection and redaction</strong></td><td>Privacy before indexing or sharing.</td><td>Finds and masks personal data.</td></tr>
+      <tr><td><strong>Toxicity detection</strong></td><td>Moderating chat and generative AI text.</td><td>A score from 0 to 1.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">#</th><th scope="col">If the question says…</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Find whether text is positive, negative, neutral, or mixed</td><td>Amazon Comprehend sentiment analysis</td></tr>
+      <tr><td>2</td><td>Find the sentiment toward each product or entity in the text</td><td>Targeted sentiment</td></tr>
+      <tr><td>3</td><td>Identify the language of text</td><td>Language detection</td></tr>
+      <tr><td>4</td><td>Find people, places, brands, and dates in text</td><td>Entity recognition</td></tr>
+      <tr><td>5</td><td>Find the main talking points of a document</td><td>Key phrase extraction</td></tr>
+      <tr><td>6</td><td>Label each word as a noun, a verb, or an adjective</td><td>Syntax analysis</td></tr>
+      <tr><td>7</td><td>Sort text into the company’s own categories</td><td>Custom classification</td></tr>
+      <tr><td>8</td><td>Find claim numbers or policy numbers in text</td><td>Custom entity recognition</td></tr>
+      <tr><td>9</td><td>Remove names and card numbers before text is indexed</td><td>PII detection and redaction</td></tr>
+      <tr><td>10</td><td>Flag abusive messages in a chat</td><td>Toxicity detection</td></tr>
+      <tr><td>11</td><td>Analyze a large archive in Amazon S3 once</td><td>An asynchronous Comprehend job</td></tr>
+      <tr><td>12</td><td>Analyze up to 25 short documents in one call</td><td>A batch real-time operation</td></tr>
+      <tr><td>13</td><td>Run sentiment analysis from a SQL query</td><td>Amazon Aurora machine learning with Comprehend</td></tr>
+      <tr><td>14</td><td>Analyze text in a language that Comprehend does not support</td><td>Amazon Translate first, and then Comprehend</td></tr>
+      <tr><td>15</td><td>Analyze scanned documents, or recorded speech</td><td>Amazon Textract or Amazon Transcribe first, and then Comprehend</td></tr>
+      <tr><td>16</td><td>Stop AWS from using text to improve its AI services</td><td>An AWS Organizations AI services opt-out policy</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.4 Scenario Practice</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Scenario</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>A retailer wants the daily mood of customer reviews.</td><td>Comprehend sentiment analysis, run on each new review.</td></tr>
+      <tr><td>A hotel wants to know what guests liked and disliked about the pool, the breakfast, and the staff.</td><td>Targeted sentiment.</td></tr>
+      <tr><td>An insurer wants to find policy numbers in emails.</td><td>Custom entity recognition, trained on a list of policy numbers.</td></tr>
+      <tr><td>A bank must remove account numbers from tickets before analysts read them.</td><td>PII detection and redaction.</td></tr>
+      <tr><td>A game company wants to flag abusive chat messages.</td><td>Toxicity detection, with a threshold that the company chooses.</td></tr>
+      <tr><td>A news site has articles in many languages, and Comprehend supports only some of them.</td><td>Language detection, then Amazon Translate for the unsupported ones, then Comprehend.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.5 Lesson Summary</h2>
+  <ul>
+    <li>Amazon Comprehend is a fully managed, pre-trained NLP service in the AI services layer. It finds meaning and insights in text, with no NLP expertise.</li>
+    <li>The built-in features return the language, entities, key phrases, sentiment, targeted sentiment, and syntax. Every result has a confidence score from 0 to 1.</li>
+    <li>Custom classification and custom entity recognition learn your own labels and terms from your examples. PII detection and redaction removes personal data, and toxicity detection flags toxic text.</li>
+    <li>Real-time calls handle one document or up to 25 in a batch, with small size limits. Asynchronous jobs read documents from Amazon S3 and write the results to Amazon S3, which suits large archives.</li>
+    <li>A typical design uses an S3 event, a Lambda function, Comprehend, a store for the results, and Amazon SNS for alerts. Comprehend analyzes text only, and it may use your text to improve the service unless you opt out.</li>
+  </ul>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Pictures go to Rekognition. Documents go to Textract. Text goes to Comprehend.</p>
+  </div>
+</section>
+
+<section class="panel" id="knowledge-check" role="tabpanel" aria-labelledby="tab-6" tabindex="0">
+  <h1>6. Knowledge Check</h1>
+  <p>Answer each question in your own words before you open the model answer.</p>
+  <ol class="kc-list">
+    <li>
+      <p class="q">Explain what Amazon Comprehend is, and why FlashCart can use it with no NLP engineers.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Comprehend is a fully managed natural language processing service that uses machine learning to find meaning and insights in text. FlashCart calls an API with the text, or the location of text files, and reads a JSON response with entities, key phrases, sentiment, and language. AWS trains and runs the models, so the team needs no NLP expertise.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Which languages does Comprehend support, and what do you do for another language?</p>
+      <details><summary>Show the model answer</summary>
+        <p>It can analyze German, English, Spanish, Italian, Portuguese, French, Japanese, Korean, Hindi, Arabic, Chinese (Simplified), and Chinese (Traditional). Language detection works for more than 100 languages. For a language that Comprehend does not analyze, use Amazon Translate to convert the text into a supported language first.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What does a confidence score tell you, and how would you use it?</p>
+      <details><summary>Show the model answer</summary>
+        <p>A confidence score shows how likely a result is to be correct. Comprehend scores run from 0 to 1, and a score close to 1 means high confidence. Use it to decide what to trust, for example by sending low-confidence results to a person.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Name the built-in insights that Comprehend returns, and what each one answers.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Language detection answers which language the text is in. Entity recognition finds people, places, organizations, and dates. Key phrase extraction finds the talking points. Sentiment analysis gives the overall feeling. Targeted sentiment gives the feeling toward each entity. Syntax analysis labels the words with parts of speech.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How does targeted sentiment differ from sentiment analysis? Use the sentence “I loved the burger, but the service was slow.”</p>
+      <details><summary>Show the model answer</summary>
+        <p>Sentiment analysis gives one result for the whole sentence, which is mixed. Targeted sentiment finds the entities and gives the sentiment toward each one: positive for the burger and negative for the service. It shows exactly what to fix.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">When would you use custom classification, and when would you use custom entity recognition?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Use custom classification to sort whole texts into your own categories, such as order status, returns, and product questions, by training on labeled examples. Use custom entity recognition to find your own terms inside text, such as claim numbers, by training on a small set of examples. Both create private models, and you need no machine learning expertise.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How would you remove personal data from support tickets before analysts read them?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Use PII detection and redaction. It finds personal data, such as names, card numbers, and bank account numbers, and masks it. Do this before the tickets are indexed or shared, so that the search holds no PII. AWS says its use of inputs to improve services does not apply to Comprehend Detect PII.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What does toxicity detection do, and how would you use it?</p>
+      <details><summary>Show the model answer</summary>
+        <p>It finds toxic content in text and returns an overall toxicity score between 0 and 1, plus scores for seven categories. It currently supports English only. You can use it to moderate chat between people and the inputs and outputs of generative AI. Choose a threshold, and flag or block messages above it.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Compare real-time, batch, and asynchronous processing in Comprehend.</p>
+      <details><summary>Show the model answer</summary>
+        <p>A real-time call takes one document and returns the result at once. Size limits are small, such as 5 KB for sentiment. A batch call takes up to 25 documents, each up to 5 KB, in one request. An asynchronous job reads documents from Amazon S3 and writes results to Amazon S3, with an IAM role for access, and each operation supports up to 10 active jobs. Use asynchronous jobs for large archives.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Draw a pipeline that analyzes every new review and alerts support when a customer is very upset.</p>
+      <details><summary>Show the model answer</summary>
+        <p>A review is saved to Amazon S3. The upload event starts an AWS Lambda function, which calls Comprehend for sentiment and PII detection. The function stores the redacted text and the results in Amazon DynamoDB. If the sentiment is strongly negative, the function publishes to an Amazon SNS topic, and the support team gets an alert.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What does AWS do with the text that Comprehend processes, and how can an organization opt out?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Comprehend may store and use text inputs to provide the service and, unless you opt out, to improve Comprehend and other Amazon AI technologies. This does not apply to Comprehend Medical and Comprehend Detect PII. You keep ownership of your content. To opt out, use an AWS Organizations AI services opt-out policy.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How can a database application call Comprehend, and how does the data move?</p>
+      <details><summary>Show the model answer</summary>
+        <p>With Amazon Aurora machine learning, an application calls Comprehend, for sentiment analysis, directly from a SQL query. Aurora does not train or host the models. The data stays in Aurora, and only the fields that are needed are sent to the ML service.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">When would you choose Comprehend, Textract, or Rekognition?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Choose Comprehend for text that is already machine-readable. Choose Textract for scanned documents, forms, and tables, and then send the text to Comprehend if you need meaning. Choose Rekognition for photos and video.</p>
+      </details>
+    </li>
+  </ol>
+</section>
+
+    <footer>
+      <p>Copyright © 2026 Per Scholas. All rights reserved.</p>
+      <p>Sources: AWS documentation, the Amazon Comprehend features page, and the Amazon Comprehend FAQs, paraphrased. The slide image is credited in its caption. Diagrams are original to this course.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  var panels = tabs.map(function (t) { return document.getElementById(t.getAttribute('aria-controls')); });
+  var live = document.getElementById('live');
+  var current = 0;
+
+  function label(i) { return tabs[i].textContent.trim(); }
+
+  function show(i, opts) {
+    opts = opts || {};
+    if (i < 0 || i >= tabs.length) { return; }
+    current = i;
+    tabs.forEach(function (t, k) {
+      var on = k === i;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.setAttribute('tabindex', on ? '0' : '-1');
+      panels[k].classList.toggle('active', on);
+    });
+    if (!opts.keepScroll) { window.scrollTo(0, 0); }
+    if (opts.focusTab) { tabs[i].focus(); }
+    if (opts.focusHeading) {
+      var h = panels[i].querySelector('h1');
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    }
+    if (opts.updateHash) {
+      try { history.replaceState(null, '', '#' + panels[i].id); } catch (e) {}
+    }
+    if (live) {
+      live.textContent = '';
+      setTimeout(function () { live.textContent = 'Tab ' + (i + 1) + ' of ' + tabs.length + ': ' + label(i); }, 50);
+    }
+  }
+
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { show(i, { updateHash: true }); });
+    t.addEventListener('keydown', function (e) {
+      var n = null;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { n = (i + 1) % tabs.length; }
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { n = (i - 1 + tabs.length) % tabs.length; }
+      else if (e.key === 'Home') { n = 0; }
+      else if (e.key === 'End') { n = tabs.length - 1; }
+      if (n !== null) { e.preventDefault(); show(n, { focusTab: true, updateHash: true, keepScroll: true }); }
+    });
+  });
+
+  panels.forEach(function (p, i) {
+    var nav = document.createElement('div');
+    nav.className = 'panel-nav';
+    var prev = document.createElement('button');
+    var next = document.createElement('button');
+    prev.type = 'button'; next.type = 'button';
+    if (i > 0) {
+      prev.textContent = '\u2190 Previous: ' + label(i - 1);
+      prev.addEventListener('click', function () { show(i - 1, { updateHash: true, focusHeading: true }); });
+    } else { prev.style.visibility = 'hidden'; prev.setAttribute('aria-hidden', 'true'); prev.tabIndex = -1; }
+    if (i < panels.length - 1) {
+      next.textContent = 'Next: ' + label(i + 1) + ' \u2192';
+      next.addEventListener('click', function () { show(i + 1, { updateHash: true, focusHeading: true }); });
+    } else { next.style.visibility = 'hidden'; next.setAttribute('aria-hidden', 'true'); next.tabIndex = -1; }
+    nav.appendChild(prev); nav.appendChild(next);
+    p.appendChild(nav);
+  });
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) { return; }
+    var id = a.getAttribute('href').slice(1);
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { e.preventDefault(); show(idx, { updateHash: true, focusHeading: true }); }
+  });
+
+  function fromHash() {
+    var id = window.location.hash.replace('#', '');
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { show(idx, { keepScroll: true }); }
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+</body>
+</html>

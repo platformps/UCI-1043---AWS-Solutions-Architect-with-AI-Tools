@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 299.5 - Amazon Transcribe</title>
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: light;
+    --page-bg: #ffffff;
+    --text: #1c2733;
+    --muted: #4f5b67;
+    --rule: #d5dce3;
+    --card: #f4f7fa;
+    --card-border: #ccd3da;
+    --hover: #ccd3da;
+    --h1: #611940;
+    --h3: #7a2455;
+    --link: #611940;
+    --code-bg: #f5f7f9;
+    --table-alt: #f6f8fa;
+    --problem-bg: #ffeef7;
+    --problem-bar: #611940;
+    --warn-bg: #fdf3e7;
+    --warn-bar: #c26a00;
+    --exam-bg: #eaf6ee;
+    --exam-bar: #2e7d4f;
+    --tip-bg: #e5fe77;
+    --tip-bar: #7a8f00;
+    --q-bg: #f7eef3;
+    --q-border: #611940;
+    --svg-box: #f7eef3;
+    --svg-stroke: #611940;
+    --svg-hot: #d9f6fd;
+    --svg-hot-stroke: #611940;
+    --focus: #611940;
+    --h2: #000000;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+      --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+      --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+      --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+      --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+      --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+      --focus: #71e2fd;
+      --h2: #ffffff;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+    --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+    --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+    --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+    --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+    --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+    --focus: #71e2fd;
+    --h2: #ffffff;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+  *, *::before, *::after { box-sizing: inherit; line-height: 1.5; }
+  body {
+    margin: 0; background: var(--page-bg); color: var(--text);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 17px;
+  }
+  .layout { display: flex; align-items: flex-start; max-width: 1280px; margin: 0 auto; padding: 28px 20px 60px; }
+  .side-wrap { width: 270px; flex: none; margin-right: 28px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); overflow-y: auto; }
+  .sidebar { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px; }
+  .tab-btn {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    border-left: 5px solid transparent; border-radius: 6px; padding: 10px 12px; margin: 0 0 2px;
+    font: inherit; font-size: 15px; color: var(--text); cursor: pointer;
+  }
+  .tab-btn:hover { background: var(--hover); }
+  .tab-btn[aria-selected="true"] { background: #611940; color: #ffffff; font-weight: 700; border-left-color: #71E2FD; }
+  .tab-btn:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible, .panel:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .content { flex: 1; min-width: 0; max-width: 900px; }
+  .brand { display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; margin: 0 0 14px; }
+  .brand img { display: block; width: 230px; max-width: 100%; height: auto; }
+  .page-title { color: var(--h2); font-size: 2.8rem; font-weight: 700; margin: 0 0 8px; }
+  .page-sub { color: var(--muted); font-size: 1.05rem; margin: 0 0 26px; max-width: 70ch; }
+  .js .panel { display: none; }
+  .js .panel.active { display: block; }
+  .panel { margin-bottom: 40px; }
+  .js .panel { margin-bottom: 0; }
+  .panel h1 { color: var(--h1); font-size: 2.35rem; font-weight: 700; margin: 6px 0 12px; }
+  h2 { color: var(--h2); font-size: 35px; font-weight: 700; margin: 34px 0 10px; }
+  h3 { color: var(--h3); font-size: 1.45rem; font-weight: 700; margin: 24px 0 8px; }
+  h4 { color: var(--h3); font-size: 1.15rem; font-weight: 700; margin: 18px 0 6px; }
+  p { margin: 0 0 14px; max-width: 76ch; }
+  ul, ol { margin: 0 0 16px; padding-left: 26px; max-width: 76ch; }
+  li { margin-bottom: 6px; }
+  a { color: var(--link); }
+  code { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 0.88em; }
+  pre.flowcode { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 14.5px; overflow-x: auto; margin: 6px 0 18px; white-space: pre; }
+  .table-scroll { overflow-x: auto; margin: 6px 0 22px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15.5px; }
+  th, td { border: 1px solid var(--rule); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #611940; color: #ffffff; font-weight: 600; border-color: #611940; }
+  tbody tr:nth-child(even) { background: var(--table-alt); }
+  .wide table { min-width: 860px; }
+  .callout { border-left: 5px solid; border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 22px 0; max-width: 880px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .label { font-weight: 700; display: block; margin-bottom: 6px; }
+  .tip { background: var(--tip-bg); border-color: var(--tip-bar); color: #1c2733; }
+  .tip a { color: #611940; }
+  .warn { background: var(--warn-bg); border-color: var(--warn-bar); }
+  .exam { background: var(--exam-bg); border-color: var(--exam-bar); }
+  .problem { border-left: 6px solid var(--problem-bar); background: var(--problem-bg); border-radius: 0 12px 12px 0; padding: 22px 25px; margin: 28px 0; }
+  .problem h2.ps-heading { font-size: 1.35rem; margin: 0 0 8px; }
+  .problem p:last-child { margin-bottom: 0; }
+  .overview-box { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 24px 14px; margin: 0 0 24px; }
+  .overview-box h2 { margin-top: 20px; }
+  figure.diagram { margin: 14px 0 26px; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 14px 8px; overflow-x: auto; background: var(--card); }
+  figure.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
+  figure.diagram figcaption { color: var(--muted); font-size: 14.5px; padding: 8px 4px 6px; }
+  .s-box { fill: var(--svg-box); stroke: var(--svg-stroke); stroke-width: 1.5; }
+  .s-hot { fill: var(--svg-hot); stroke: var(--svg-hot-stroke); stroke-width: 1.5; }
+  .s-line { stroke: var(--svg-stroke); stroke-width: 2; fill: none; }
+  .s-mark { fill: var(--svg-stroke); }
+  .s-t { fill: var(--text); font-size: 14.5px; }
+  .s-b { fill: var(--text); font-size: 15px; font-weight: 700; }
+  .s-m { fill: var(--muted); font-size: 13.5px; }
+  .exam-question { background: var(--q-bg); border: 2px solid var(--q-border); border-radius: 8px; padding: 16px 22px; margin: 22px 0; max-width: 880px; }
+  .exam-question .label { font-weight: 700; margin-bottom: 2px; }
+  .exam-question .note { color: var(--muted); font-size: 14.5px; }
+  .exam-question details { border-top: 1px solid var(--rule); margin-top: 12px; padding-top: 10px; }
+  .exam-question summary, .kc-list summary { cursor: pointer; font-weight: 700; color: var(--link); }
+  .lab-box { border: 2px dashed #333333; background: #fdf3d7; color: #1c2733; border-radius: 4px; padding: 20px 24px 18px; margin: 30px 0 0; max-width: 880px; }
+  .lab-box .lab-title { text-align: center; color: #611940; font-size: 1.9rem; font-weight: 700; margin: 0 0 16px; }
+  .lab-box .lab-sub { color: #611940; font-weight: 700; font-size: 1.2rem; margin: 0 0 6px; }
+  .lab-box a.lab-link { color: #611940; font-weight: 700; text-decoration: underline; }
+  .lab-expect { border: 1.5px solid #333333; background: #ffffff; color: #1c2733; border-radius: 4px; padding: 14px 24px; margin: 0 0 26px; max-width: 880px; }
+  .lab-expect p:last-child { margin-bottom: 0; }
+  .lab-expect a { color: #611940; font-weight: 700; }
+  .resources ul { list-style: none; padding-left: 0; }
+  .rtype { display: inline-block; font-size: 13px; font-weight: 700; color: #ffffff; background: #611940; border-radius: 4px; padding: 1px 8px; margin-right: 8px; }
+  .kc-list { list-style: none; padding-left: 0; max-width: none; counter-reset: kc; }
+  .kc-list > li { counter-increment: kc; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px; margin-bottom: 14px; }
+  .kc-list .q { font-weight: 600; margin-bottom: 8px; }
+  .kc-list .q::before { content: "Question " counter(kc) ". "; color: var(--h1); }
+  .kc-list details { background: var(--exam-bg); border-left: 4px solid var(--exam-bar); border-radius: 0 6px 6px 0; padding: 10px 14px; }
+  .kc-list details p:first-of-type { margin-top: 10px; }
+  .panel-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .panel-nav button { background: var(--card); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 16px; font: inherit; font-size: 15px; font-weight: 600; color: var(--link); cursor: pointer; max-width: 48%; text-align: left; }
+  .panel-nav button:hover { background: var(--hover); }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 2px solid var(--rule); color: var(--muted); font-size: 14.5px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 900px) {
+    .layout { display: block; padding: 16px 14px 50px; }
+    .side-wrap { width: 100%; margin: 0 0 24px; position: static; max-height: none; overflow: visible; }
+    .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .tab-btn { margin: 0; }
+    h2 { font-size: 1.4rem; }
+    .page-title { font-size: 2.15rem; }
+    .panel h1 { font-size: 1.85rem; }
+    h3 { font-size: 1.28rem; }
+  }
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .sidebar { grid-template-columns: 1fr; }
+    .lab-box { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="side-wrap" aria-label="Lesson navigation">
+    <div class="sidebar" role="tablist" aria-orientation="vertical" aria-label="Lesson tabs">
+      <button class="tab-btn" role="tab" id="tab-0" aria-controls="overview" aria-selected="true" tabindex="0">Overview and Objectives</button>
+      <button class="tab-btn" role="tab" id="tab-1" aria-controls="intro" aria-selected="false" tabindex="-1">1. Introduction to Amazon Transcribe</button>
+      <button class="tab-btn" role="tab" id="tab-2" aria-controls="modes" aria-selected="false" tabindex="-1">2. Batch and Streaming Transcription</button>
+      <button class="tab-btn" role="tab" id="tab-3" aria-controls="custom" aria-selected="false" tabindex="-1">3. Customizing Transcripts</button>
+      <button class="tab-btn" role="tab" id="tab-4" aria-controls="safety" aria-selected="false" tabindex="-1">4. Safety, Call Analytics, and Medical</button>
+      <button class="tab-btn" role="tab" id="tab-5" aria-controls="arch" aria-selected="false" tabindex="-1">5. Architecture, Security, and Cost</button>
+      <button class="tab-btn" role="tab" id="tab-6" aria-controls="comparison" aria-selected="false" tabindex="-1">6. Comparison and Scenarios</button>
+      <button class="tab-btn" role="tab" id="tab-7" aria-controls="knowledge-check" aria-selected="false" tabindex="-1">7. Knowledge Check</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="brand"><img src="data:image/webp;base64,UklGRgwxAABXRUJQVlA4WAoAAAAQAAAAywEAQAAAQUxQSEIbAAABsIb/v2or0e+/1roXLo1ImqhgK4wx2F2A3YkNg52ITRjo2N3drTN2d+dYowh2ACohcM9a6/97sdeOcw88jy8jYgLQBsU5g4W+OAsArveqG2+36y677rrVugO7I2utoMEF/XfbedfczhAskAVdd83debcBECyw+wwfVtcN1+jfCQDEyUJNLIDew8Y/+r/prcz965f37j1ps+4ArDSWw0gWXB5mwWSwKgseB7fg2o31bv3lzesOWh6ANQsvC3TZ66HfmVSNMUZl+td7d2oBbIMdFFtj7sAF1yoxtzUeuSDbMdRCPaMyW3vzuMUBu5ASg+5jp5CMPkRV5qrG4CPJ/x/XAbaxDqZn7oKMuZ5HLch2YmR9VYMPJP+4ZGmIWRgZYP9vyRCUlWoI5KfDYeTvkaTGQP5xgsAufAy63EX6yDpGT54Hkb9PSKonn10MdmFjsMR79JF1joH3OiN/p5DqOWUV2IWLkUU/Y41FNYbgvfchahGyxttg/26I5VULkZ4/rQizMBFrn2WN+RoCi0YfC7DGE2D/ZqhUfdAC9Pyqh5GFiMVJrDE/kIzfvvnIbddff/fTn84iGTRPQ+uKYv5WiD98V/rneSQZNI+e98MuPIwsMSdqjir/um+/FVqQ22+ri6aSMYeeD8H+jaCcsVhLxw7FW7ostf7Rj/9Fxjx67gy70HC4gJ5pVd44AADEOOesAYAuR05jyGEMq8H8nTC9G6pd9kLPmBf1q/YiCwlBp580pjT4EYC1RpAr1gH932TM8ZwE97dCDzFS1lhngPW+Ycxh4J5wCwmLLRmZDjwaTQZlpQmdP2BMRX5iRP5OWASCKk0T+n+vMU+fg6lKsgsSh/HqU4EfiRNU6LD8nKgJZW0ATB1ERNqeiLQhkQWBZNuKZBsCaMImMU85b0mYcmKdNcga66xUIwXzxLisqcziAYaU50lwqNThQvoEA7eHrcY4Z5AV65xpK2KdQdY4K3UTh7RY2zBinTNIGuusqY9YZw2yYpwz0ubgcA99ioF7wZWxFllpaelgkbWmigot6i14Iy9wKGw1RlbyqgnPY+EqECfItm/p0ISsOGkDxiLb0tIeWSt1EEG6fTukrZO2Zy2S7VtaWgRZ46Qya5GVlpaWZiSdaWtWNmHM8by4jBWgZd1jbnr506lTp37+2q0nbtABMKZcc/t27bPtWlxGBBi8/+kTTx25GqQi4F3GVOTGVQHmE9/qs/P8uRWIBTBw30ue/GjK1G+/eveRSbsvA8BKncQCvXa+8KmPp06d8uGjZ27QBJjqAMHSBzcJHrgHWPrOXWBQaZ2sAB3XP+a6Fz76ZurUqZ++dve47ZcAYKuxALpuOubWVz+dOnXq1+89efkhg5sAK21L0OEHxlTgEzBFxAAbXjOVxade9U/AFhOYZ6Z8/U32/1OOhYMBRrzD5JttIXBncRVZPMH8W8pZoPeRr7ay8NyXRi8KmLoY4B83TGPR/x3RDraydk0WO3IJ4NV3gB04Cdj3oM5ibRsSC2x603csOfuZA7tApJwYYKs7fmbJLyatBNg2BYNnGFKRH6GoBbZ+kaR6H2I2eK8k718FRkpMZv45cAZ9nyAZvJ/vX65M8Gae53moymDjI0aNzo46YjNIMTHoefZvJIMPMRuCDyR/OrkjbB0sul/lyeBDzAav5Af/hK3CGoNHxgG9/PbAcx8A4/w26PQrBwlK18MAm75IUr0PMRmCDySnjAJMGQNs9TrJ6H2IyeADyfk3LAnbpixuos+b3AzJsVjyHlJ9ZPHolX8dA5Fin0Yfs61xPJqx+Bf0kSQDX6nM4lGGVOT3HY2ppp4GGPED6YOysAZPfrIeXGXNWPNLMiiLRs/5u8FWADgcNaMd8P15wPMfAo9xIHbhc8Cme4m0EYOWy8kYIktqCOR/e8MUM+hwPRmDsmT05G+7wrUlhyuL/Ng5z2HbnxkDqwzkzU6k0OeMzHpOQFOH91hjsh4OF9OnGHgljK3IuHxTzKLjraRXVqietQPhKhJsMouepQN1a9gyBqduCNNu1j7Aw68Bz3+Eph9+bY+nuad0ncwR0mzagsEirzAGVho9P1scpohBnzcYAqtUTx4F26auLTK1JcfhCNIzN/psTFFrfMhYqQqXsca2MIIhh4FnA9ZKFVVbLP42vbLioBwNW8lKWH0mAysMOn1xYwqJtRjzU7smXPgxcNysdnj+YyzFZ7Bq/LErruDX/QSFKxPT9W3WmK+qWoCs8cNORvLEdH2PNeZqDCEETZExcE/YtmPxKEPep5JyOJYxMqmB+SFB1ngNXDVnyRD12gYMlqtRcxj47NoAnDVtw2DxL1hjvnofQvBBU9TAbWGrWK7lSwZq8N77oEXoeR9sIcBYPHMTzJK6nmzAlfD8R9g8nI+LeB62DLo1cOFKMHWzeIQ1poNn0oc81ngNbJ7F3awxHSLTMaQY4+z+YtqKwH7BmAp8EQYALPZhUCYjyQ9vOGPMade+T0ZNsMb9YavBE/RsAzB4WUMeA/W+bVoAwDor9RLT5UN65sbA/JBi1BlLiKmg51n0GpgbtAAD14bNE3QfCWt7zhkKPP4IuusovPQ9JnJH+S0MaPma18PczKldrdTJ4hDWmNRIcvavv8wkqZqjgWvBpiy2p2c6kn988MzjT70zjVRN0PMO2LZiZOWgTHteBwfAYND8GJmMDFf9A+m17yI1EeMf/cRUMbZfVJLUGGOsxZeqc9iLRRhIfn3lzksgaZ2VOlg8yBpzA/njHcfvPHz/iS8FxhQ974Mt99dOf0VPTn/yolNPu/T5mWQs4Hl7IdPxqRvRhF3+7GY2iH3x/kRsuR12f6rfgXwcl3NKd3sneU571ElkkV9jTCj5wqg1e3ft2nPQoU+TmqLng3li3tOQinx6h97I9tjmflITGmsDYdqIw9n0BUZlxLT7kIHJwMnrAbDOOQtg71bVDAOvha3i6GPpqV6Zfrc6mOYPGApQQyQ5+51rDlmnN7LGWanG4jB65gZ++6/uSA+6h1ETDFwHttTMN+k5ZXRvJJc4+Q+GPOXvPSB5DnjyfjTh7sdgvr4MfRzSB8/cdLByGO4lJwL9UB+H4+iZVZ29Dwpu9ws1pTp3CUjGYh1GJiNPAgBjjADYZVbUDD1PhWsbFv1+V02phpVgAIuT6JmM/HxxOIO0cdghBs1onD8ApoJxLzIGkjM+e+/9995574Y6WAyJQQuQjD4w+8eHtx270aIA4KyUM7LU7Kg5gQ/0BKyz1jkDHMWgCc8HKiADH1sUMM45Z4CB7zPmMHAH2BzAWtz7AEynafth6FAAsBbGCJbpO5nX4jZyAtypv64HUw+xn2jMaIxDYZ0RETHOYvU/Y0zQ8xC4jMMZ9InAR2CdICvWYXvGROBzMG3CQZ5hYDroe0YAI33/jJrQOHMgmlC0GWczZOj5b7hSkQ/+zsAfJq63qKDuFofRayGSGr1XZmc8f8Z67QFYKWNxKz3TgTcATpA2DmMYEsq5i8OUCnzawgmS0oSeX2vM8XoBXMJi9EFAE25/BNisNhCAINeiy7M/mxvIM7DGq+STYutgMEiVWc/r0YyCzRjNkHcbbMbi4QI7GIeCTXgw1mKMMcRv26FuYpxBx7sZmMcj4QCH8QxMBo5CEwqL7fitxkzk9x0gZcifY+QVPQBAkvWAwxgylEhq9D6S5FeXbiiAk0IGK9WipgKfF2NQUJrwLEOGnofAldH4Wy9YFGzChjEv8BmYhMgyN92+JJpw83MOxw8yDkUtug+5njwdp84hn1gFUgeHI+kTGlYztoiY9t8zJiI/EqTfYkgo14It4mR75sbFS/RyTa6kFQDY+kMG5kb9tbsIBJ1+0JiI/NhaKQaHk+gzjNwcthwDTwOcEUEbdNh/NkMsl9TgleR7ozsBtojFVfRMapy5FCwKW6wRYkrvhS0TeCIcCjs8xJCK/L+FJCyw23OjAVz3YneUNuhHHr30y+TMI4Ae9bk5FfmJERS2uI4+ofytOyQjHzEmIjc2hQyW/mrKN1OmTPlmypclphlU2G7l0S+Tgfmeh8MCDjsxMBl4CBxKGlm2VTXj+W+4coEPwRm0VYuVnyJj0Cqy0Ss5+YgmuDxB9+nUVOCZcChp8LzWYowxxC8tpJhyZi+RErINY0o5bZEUgGZ0u/z+lYErzjdNZeAw8d/7zib/2wfr3vTjCjCVCV6OPsYYa/EmuGJORhaoLQ2TwdsMCc/z0SwFADS3y5Ui5Py7bi5994tTIqmR+Z5vWAPA4g71CeWfPY01Za15nyET+DqklOq85cSi7Vpg93dIhqCVkIyBfHcD2ByHXRiYVP7ZS0wZJyOZ65eEKRb4OAyKCzr/Ss35a0kYwGD1EYsCwNbPjAEWRXkx5h7yl/077vGakufCVSWwU5h7WhmLrRgTJFdLGDydo/rX+hBnihQuVLUPLBg4YxkYQND+W8ZE4MOo9FL6jHJ6N0iZwPth0ZaNwAy7fxbJ6INWQUbPeCys5NyoPuV5GyzKGgz47sfkDz+tXsbzNHElYPAcQ868pTMiPfa98KQhADqe//gaMOVgcUe4b+gJU0m2Pr6FmOo6vffjDz/++OOP3/60T7kNqHn/SDhcqj5B5axRzYA4KynJL+MrDFFZNLC2KSwAg0HKtOekZQb0Lz2g/ziGDKmDYMrtJa5NARbAkqP+M53Z4EPUMmSIvARWAAjsp4ypwF3ElQLQsVOuA4oF7opSDlfTl0gOOfWCvfsCm+4q1Wz20q3TSH539lJIVwJIx07pzg75Ita5ZqxbZHDCYheGFJX85PjlAcA4KyherO6es4bCAYDDvvQp0odqmQ7cDraEsrYcTBuDWAOg55bjn/mJyeiDFqN6ToQFYLDUPGpCOW8pmCpKForcGLbchEoE6LP3xSevj2oFXX8lZz++x6LdNzn9sbVhKist1jmD9PBygq6/aUxRAzn/lTM37Q4A1kpDhMjP1oBF6qwidfYcCVci8tv2kLYGwDgDAJ1W3/vsR7+cR5IhaBGq5w6wgMWmjExGfmEhVUh+KeVaVZxQruvAzkgOOWNcB5EKIHhjztMTTrz2o/kkj4GrTopaJ8iavuuOmPTwJzNZMAWHM+lzyOhJ8tenTlmvBYCTtqZeySu7wiJpcVshrbTI2FKBb0LQmGKdQdb23+6sF2eSDLEAo/7UXQQO+9OnAp+EQd3rd3QZQc+dR+y3x+ar9HZAs0WlDjfO+c4zOfvEeuSKtQDQa4ODL/jv57NZOkdMx8/p80gNPpLklKu3bAastBnV4CPJ/6wPGKQNnmIoUF/Psyp4ArZBsmKcs8j23eXWaWQoQM8z4OAwJs/zZrjGO6ZMstPS6+yw76EH7LIcpKIJJGs/vn7toWt1QrYuYgH02eXyd/5kUr0PUSuAwap/0BfIavBK8vNTFwdsBb7KEJn98dp1ASvIFbxaJNa3NV5QwaMNlRRjnQDoc/RkquZF/aEjxOGsIhcuqNJ2ySVRrcPR/PWpc/fbeNCQDbZYG1IfC7Ts+uAMklTvQ1SWzoPBkO8ZYqFs9JH8/dwesOWqnvbaRcO7AcagoOCVInW/pILHGi8p1gKdzyY1h5FDYR0uLXLOAshgs1NPHDv25FNOPumYYzaEqehwzv2rlcnXYOti0eHoL0kGH5VZ1eB90EpgseRjZAglSEZPTtkBpphy7qWTzit+/viTjz9gq1W7AYA1KCx4tcD8T+r7waejYRtG8isCIA7YYV7UHK8XwjmcV2TSAsjhQha8Da6yQFJjaA2P10UMtvofGYKSpEbvI9NaCSyw1yckfdRipHryDFgpNs2gYnFWUFLwYk7kF0aM1NMg2yBtUpqxH2NO4IswDqcVuWaBdLKf55Pz/O2wFZ1Ez2TgPfUQi3Gkj8yqZ9b//Obd4/YYOpNaBYxBu71eUJI+xEJkDDwHttj0Xq7JlbdGUKHFAwV+6QRB/RtDTK6tB9CEpxlSkd+0QxMOL/IA7AJoFD2Tgc9BKrokz/OKelhcxRCZDCQ/vemoLZfvBACd/6wIsAAGnfleJKk+aAFqjXvAFlsEgjbqcDl9QlkbIEbq2jAGN3z28f+yH312MGwdnOyap/yjO5qwA0Mq8i3IAsdiGEMq8isHqcLiMYa8sXCVWYxhTZlV5fcTBllkxTa5ftVBrABYefR9U0jSxzxG/a2HNMzROYzcChb1b4wXmX8jXB0MBnpqztzF4TCIucoZ3SFVWJdrGsFgxUBNKOcvDVOBoPlrxlTgztVZWT0EZVaV5y8CwDprBBD0qQMA4wCgZe0TnplDxphDzzFoEIvNGVOeZ8BVYvKlUSxuj60xW4tvQ+ogWHRmgXlLwaLLr9QElevDVlGyzQk6fJ/DwF3FVWCwclAmlWEFmKoMHqZnVqPuBzgjSAv6/FEXQIyzALD04W+TMSfoe7ZBDHrPpiYCX4FUUrYRHCbRM6vaOkBMPRabW+CPRSAGzzCkPMfDVTFq4vgJEyZMGDdxQ5i2B4tH6VOeN8NW4HAMfSryqyZIRQbL1ZTJwPPRLChosMRfpcTkZ7JinQFkt6nUlHLewAaBwUsMCdXWgWLKWRzxwjPPP//8808/fwhso+zHkKDnJLjqrGzAyGTk180Qh7H0qcjPnUgZQc/I3IPgGsDhiDzljB5iyhl5nyHl9TpYVORwGH1C+WdPY1BsMJUlqjZO0O9TxgSV2zeKwxj6BD3Phytn5HPmjoRrDIOVI9OqM/vDVuZwAX0q8BkYGKwWNcXI4bBlnOyl83221roqTAMY9J9PTTBwLFwpi60ZmQ4cWo+bcwKfgUFhJ/syFBP0HDxo8ODBgwcNXrYYgGasG3MCRzeKwYBW1YTqn4uJKWOxSayFEIL3rcvDNIaI+1RjgpEvOdiKHJb8UzXleRYcYOQNDanA94yTEhYvMpBk5LftIQ0Agyc1pFSn9xZTQpx9nyEVdUp7kaoMXmBIeN4hrpjFXfTFHA5n7sciJWDMF4w5JzYKDP7DkGDgfWiSYuLwKgNJRv3YiDQGHCbQpxj4QDs4U4E4tHuZkenI9WABhxHMYeBYNBVz2IaRWa+3wKIRHIYxh4H3w0mxJoxjYNpzLByqAj4ocHcJI0vMVs0blNhNvapq1LlLiCkheIUhEXl4w1hsmEfP4+FMEWnCSQzMep4GhwYxWGZe1BQDXx8EGGelgBhngf4vMTId9WMrAERavtaY0hC3Q5MUcOg+WVOR2zYIjH2HIcXA8TC2gHHYl0FTGqcvKlKHjxgTke9DikgT7qRnWjkEFhZrU5n1PAlNxcQ0TWHM2alhYPA4Q0oDjwSckYwYBxzMoBmNc5aEaRRYXE2fw8D5l6yMrLHOOWcFAPqeMoOBuYEj4ADAYR/6FFVbdwOcFREx1qHLCwzMRv2mvUhjWGxKrykGngdYZ0TEWAuMZFSmPY+ERWWClxkS1DAYTTniBEczssDGsBB0m0bNaPx9WTSbAtKMbRiZVc5fsYFkxflBE9TIG/oBMNYaAF3+zajMel4Ci4Yxpu+MGHMYydZnjxuyKPI7rLjvnb+TgbmB7zcZJK28yJCikhf1Qf76HzIw6XkELBoDFjfT5zDwhSHIH3AHVZkOfNsZqc7iLvpU4KvtYVzWAG4iQ2trTuQ2sIDBo+ozjPx8FcA456x1zgL9v9FU1A9s48DiWNZSZOS0c9dqAQCz4omTGZXZGKf1FmkcWOxJrznUQJLTP37qjuuvv/6WR97+LpIMylwNfk3kGAyYFWOKqvz1os37tW/uMmDPh5SByaj/bzHSKGK6fsWQw0D+96BVerR0W27X2+cwMjfGOSvBoDqHE/IY+fIaSHff+z16XvcVNeG5OxzgsDNDgpGzxi+D/C4H/URl0nMsGkgs7mMth4HklGfvvuu/n3kyMKk17g6LBoLDJNY0h9TglYVDUOar579gkWuxK72myEBy9tTJP3qSkUn13AoWjQKLQXMYcxhJcvrUXzzJwFz13BUWdTBYXTWHkfGF8w4bddi5j/1M1uIvS0wtMDoDaf6EMcFI/vXihaN3H7b9vqfd9xMZmYzx917SQBDT4VXWcqieuT4yXeNFcGgosbiaIeZlNQafDSEqi8bIM+FQ0OF4Bs2h+shsCMp0jZNg0Tiw2Go+Qw41BGZDUObGyKPgUA8YeU1DDiPzQ/TcF5MZcyYkLDaj1wQ1sGhQpmscCdtIMFjkZXpNkYzB+xCVaa3xTlhpLIjBONJrkYrVk0fDobDDGDLkkNQYVZmrNd4DK40Ehy1n0eeQVI2qLOjJw+FQH4ut6POowWeDssYbIa8y5NySgMWZrGmC1OC9j8H7oMyt8VZYNBQMWm4nfV7JQF4tRtBgEIMdviO91kU9OXlLWJS0GDGXXvOKh8g7rRE0FBwG/48x5JWMgdO2hUWdYHEDW/PytcYnm5pwN30i8CVIBhaXUkOqwhD5QJORBoMBRv9Bei2lIXLO4RBBwwEWPS+dS4agFWkI5NwLF4FFaYd/vE36WEpDoJ4JETQYLLpcScagpTQE8rFl4FA3Me2fpY/FNJD3tUgzxmkq8vsWSEYMjm1lDFqBhkBOggiwY6iFpA+/NQDEYNlbIxl81ByNwZN8bBUYQaFPQy1kW8MjbQsWWPHSX0lGH6JqAdUYfCA5/cqVAYsKLZqP+5lUH1RTGoMn+eoGMIICB4X5IenDmlUcHeaHrA9zSsAAGz9HMvioORqDJ/nR7oBFmZA7PxyZA0HL7WQImtLoyXljAbHYjrWQrq0IkwEM1niKZPBBNU9jCCRf3wwiAHZjwfk9GgCwwD+u/JlZjTFGZuc+uDlgUVRgvmP+s20MYoGe+z34G9Mas6pMznry0L6AFVRqgF5jPmNWY4yR2fjCLoBFQYd/seCQKsaw4DIlIBbY4p5ZzGqMUZmtPbN7E4xBmdVY8IQ8CDDiK5LUGCNJhvtWhwgE/SLzR8OlYIEt753JrMasMtv65M4Ci2yf4cPyt2hCQxoDdN/h8jenBSZnfX7XIf0BY1BSNho+dFh26PC1IG0LMBZA901OuOPNH2czv3XaJ4+M37YfAGtQtVjAbXT2iz97JudMfuTYlQEYFBUsMXzosNxukDKC/sOHDktv04LSVoDF97n+vRnK5J+f3nXoAAAWZQWdh+UOHd4fkgMx6LDHPd96Zme8evrKgEVyw+FDh2WHDl8JkgMjwGK7X/bqj3OZDjM+uPnAZQBYLDiNA4Cea2y916EH7LhB/2YAxmIBK84i22XZIVvtPOLQQ/bcbqNVe1oAME5QT3EA0H3w1nuNPGDHjZZrASBWsAC1FgD6/nP4PiNHbLf+Uk0AxArasAXQZY1tDzx4x/X6AjAGdbYWALquuNH2+4w8eLet1+gjAIwVpAFWUDggpBUAALBaAJ0BKswBQQA+MRaJQyIhIRN5DmAgAwSyhDjv8AGTJPK7/bMmvBP6cP2n2gfN70i/3T1AOdn/Xf+l6gPuA90b/jf5L/K+5b0AP2d9YD1IP6f/1fYa/YT07fYV/cX91PgO/j398//HsAegB/2/YJ/gHYvf3X8YPDL/B/lX4lfrH8v+ZXriV92uj3H4v96/yU1AvYngE/EDwEs0/3foBe231jvSf8f0F+xvsAfzTzV/zHgb/ZP9D+uHwB/y/+x/+b/Pe6p/P/+f/P+b78v/x3/w/13wD/zD+y+md66P2s9jX9jf/Qcwfew0IICNdUjpDOTbnl7BpHpFttLF4IlK7mM939vb4bZwmx6PSnPKbM+7HA1+QO2Mb0Mk2lRp+IwgVms7/dOVfbhsfH89qiXOWiEgafqxHJ11eosSTDfoY87yrbav7j1hx0K1a7Z+p3+zfWUVbn56h2W7l/QsJvHsGlMKnfYaWYzXLVkB45Xpz4lZvwa7xnXbaqqM98g8fOnTKd+eRdWUx1h8uW50rk1FMTo7xsCMbTf3Dj5rn3596wCwYAoX7lUfiTQJCMEh4l5uAZELzZF6pc62xyZFkVx2hyonq7UX0QW23UJzMh9/17UbUYZLXVxTqJIKsrpLbp58b2+GIBydFlWI+o4UBWQstzS9xzBzVdvnyls7pHKKxNuX8P/NS+P4VtV/G5HuYgxhD5vadjUWEkT/C6+cq3zUCqL3IWwgNvfnmz8QA7RJjG3+ZzBrLpUmB0sH2malTBX9ulcFWhE4gUn0IN4Wbin0ktA7YtZQmfOthFa0NPS7BOLU2iE6IYjUN6UjOYjuhFV9kF632tC0dYnbYbkRLGuNxKhrLlatiN45ZIMNXhFM6HwUjIxUzVOnYTmM9PAZV4N/x8hRipakp5UHvrkbmoo/e/dfHDUAInZ3bq0ffnOirTDV93LBnw1e9wyaXbYPBh1O4v4kMb8iaPI0ayvrKPYAAP7R89l1GohZColC3mZ6eDfNVUKcTYXgPjppH3LHfw0s5gH/reZqD6YwSvKvQBGhkIuBj8z61/kDDn8a3PXnBADBT4gWaIjZfPLnXh2PypzTx1wtgIshYDK3wBUPvM42Jkekf81mjf3OF+guTV5B0IKImOYiP1Ed5etZoqJvR3DDioctfUUWLhPbSmh9fhGBBoODOjvtVW90hgCQc6kTBuKCXjSZyMjxD9EH08rxbaLb7+8SnUth0chCpzu9MzPU/Oradxpxqt4epA2++92uGJLmSK73fyP3e+uZtfoUo/RXp+Mwe4DNYBxlWh5b9u/nXEnlwRTE8mcSgaY5uiL+AKW6JIU57zM5/Qkuw5DX5P3mkrYy9E3OyendVkiQQXDm/ggT0xLjr+TQCulsSd5V6reoZuJA+hLKMgwWjGRoRWA3KeNNoksg6Ld8bsH/OTUgACeDB6jPCZ+Vd6OfXmiS7SHB5NMARukp+FEEC/Dl4/lBHdDLFHP13NGIH1YmQJmj6lITU9PwdRAnCxtFZ02O6MZFPmCoQ4sJu6XRzmYsrZd4JHhkIvLRUrwguRAzXHfzfE2igEq6utAF2C2haJq1FlVuKvHBKTy86C3NBA9VVW4mWvvP4GhKtzn8N2+CYFPitkbWQPXFmkKGywnPgqCpOjn64V8YalzvZL9TYQtIDfzZXwVwD0LgQPRyrW6eVt10S9DCRLxb0N/VZaPZgdmcmdy9SYzdDhtpllaZCVhA50m4fnyHO0Eb1tv4laCfwURaz3G9WlhdbouP+aRgGxML+ClueRxjks4ux5zqIgGKXnCEfxfb7bGNJngfHZ8VvYov56KvKnaytCsmSYN6vNWWQJVN4/j4LI3OM/fRMY5YXSdVwedt97KqdAwP8DQlW9aUah66sGtMpMgmC+mbqsVlYTNfeMmNBX6TFxlIED9RaEaryyN8JA3/iK0womLwG1nO0iJAuX2XcjVagQ+4MCMhucFccT3gpN+bL3aTWoUSGyrn6VqyRtLtrGdxXFi7/+9p1Nzol1FbK766cyJCqI7QY9nqbF//sfEsqg8garWx2AAKwUmCk6iVRuZ0/Va4tcxWmJ0pp7LWWBp0tekrERRm+iI5U6KQBTWM55P9Ex4xHxUfFou00JxbQTRwuxo+N9vFheIj3NzbUAxcHiMW5aO2hCgxY0/uDQcc/Qc+miiVailoyHgpl5jKx7yb4WWjXZJaIuMY6HY7obKdXXVr44z/FqfN5qs6b1lkbClLI/cZKWxfmgr8HgasBhrmCxfs79HP91r8EY60LWGt6lJaxA+CXbGY58nVN64dMLVFy/MCRjtMmNTSXLvaG1pp3hpBQTjMe31j++pCF2nMXeRZyliq3WBIOOMnceiu4vdn2DZ8gV7dWHZLdA9RPtchazUeHa60XalIkW5kjx7ra02KjGtABJPUBo3D9NBegodL2OcVJmr/rOzozNqFAHMsgRSXcFH4gZ69dncJquDcbsmyAhX+gK3XuawAO6MdmcXdQII919LNPa2cQgYsE6Rydzsb6u/9+Fku6HHW6PfHGd0sXPc/GS6DVD9aWSfdVNs3CbwreJkE9rgZX6F8sfPgy2JPwMSdbkcTTVSxeTu4nmnYwVdrmzxJ0aLcaJp6gBJiNXB4H6w+B1RzvM5GJHj5iEBVHBSWki66/uwhGqGCsGvmPXru2WgLjcq9nhuidYQsfM2AetpFLAv3N2iKOj4gP3j5mYe1OjlwQdI8F4jJw5fCPUVo67+q3Dd712QI7IkVgs2VxPL/2Nfty0p3CXwYerCfL5NVIsfoJmVl2shG2Lp6GS37XD2xp1j0F4KJKls3YyiesBH5XYPW6OWSPnwM9Kzj+r28ZyiY/EgaUC7W/SaZEIsZjVmDIJDo+EZx0NQ2F88KM5N9pKb+/jW9pUIBVcfjaPW8+HWh5Yw1wc9YSSTgIjr6QKl8pI8mnCLUnOsDi7L3D7UcvBWbFCE7Iiw6jaz1VqMZK5bK9NleQwWBPlJinmet2KUTZ4b04vg3r9afEYL1qEjPfahhNGUqMFIbqu0H5LaazuUeFXlFKLPda1Lwshy2QeTYemc6x6ouGb0yEKbv2xCkUKHparM3gULklmedQoDwoYZlb6NuySKpqE4tg/R3K5XubMA9jCT7U6uGSEBEqwhgTIQGcbOTLrVoEDLrBSedcloF2LWjNO49BqoLrn0OXX5BR2BrsAo1+gHiLSMqINkYXRxof7NtioMn9kXUXs29/RqrrCwD8JmzDCwOmw1tuFtcRfD1ccjIohRT/4PoQSQpsrxxZOYTsZTOeBxxaqUmUDptNess7BvfssJzRNyHK0/c9ZfruGqztYScFSPjWAgeg/Ohh/R9DfjFTY9AhacUei1w3P6JSuocmqdfR5dmYhX5/oQbo17EVNqbshZqT+q+Sy/AIqAAaXV4LjzZi8ttTEwAMD5pEBM0wGEFCehzwqs5MwL6yk7HQdTOGjzIeQ1YRsdV7OtBJJyR1ZF4+KGTSXfHxHg5UD23outvdFem0qgCA5X8l1Dka4cVJd3A1ftKpyTRvhuZjfXRwHOW2gCmZj3dj9CWBlxku2RucYClfwhWndzT0MzChcLl6Na44eGRelraED1A/UzwByT7KoKB3p3LK7ET6UHOaJW4ZIHZwqkcevnnXEq64cGUbSJ7dHrQ7L/zH/hsODX9Rex7kgiaIYIrLk7k8Rb8nCRd9Gjj1Sj/FYFhyTu82AwsyHT1f+NRgWGU38pzkk5/C3lu+USgmKXtF4rbFZN+Z19/4aenjr+ju0ehIQCwaiFHMLEe1FVxL1ybth7QjjHwVyQ/bnOb+1Ty5IPkybePF8U7ATElNeN0qkvNbdll1JlYcKMUuYvf4VyvyMI4tmraQ7mP1avtScLVa/tPZgj9lO2FkUUTx6OMlSPyJHa5ec47XnQy5VlTw88xNWunnPJVkWQJ5aqbZipmusR5fCQC3f/tBPw79UnSU7I/g5SAlOXZuWykO7Q3vN00V3d0MqojL3paxLLgmPAAfYWTFnw4yOEMwhCi4dHfLhoMxfvA0S8Ky/xLy0i57ohdhY4P041UIqTFdrvnmpwAWdHnRqhTvZ13uqyT7D0lVN9yq97Bn7qXRHcFgqAHC46MTyQJpT+QV2U4o2Wx0JCZWcbPWKvVoUPXTFi3bYzg9fyKFXST8Oqlpi4Kw+X5CcesbuVAQ6rje55xC2GX/pT/29arBBzv887ehCiMLTTNK4giV+ZjpfC62vvolJCf7tQSlN2dwftSe9sMzsMDwzODu3hGprL7ryvlN0YoXSjazYRB4kScQZHFV74ske8dNKMT6FZGwZlCJBwJJt0G7vDPAyOjwHV/V2pjqGb/ndgTaefoBMj3Hwgguy8Ac36zIeENTtE/cCm2RuZLq0AIQCbwjR0ww+xRyuQj8SMISIpaVafFX5BRLpJIxU1cVtL2KFq731sfKFEHpjQIcjXWcexbIBUesSQE3bKhdUUhn7iWMHRxqGMqA9ojU74DxkpsSbS+mWMstp5p91tYmHDOasSaZTnaACwuUc2ySe6w5MCPRDsp4zh+F/3Ucg0LH9nEGswvhfD6veIeDooxU5WyOzJbXgJKe96LD79kuCf9kYZhc3ACaoUAFMtXLP6SZwct95tZih/9VuX82BEx25GA+am6WtVa+yYvfuJnkNdrjynhZJ8n2hnCuZCWkABmsRjOfX3RydRrMPI8xA2rlqHbaiczqYJ6qtt3uYk0F+mlwPvmjzAAoXIpbsQWzn4TVwmmRx0k99nsFu2gikC3i8iivwvjmbbzeXAX2E1A26YhAtY068+ETDlyw4rY+6Vm5WoFcYQeOpJ1B1x/NGxJi1YAMhdO7e8PzFgt6Ne3uLz+0qWEbjiu8ykh94riJUCm5iq52nOuMPB1W4MG0qDQpi5Bez5WY3KcZyzCgqxnNID/uHd3gIT2l9NO1BgoxBKY2shYYoogCoKeqpHQ90hPqzOPkXkMppJPJJjoeCQGFHiJZSe6YckFSg0PsA1c+NT4tw8t9+6+PPEHr8BHqj6yzS6jfJgI1oldE/Ka5cVT4a6WgjVnywazcxOuHIfYeO8Qg1sQdTbZUn9eOcr/FmVNzwVurxaDjeHgcT5rb2i5kv/HjxnaSxJUUftNZ7AjiF1u8IXvmes3RAJUeXVxHHI5mrfRKEMZ0ewfyapzNrQ1AArEW351ViM7PogL8njO5D2GCg3+82ySHzvfc8DxgIJn/nJQUGQfZ8OqB2qnRcD+JnC3YmwOj9juuTmQlBkFzdxlzedp/mF7rFjHE6/Qd3nU3OEyjizFN4RSnN1JH79K9v/58z7oy4djiLs6jdPgr3wyFdo8D6slbG75a8T+56Az/U4LNZY7NQqctgg5FvRJV4Pcfuu64ABiDmul1vRQ+YWETuQzBTNEo3IUPSJkefqDdcgmZXUDPxL2Md+MmPQfxSQ2E2YanThoPsp1Bp8ZfJCtxnrf48Q5G8hDW9LHmKphCJRVV/+8YOMHDQYOR1ZIzmbQmjSQV2rJvddE7x0TL7pFTM4QoY/2/KkI8y+z6MNlysF34gH/33QHy7yNjPXN1S0JpNvk9wHkAq/zOwiqXnvZuYAj/LCvhyEUlHbS7e/WfUXdzd5NmZj2eitKqem45KSwH+uIAttEvrJGPpyohJiSvD8xncbA0oUJp98cpTy7qqhbVG47OEcYQTpfJNohkTUKat6LnIV2xZAx7xd7Or0JYA6eq6f/5Gb7o3CsHXR9CkgLv355VSVVpcIOagD6iWtV7rX+Qlx3pm8Wm0cjm8kFzSF5J4Oc2nm5pqPOb5522SQL8WfY4/o6sWHyWKK4BlVq1O9pYcRWGSwrJEUHYy4hrnSyJAW60V21zZTMLO1VoUZjTKGoc6ilhsGcuNfeFxX9YAw/QUAAAkf28piaFsbZOIubmDqLwng/VvJ8Iu/bHCxgIyy8c5NKsa2pcnZvFC5tslyk08mwxg2QrQU7per/UOK3jeHHcbj1Ukmql0ZA29kaYLvIB2bE+TAtEewu9Gwa7JL76CIZFbeTMww6HwSR8+f2DIQ9tDFjheyXzqaoTy+fhxSC4wl39F+PsWDOzdevw74yFPzCqlHhq5gDNwWdHNL1oqnXyhiIyGezMQEgCRejGoIA3tqLBsLhQcrJQe+rQigqzLV+xxc6d3OpV6g8nbhcPuaKsH3h6ouK9wCkhCPLQyvKY4gbPE2vPLgyOXHIK/lIsc7RVHgWp6hW798gRfPiPEf3wc8pFMdhcIs4wfTki0gKJ72h27PPG+Qn9O/im6rzerl/GJ6IuF3VWCo40mYk5kJ+raW0ztWLlZPE3eLL52WToYISfCdbeeP8n48Er6kLYzK46MzhLebIyqgJqzSp7WMj3X+XTEfQO0SxuB4+n1JYdpz16QIwYi21zq5NnKyYOzRXgaInlNPR3nDICens3ADsf1hzvb879/Rbfvi8C8wQT4Xh76hLJjsMEiDj4gQojZ7AQvWKQRmXB5S3M5FssdqmfYl09pVieCd2S8jBvAyQgFtSY8iTG3/jUOOqfHL1KHgtjuk9XL94NFHjbjZJEv2tYdSbjC9ADNwRf/DYctS5eO6idngHjPWSOv1QOqZG31SfOpncoDio8w4ciIcAb/ZRLANFvonBCxu248kj3cSmrPBgaIbA0K/gVy5jxonOdZUPrcEIZnTd7oOqdU00ePVF2S3glrvAed+Md2wr9Mcb37LxhNmxJINsTodhvqkuB9qfUDbJ23uFF5h4gOSZMHvNZzfBfPUaK2mmvo5++p6cmGCwD1s/Iwak8tBzreaeCx2v2bdUe9fVweAJ6JS5m6kjS5J2jaRr3geuIiXiX/HcwchFHxWaR5rIWdzIcl+/WJHtRV+CUU8bYaWNJ3gslah49SUaEcDZVdmoJ12yNzjH05hTAgDWUUGDX2mUsLKOXVwcFyZGUBFvrXJXdRKkItDMInZ0rl7F6kCwdEBt4sKmjsxK0273fqiFE9Ls86clLEYstVfTdfSiw2Nw8gFdPJZPB4zs8G/HdtJNFEABb9mkQ3WGRel9sQPXhg1iuFzf48fYPhvexZfMV0+BdZu9aa41ahojAtZ61foX38PUgyVZ24D3t7Qz4Udr6GQrOpkkczeTnCv7jzQFZkBQ5mHPIlmdJTf8TM+g/wjWBM/jmhn6D42SAIWSByrL6aovOXP/1ZoQiWCLgStnpn+bmW9vWqv1PQ0ABUK3/IAfTXxOG93Z3O/xOG93Q/TRtGEotUY/tddDn4TIPQ3RE/bqHzN3xF/MbJAdC9Tq0gD8nE72Zpif/6DfeqE8gITfxtv5Xu9b73867a7WwxIPSqOFkgIkFJMuLL9f+CUY+o5Nsxspnt8Be52pwSXN0+O+n+IVr/u0Pd6TrKiAiyOkzQP27izsxunhv4V3wa/X1+SkSmGeewA6OAAA" alt="Per Scholas logo." width="230" height="33"></div>
+    <h1 class="page-title" style="border:none;padding:0;">Amazon Transcribe</h1>
+    <p class="page-sub">How Amazon Transcribe converts speech to text: batch and streaming transcription, language and speaker identification, custom vocabularies and language models, redaction and toxicity detection, and the architecture, security, and cost of a speech pipeline.</p>
+    <div class="sr-only" id="live" aria-live="polite"></div>
+
+<section class="panel active" id="overview" role="tabpanel" aria-labelledby="tab-0" tabindex="0">
+
+  <div class="overview-box">
+    <h2>Lesson Overview</h2>
+    <p>Amazon Transcribe is a managed speech recognition service. It converts speech to text with automatic speech recognition (ASR), a deep learning technology, and you call it through an application programming interface (API), so you need no machine learning (ML) expertise. This lesson follows FlashCart Inc., a fictional online marketplace that records customer service calls, publishes product videos, and wants to search and analyze what is said in them. In this lesson, you will study:</p>
+    <ul>
+      <li><strong>Introduction to Amazon Transcribe:</strong> what the service does, its inputs and languages, and common use cases.</li>
+      <li><strong>Batch and Streaming Transcription:</strong> recorded files versus live audio, language identification, speaker diarization, and channel identification.</li>
+      <li><strong>Customizing Transcripts:</strong> custom vocabulary, vocabulary filters, and custom language models.</li>
+      <li><strong>Safety, Call Analytics, and Medical:</strong> redaction of personally identifiable information (PII), toxicity detection, Transcribe Call Analytics, and Transcribe Medical.</li>
+      <li><strong>Architecture, Security, and Cost:</strong> pipelines that combine Transcribe with other AWS artificial intelligence (AI) services, data privacy, and the pricing model.</li>
+      <li><strong>Comparison and Scenarios:</strong> how Transcribe compares with other AWS AI services, and an SAA-C03 cheat sheet.</li>
+      <li><strong>Knowledge Check:</strong> open-ended questions with model answers.</li>
+    </ul>
+  </div>
+
+  <div class="overview-box">
+    <h2>Learning Objectives</h2>
+    <p>At the end of this lesson, learners will be able to:</p>
+    <ol>
+      <li>Define Amazon Transcribe and ASR, and state where Transcribe fits in the AWS artificial intelligence (AI) layers.</li>
+      <li>Describe the audio inputs, languages, and limits that Transcribe supports.</li>
+      <li>Choose between batch transcription and streaming transcription.</li>
+      <li>Apply language identification, speaker diarization, and channel identification to a transcription need.</li>
+      <li>Improve accuracy with custom vocabulary, vocabulary filters, and custom language models.</li>
+      <li>Protect transcripts with PII redaction and toxicity detection, and state the limits of redaction.</li>
+      <li>Select Transcribe, Transcribe Call Analytics, or Transcribe Medical for a use case.</li>
+      <li>Design a speech-to-text pipeline that combines Transcribe with other AWS AI services and addresses security, privacy, and cost.</li>
+    </ol>
+  </div>
+
+  <div class="overview-box">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#intro">Introduction to Amazon Transcribe</a></li>
+      <li><a href="#modes">Batch and Streaming Transcription</a></li>
+      <li><a href="#custom">Customizing Transcripts</a></li>
+      <li><a href="#safety">Safety, Call Analytics, and Medical</a></li>
+      <li><a href="#arch">Architecture, Security, and Cost</a></li>
+      <li><a href="#comparison">Comparison and Scenarios</a></li>
+      <li><a href="#knowledge-check">Knowledge Check</a></li>
+    </ol>
+  </div>
+</section>
+
+<section class="panel" id="intro" role="tabpanel" aria-labelledby="tab-1" tabindex="0">
+  <h1>1. Introduction to Amazon Transcribe</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart Inc. records every customer service call and publishes hundreds of product videos. Nobody can search what was said in them, and the videos have no captions. A person who typed out one call needed an hour for ten minutes of audio.</p>
+    <p>The engineering manager wants every recording turned into text, with captions for the videos. The team has no speech scientists or ML engineers. She asks what the service can read, how long a recording can be, and how to make sure that the text can be used for search and analysis.</p>
+    <p>She also wants to know whether the accuracy depends on the recording.</p>
+    <p><strong>Your challenge:</strong> Advise the manager. Your answer should:</p>
+    <ul>
+      <li>Explain what Transcribe does and why it needs no ML expertise.</li>
+      <li>State the inputs, languages, and limits.</li>
+      <li>Say what affects the accuracy of the result.</li>
+      </ul>
+  </div>
+
+  <h2>1.1 What Amazon Transcribe Is</h2>
+  <ul>
+    <li>Amazon Transcribe is an AWS AI service that makes it easy to convert speech to text. It uses automatic speech recognition (ASR), a deep learning process.</li>
+    <li>Typical business uses are transcribing voice-based customer service calls, generating subtitles for audio and video, and running text-based analysis on audio and video content.</li>
+    <li>It is a cloud-based, managed service. You call the API, and you do not provision or manage any infrastructure.</li>
+    <li>You can start in the AWS Management Console by submitting a job for an audio file, call it from the AWS Command Line Interface (AWS CLI), or use an AWS software development kit (SDK).</li>
+    <li>It sits in the AI services layer, with Amazon Rekognition, Amazon Textract, Amazon Comprehend, and Amazon Translate, which you studied in Lessons 299.1 to 299.4.</li>
+  </ul>
+
+  <h2>1.2 From Audio to Text</h2>
+  <figure class="diagram">
+    <img src="data:image/webp;base64,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" alt="A diagram with a noisy audio waveform on the left, labeled Audio. An arrow leads to the Amazon Transcribe icon, and then to a speech bubble on the right, labeled Text, that reads Hello! I hope you started loving AWS by now." width="820" height="350" style="display:block;width:100%;max-width:700px;height:auto;border:1px solid var(--rule);">
+    <figcaption>Image 1a — Transcribe converts audio to text. (Source: Chetan Agrawal.)</figcaption>
+  </figure>
+  <p>The text output can feed other services. For example, Amazon Comprehend can find sentiment, entities, and key phrases in a transcript. Amazon Translate and Amazon Polly can turn voice input in one language into voice output in another language.</p>
+
+  <h2>1.3 How You Use Transcribe</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 260" role="img" aria-labelledby="t1b d1b" xmlns="http://www.w3.org/2000/svg">
+      <title id="t1b">How an application uses Amazon Transcribe</title>
+      <desc id="d1b">Recorded audio or video files in an Amazon S3 bucket are sent to Amazon Transcribe in a batch job, and live audio is sent as a stream. Transcribe returns a transcript as JSON with timestamps and confidence, and it can also produce subtitle files.</desc>
+      <defs><marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="20" width="210" height="70" rx="8" class="s-box"/>
+      <text x="120" y="50" text-anchor="middle" class="s-b">Recorded media</text>
+      <text x="120" y="72" text-anchor="middle" class="s-m">audio or video in Amazon S3</text>
+      <rect x="15" y="150" width="210" height="70" rx="8" class="s-box"/>
+      <text x="120" y="180" text-anchor="middle" class="s-b">Live audio</text>
+      <text x="120" y="202" text-anchor="middle" class="s-m">sent as a stream</text>
+      <rect x="290" y="85" width="190" height="90" rx="8" class="s-hot"/>
+      <text x="385" y="124" text-anchor="middle" class="s-b">Amazon Transcribe</text>
+      <text x="385" y="148" text-anchor="middle" class="s-m">speech recognition</text>
+      <rect x="545" y="20" width="165" height="90" rx="8" class="s-box"/>
+      <text x="627" y="52" text-anchor="middle" class="s-b">Transcript</text>
+      <text x="627" y="76" text-anchor="middle" class="s-m">JSON with timestamps</text>
+      <text x="627" y="94" text-anchor="middle" class="s-m">and confidence</text>
+      <rect x="545" y="150" width="165" height="70" rx="8" class="s-box"/>
+      <text x="627" y="180" text-anchor="middle" class="s-b">Subtitle files</text>
+      <text x="627" y="202" text-anchor="middle" class="s-m">optional</text>
+      <line x1="227" y1="55" x2="288" y2="115" class="s-line" marker-end="url(#ar1)"/>
+      <line x1="227" y1="185" x2="288" y2="145" class="s-line" marker-end="url(#ar1)"/>
+      <line x1="482" y1="115" x2="543" y2="70" class="s-line" marker-end="url(#ar1)"/>
+      <line x1="482" y1="145" x2="543" y2="185" class="s-line" marker-end="url(#ar1)"/>
+    </svg>
+    <figcaption>Image 1b — Recorded media and live audio go to Amazon Transcribe. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li><strong>Batch transcription:</strong> you transcribe audio or video files that are stored in Amazon Simple Storage Service (Amazon S3).</li>
+    <li><strong>Streaming transcription:</strong> you send live audio and get text back in real time.</li>
+    <li>Both batch and streaming output come in JSON format.</li>
+    <li>Transcribe supports single-channel and dual-channel audio and video for both batch and streaming.</li>
+    <li>Supported media types differ between batch and streaming, and lossless formats are recommended for both.</li>
+  </ul>
+
+  <h2>1.4 Languages and Features</h2>
+  <ul>
+    <li>Transcribe supports more than 100 languages, for example English, Chinese, Arabic, French, Korean, Hindi, and German.</li>
+    <li>Not every feature works in every language. Before you start, check the supported languages page for the language in your media and for the feature that you want to use.</li>
+  </ul>
+
+  <h2>1.5 Limits</h2>
+  <ul>
+    <li>A batch job can process an audio file of up to eight hours (28,800 seconds) and up to 2 GB. These two limits are fixed.</li>
+    <li>A file must be at least 500 milliseconds long.</li>
+    <li>A streaming connection can stay open for up to eight hours. A stream that goes over the maximum session duration fails, and you start a new session.</li>
+    <li>Defaults for an account in a Region: 250 concurrent batch jobs, 25 concurrent streams, and 25 requests per second to start a batch job. You can ask for an increase in the Service Quotas console.</li>
+    <li>Job records are kept for 90 days.</li>
+    <li>Limits change, so check the Transcribe documentation for the current values.</li>
+  </ul>
+
+  <h2>1.6 What Affects Accuracy</h2>
+  <ul>
+    <li>Transcribe is designed to handle a wide range of speech, including differences in volume, pitch, and speaking rate.</li>
+    <li>The quality and content of the audio can still affect the result: background noise, overlapping speakers, accented speech, and switches between languages inside one file.</li>
+    <li>It works with almost any device that has a microphone, such as phones, computers, tablets, and Internet of Things (IoT) devices.</li>
+  </ul>
+
+  <h2>1.7 Common Use Cases</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Use case</th><th scope="col">What you do</th><th scope="col">FlashCart example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Transcribe customer service calls</strong></td><td>Turn call recordings into text for review and analysis.</td><td>Find every call that mentions a late delivery.</td></tr>
+      <tr><td><strong>Closed captions and subtitles</strong></td><td>Create captions for video and audio content.</td><td>Add captions to the product videos.</td></tr>
+      <tr><td><strong>Searchable media archives</strong></td><td>Generate text and metadata for audio and video, so that the archive is fully searchable.</td><td>Search the training videos for a topic.</td></tr>
+      <tr><td><strong>Voicemail and meeting transcription</strong></td><td>Transcribe voicemail and meetings.</td><td>Send the text of a seller’s voicemail to the support team.</td></tr>
+      <tr><td><strong>Detect toxic speech in recorded chat</strong></td><td>Flag harmful language in recorded peer-to-peer voice chat, such as gaming and social platforms, for review. It works for US English batch jobs.</td><td>Review flagged clips of recorded seller voice chats.</td></tr>
+      </tbody>
+  </table></div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Transcribe converts speech to text. It does not analyze what the text means, and it does not read written text in images. Use Amazon Comprehend to analyze the transcript, and Amazon Textract for scanned documents. Also, accuracy depends on the audio: noisy, overlapping, or accented speech can lower it.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Transcribe turns what you hear into text you can search.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Convert recorded calls and videos to text, with no ML expertise”<br>→ Amazon Transcribe</p>
+    <p><strong>Trigger 2:</strong> “Create subtitles and closed captions for video”<br>→ Amazon Transcribe</p>
+    <p><strong>Trigger 3:</strong> “Make an audio and video archive searchable”<br>→ Amazon Transcribe, and then a search service on the text</p>
+    <p><strong>Trigger 4:</strong> “Find the sentiment of what customers said on calls”<br>→ Amazon Transcribe, then Amazon Comprehend</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company stores thousands of recorded customer calls in Amazon S3. It wants a text version of every call, with no ML expertise and the least operational effort. Which solution fits best?</p>
+    <ol type="A">
+      <li>Submit Amazon Transcribe batch jobs for the recordings.</li>
+      <li>Train a speech recognition model on Amazon SageMaker AI, and host it on an endpoint.</li>
+      <li>Use Amazon Comprehend to convert the audio to text.</li>
+      <li>Use Amazon Polly to convert the audio to text.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Transcribe is a managed ASR service. A batch job converts recorded media in Amazon S3 to text without a model to build.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. Transcribe is made for speech to text.</td></tr>
+          <tr><td>B</td><td>Wrong. It works, but it needs ML expertise and more operational effort.</td></tr>
+          <tr><td>C</td><td>Wrong. Comprehend analyzes text. It does not read audio.</td></tr>
+          <tr><td>D</td><td>Wrong. Polly converts text to speech, which is the opposite direction.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>1.8 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/transcribe/latest/dg/what-is.html" target="_blank" rel="noopener">What Is Amazon Transcribe?</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/transcribe/faqs/" target="_blank" rel="noopener">Amazon Transcribe FAQs</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/transcribe/latest/dg/supported-languages.html" target="_blank" rel="noopener">Supported Languages and Language-Specific Features</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/transcribe/pricing/" target="_blank" rel="noopener">Amazon Transcribe Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="modes" role="tabpanel" aria-labelledby="tab-2" tabindex="0">
+  <h1>2. Batch and Streaming Transcription</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart has two transcription needs. The compliance team wants every recorded call transcribed overnight. The support team wants live captions on a customer’s call while the agent is still talking.</p>
+    <p>The calls are recorded on two channels, one for the agent and one for the customer, and the compliance team wants to know who said what. Some calls are in languages that the system does not know in advance. Video interviews with several people on one channel must also show who is speaking.</p>
+    <p>The architect must choose the transcription mode and the features that label languages and speakers.</p>
+    <p><strong>Your challenge:</strong> Choose the mode and the features. Your answer should:</p>
+    <ul>
+      <li>Say which mode fits recorded calls and which fits live captions.</li>
+      <li>Name the feature for an unknown language.</li>
+      <li>Explain how to label who said what on a two-channel call and on a one-channel recording.</li>
+      </ul>
+  </div>
+
+  <h2>2.1 Batch Transcription</h2>
+  <ul>
+    <li>Batch transcription processes a media file that is stored in an Amazon S3 bucket. You start a job, the job runs asynchronously, and you read the transcript when it is finished.</li>
+    <li>You check on a job with <code>GetTranscriptionJob</code>. Amazon EventBridge can also react when a job changes state: Transcribe sends a <code>Transcribe Job State Change</code> event with the job name and the new status, <code>COMPLETED</code> or <code>FAILED</code>. The event does not carry the transcript, so your code reads the transcript from the output location. EventBridge events are sent on a best-effort basis.</li>
+    <li>You can save the transcript in your own S3 bucket. If you do not name an output bucket, Transcribe uses a service-managed bucket, and you get a temporary link that works for 15 minutes. You can ask for a new one with <code>GetTranscriptionJob</code>.</li>
+    <li>It fits recorded content: call archives, interviews, videos, and voicemail.</li>
+  </ul>
+
+  <h2>2.2 Streaming Transcription</h2>
+  <ul>
+    <li>With streaming, you send an audio stream to the service and receive a text stream back in real time. You can use an AWS SDK, which AWS prefers, an HTTP/2 stream, a WebSocket, or the console with your microphone.</li>
+    <li>It fits live content: live captions for events, live call monitoring, and voice interfaces. Streaming is faster, but the speed can limit accuracy in some cases.</li>
+    <li>Streaming accepts FLAC, Opus audio in an Ogg container, and PCM audio, which must be signed 16-bit little-endian. WAV is not included. Lossless formats are recommended.</li>
+    <li>Streaming does not work with every language. Check the Data input column of the supported languages table.</li>
+    <li>Best practices: use PCM, record at 16,000 Hz if you can, send chunks of 50 to 200 milliseconds in a uniform size, state the number of channels correctly, and send silence while nobody speaks.</li>
+    <li>Streaming supports language identification, speaker diarization, custom vocabularies, custom language models, vocabulary filters, and PII redaction. Some options differ from batch, so check the documentation.</li>
+  </ul>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 270" role="img" aria-labelledby="t2a d2a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t2a">Batch and streaming transcription compared</title>
+      <desc id="d2a">Two rows. In the batch row, a media file in Amazon S3 is submitted with StartTranscriptionJob, the job runs asynchronously, and the transcript is read when the job completes. In the streaming row, an application sends audio over a bidirectional stream and receives text back in real time.</desc>
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="25" width="170" height="80" rx="8" class="s-box"/>
+      <text x="100" y="58" text-anchor="middle" class="s-b">Media file in S3</text>
+      <text x="100" y="82" text-anchor="middle" class="s-m">recorded media</text>
+      <rect x="265" y="25" width="190" height="80" rx="8" class="s-hot"/>
+      <text x="360" y="58" text-anchor="middle" class="s-b">Transcription job</text>
+      <text x="360" y="82" text-anchor="middle" class="s-m">runs asynchronously</text>
+      <rect x="535" y="25" width="175" height="80" rx="8" class="s-box"/>
+      <text x="622" y="58" text-anchor="middle" class="s-b">Transcript</text>
+      <text x="622" y="82" text-anchor="middle" class="s-m">read when it is done</text>
+      <rect x="15" y="155" width="170" height="80" rx="8" class="s-box"/>
+      <text x="100" y="188" text-anchor="middle" class="s-b">Live audio</text>
+      <text x="100" y="212" text-anchor="middle" class="s-m">microphone or call</text>
+      <rect x="265" y="155" width="190" height="80" rx="8" class="s-hot"/>
+      <text x="360" y="188" text-anchor="middle" class="s-b">Streaming session</text>
+      <text x="360" y="212" text-anchor="middle" class="s-m">bidirectional stream</text>
+      <rect x="535" y="155" width="175" height="80" rx="8" class="s-box"/>
+      <text x="622" y="188" text-anchor="middle" class="s-b">Text stream</text>
+      <text x="622" y="212" text-anchor="middle" class="s-m">back in real time</text>
+      <line x1="187" y1="65" x2="263" y2="65" class="s-line" marker-end="url(#ar2)"/>
+      <line x1="457" y1="65" x2="533" y2="65" class="s-line" marker-end="url(#ar2)"/>
+      <line x1="187" y1="195" x2="263" y2="195" class="s-line" marker-end="url(#ar2)"/>
+      <line x1="457" y1="195" x2="533" y2="195" class="s-line" marker-end="url(#ar2)"/>
+      <line x1="263" y1="215" x2="187" y2="215" class="s-line" marker-end="url(#ar2)"/>
+    </svg>
+    <figcaption>Image 2a — Batch and streaming transcription. (Original diagram for this course.)</figcaption>
+  </figure>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col"></th><th scope="col">Batch</th><th scope="col">Streaming</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Input</strong></td><td>A recorded file in Amazon S3.</td><td>Live audio.</td></tr>
+      <tr><td><strong>How you get the result</strong></td><td>You read the transcript when the job finishes.</td><td>Text comes back in real time.</td></tr>
+      <tr><td><strong>Limit to know</strong></td><td>Up to eight hours or 2 GB for each call.</td><td>A connection can stay open for up to eight hours.</td></tr>
+      <tr><td><strong>Best for</strong></td><td>Archives and overnight processing.</td><td>Live captions and live assistance.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>2.3 Language Identification</h2>
+  <ul>
+    <li>Transcribe can automatically identify the dominant language in the audio and then transcribe it. It works for batch and streaming.</li>
+    <li>It can identify any language that Transcribe supports. The result includes the identified language and a confidence score.</li>
+    <li>You can give a list of languages that might be in your media. The service then chooses from that list, and the accuracy is better than when it searches all the languages.</li>
+    <li>Batch jobs also support multi-language identification, for a file that has more than one language.</li>
+  </ul>
+
+  <h2>2.4 Speaker Diarization and Channel Identification</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 300" role="img" aria-labelledby="t2b d2b" xmlns="http://www.w3.org/2000/svg">
+      <title id="t2b">Channel identification on a two-channel call</title>
+      <desc id="d2b">A call recorded on two channels: channel 0 is the agent and channel 1 is the customer. Amazon Transcribe produces a single transcript in which each line is labeled with its channel, for example the agent says thank you for calling, and the customer says my order is late.</desc>
+      <defs><marker id="ar2b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="30" width="200" height="70" rx="8" class="s-box"/>
+      <text x="115" y="60" text-anchor="middle" class="s-b">Channel 0</text>
+      <text x="115" y="82" text-anchor="middle" class="s-m">the agent’s voice</text>
+      <rect x="15" y="160" width="200" height="70" rx="8" class="s-box"/>
+      <text x="115" y="190" text-anchor="middle" class="s-b">Channel 1</text>
+      <text x="115" y="212" text-anchor="middle" class="s-m">the customer’s voice</text>
+      <rect x="290" y="95" width="170" height="90" rx="8" class="s-hot"/>
+      <text x="375" y="134" text-anchor="middle" class="s-b">Amazon Transcribe</text>
+      <text x="375" y="158" text-anchor="middle" class="s-m">channel identification</text>
+      <rect x="525" y="30" width="190" height="200" rx="8" class="s-box"/>
+      <text x="620" y="60" text-anchor="middle" class="s-b">One transcript</text>
+      <text x="620" y="96" text-anchor="middle" class="s-m">ch_0: Thank you for</text>
+      <text x="620" y="114" text-anchor="middle" class="s-m">calling.</text>
+      <text x="620" y="148" text-anchor="middle" class="s-m">ch_1: My order is late.</text>
+      <text x="620" y="182" text-anchor="middle" class="s-m">ch_0: Let me check</text>
+      <text x="620" y="200" text-anchor="middle" class="s-m">that for you.</text>
+      <line x1="217" y1="65" x2="288" y2="125" class="s-line" marker-end="url(#ar2b)"/>
+      <line x1="217" y1="195" x2="288" y2="155" class="s-line" marker-end="url(#ar2b)"/>
+      <line x1="462" y1="140" x2="523" y2="140" class="s-line" marker-end="url(#ar2b)"/>
+    </svg>
+    <figcaption>Image 2b — Channel identification on a two-channel call. (Original diagram for this course.)</figcaption>
+  </figure>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col"></th><th scope="col">Speaker diarization</th><th scope="col">Channel identification</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Audio</strong></td><td>One channel with several speakers.</td><td>Separate channels, for example agent and customer.</td></tr>
+      <tr><td><strong>What it does</strong></td><td>Separates the speech of different speakers by their voice characteristics, and labels each segment with a speaker identifier such as Speaker 0 and Speaker 1.</td><td>Transcribes each channel and returns one transcript with channel labels.</td></tr>
+      <tr><td><strong>Limits</strong></td><td>Up to 30 unique speakers in an input. Performance can drop when voices are similar or speakers interrupt each other.</td><td>Two channels by default.</td></tr>
+      <tr><td><strong>Good to know</strong></td><td>It does not say who a speaker is. It cannot match a voice to a known person.</td><td>Common in contact center recordings.</td></tr>
+      </tbody>
+  </table></div>
+  <p>You can give the expected number of speakers to improve the accuracy of diarization.</p>
+
+  <h2>2.5 Subtitles</h2>
+  <ul>
+    <li>Transcribe can generate subtitles for a batch video job in WebVTT (.vtt) or SubRip (.srt) format, or both. It also produces the regular transcript file.</li>
+    <li>You choose the number of the first subtitle, 0 or 1. The default is 0, and 1 is more widely used, so AWS suggests 1 for better compatibility with other services.</li>
+    <li>The subtitle files are stored in the same Amazon S3 location as the transcript.</li>
+    <li>Subtitles appear at the same time as the words are spoken, and they stay visible until a natural pause or until the speaker finishes.</li>
+    <li>You can then translate the subtitles into other languages with Amazon Translate (Lesson 299.4).</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Diarization and channel identification are different. Diarization separates speakers who share one channel, and channel identification uses separate channels. Neither one tells you the name of the person: they label Speaker 0 or channel 0. Also, streaming and batch are not interchangeable: a recorded file in Amazon S3 is a batch job, and live audio is a stream.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>A file in S3 is batch. A live voice is a stream.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Transcribe recorded calls overnight”<br>→ Batch transcription</p>
+    <p><strong>Trigger 2:</strong> “Show live captions while a person speaks”<br>→ Streaming transcription</p>
+    <p><strong>Trigger 3:</strong> “The language of the audio is not known”<br>→ Automatic language identification</p>
+    <p><strong>Trigger 4:</strong> “A recording with several speakers on a single channel”<br>→ Speaker diarization</p>
+    <p><strong>Trigger 5:</strong> “Agent and customer are recorded on separate channels”<br>→ Channel identification</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company records support calls with the agent on one channel and the customer on another. It wants a single transcript that shows which channel spoke each line. Which feature meets the requirement?</p>
+    <ol type="A">
+      <li>Channel identification.</li>
+      <li>Custom language models.</li>
+      <li>PII redaction.</li>
+      <li>Vocabulary filters.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Channel identification transcribes multi-channel audio and returns one transcript with channel labels.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. It labels each line by channel.</td></tr>
+          <tr><td>B</td><td>Wrong. A custom language model improves accuracy for domain words.</td></tr>
+          <tr><td>C</td><td>Wrong. Redaction hides personal data.</td></tr>
+          <tr><td>D</td><td>Wrong. A filter masks or removes unwanted words.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>2.6 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html" target="_blank" rel="noopener">Streaming Transcriptions</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/transcribe/latest/dg/lang-id-batch.html" target="_blank" rel="noopener">Identifying the Language of Audio</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/transcribe/latest/dg/diarization.html" target="_blank" rel="noopener">Speaker Diarization</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/transcribe/features/" target="_blank" rel="noopener">Amazon Transcribe Features</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="custom" role="tabpanel" aria-labelledby="tab-3" tabindex="0">
+  <h1>3. Customizing Transcripts</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s first transcripts are readable, but they get the company’s own words wrong. “FlashCart Express” is transcribed as “flash cart express,” product codes such as “FX-200” are missing, and a seller’s name is spelled three different ways.</p>
+    <p>The legal team also wants some words never to appear in the text of public captions. And the training team has a large library of transcripts of FlashCart’s own webinars, full of internal jargon, that they hope can teach the system how FlashCart speaks.</p>
+    <p>The architect knows that Transcribe has three tools for this, and she must pick the right one for each problem.</p>
+    <p><strong>Your challenge:</strong> Choose the right tool for each problem. Your answer should:</p>
+    <ul>
+      <li>Name the tool for a short list of names and codes.</li>
+      <li>Name the tool that keeps unwanted words out of captions.</li>
+      <li>Name the tool that learns from a large body of text, and say what training data it needs.</li>
+      </ul>
+  </div>
+
+  <h2>3.1 Custom Vocabulary</h2>
+  <ul>
+    <li>A custom vocabulary adds new words to the base vocabulary, so that Transcribe produces more accurate transcriptions of domain-specific words and phrases, such as brand names, product codes, and acronyms.</li>
+    <li>It works for batch and streaming transcription.</li>
+    <li>Quotas per account in a Region: a vocabulary can be up to 51,200 bytes, a phrase up to 256 characters, and you can keep up to 100 vocabularies. Most of these can be raised, but the phrase length cannot.</li>
+    <li>It is not a guarantee: the output depends on other factors too, so a term in the list can still be missed.</li>
+    <li>If a word is not recognized, it is often pronounced very differently from how it is written. Add several phrase entries for the same word, and use the <code>DisplayAs</code> column for the output that you want.</li>
+    <li>If too many custom words appear in the output, the list is probably too long. Keep a small list of rare words that you expect, and split a large list into lists for different use cases.</li>
+    <li>Short words that sound like many other words can over-produce. Join them with the words around them, as hyphen-separated phrases.</li>
+  </ul>
+
+  <h2>3.2 Vocabulary Filters</h2>
+  <ul>
+    <li>A vocabulary filter is automatic moderation of the output. You give a list of words, and Transcribe masks or removes them in the transcript.</li>
+    <li>Both batch and streaming transcription support vocabulary filters.</li>
+    <li>An account can have up to 100 filters in a Region, and each filter can be up to 50 KB.</li>
+    <li>Use it for unwanted words in public captions and in transcripts that many people read.</li>
+  </ul>
+
+  <h2>3.3 Custom Language Models</h2>
+  <ul>
+    <li>A custom language model (CLM) is a domain-specific language model that you train with your own text data. It benefits organizations that have a lot of internal jargon or a specialized technical field.</li>
+    <li>You supply the text in an Amazon S3 bucket, and then use the Transcribe console to train the model. Training is automated.</li>
+    <li>Training data: at least 100,000 and at most 10 million words of running text that is relevant to your audio. Use UTF-8, with one sentence per line and punctuation in each sentence. You check the spelling and the encoding.</li>
+    <li>Training usually takes 6 to 10 hours. Afterward, the model is available in your account, and you add its model ID to a transcription request.</li>
+    <li>By default, an account can have 3 models training at once and 10 models in total in a Region. You can ask for increases in the Service Quotas console.</li>
+    <li>Improvements are not guaranteed. In some tests, accuracy improved by as much as 10 to 15 percent relative to the base model. Test the model on your own audio.</li>
+    <li>CLM supports Australian English, British English, Hindi, US English, and US Spanish for batch transcription, and US English for streaming. Custom acoustic models are not supported.</li>
+    <li>You own the original text and the model. Transcribe does not store the training text and does not use it to improve the general engine.</li>
+  </ul>
+
+  <h2>3.4 Which Tool?</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Problem</th><th scope="col">Tool</th><th scope="col">Notes</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Brand names, product codes, and acronyms are wrong</strong></td><td>Custom vocabulary</td><td>A small list. Use DisplayAs for the spelling that you want.</td></tr>
+      <tr><td><strong>Some words must not appear in the output</strong></td><td>Vocabulary filter</td><td>Masks or removes the words.</td></tr>
+      <tr><td><strong>Heavy domain jargon, and you have a lot of text in that domain</strong></td><td>Custom language model</td><td>Train on at least 100,000 words. Not guaranteed.</td></tr>
+      <tr><td><strong>Both a jargon model and a few exact terms</strong></td><td>Both</td><td>A custom language model can be used with a custom vocabulary in batch.</td></tr>
+      </tbody>
+  </table></div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>A custom vocabulary does not retrain the model, and it does not guarantee that a word is recognized. A long list can make things worse by adding too many custom words. For heavy jargon, use a custom language model, which needs a large amount of text. Also remember that Transcribe does not support custom acoustic models.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Vocabulary for a few words, a filter for banned words, a language model for a whole field.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Company and product names are transcribed wrongly”<br>→ Custom vocabulary</p>
+    <p><strong>Trigger 2:</strong> “Keep certain words out of public captions”<br>→ Vocabulary filter</p>
+    <p><strong>Trigger 3:</strong> “Improve accuracy for a specialized domain with a large amount of in-house text”<br>→ Custom language model</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A medical-equipment company has a large archive of its own technical documents. Transcribe often misrecognizes the company’s jargon in recorded training sessions. Which solution improves accuracy the most?</p>
+    <ol type="A">
+      <li>Train a custom language model with the text of the documents.</li>
+      <li>Add a vocabulary filter with the jargon.</li>
+      <li>Convert the audio to a lossless format.</li>
+      <li>Use Amazon Polly to re-record the sessions.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> A custom language model learns domain-specific words and phrases from a large body of in-domain text.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. The documents are the kind of text that a custom language model learns from.</td></tr>
+          <tr><td>B</td><td>Wrong. A filter masks words. It does not improve recognition.</td></tr>
+          <tr><td>C</td><td>Wrong. A lossless format helps with quality, but it does not teach the jargon.</td></tr>
+          <tr><td>D</td><td>Wrong. Polly converts text to speech.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>3.5 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/transcribe/latest/dg/custom-vocabulary.html" target="_blank" rel="noopener">Custom Vocabularies</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/transcribe/latest/dg/custom-language-models.html" target="_blank" rel="noopener">Custom Language Models</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/transcribe/faqs/" target="_blank" rel="noopener">Amazon Transcribe FAQs: Custom Language Models</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="safety" role="tabpanel" aria-labelledby="tab-4" tabindex="0">
+  <h1>4. Safety, Call Analytics, and Medical</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s call transcripts include names, addresses, and card numbers. Analysts should not see them, and the transcripts must not hold personal data. The security officer also asks whether the audio itself can be cleaned.</p>
+    <p>The community team records English-language seller voice chats and wants harmful language flagged for a person to review. The contact center director wants more than text: she wants customer and agent sentiment, the reasons that customers call, and a summary of each call.</p>
+    <p>FlashCart’s healthcare partner wants to transcribe clinicians’ notes and conversations, and asks which service is made for that.</p>
+    <p><strong>Your challenge:</strong> Choose the right capability for each need. Your answer should:</p>
+    <ul>
+      <li>Say how to redact personal data, and what redaction does not do.</li>
+      <li>Name the capability that flags harmful language, and the one that gives call insights.</li>
+      <li>Name the service for medical speech.</li>
+      </ul>
+  </div>
+
+  <h2>4.1 PII Redaction</h2>
+  <ul>
+    <li>Automatic content redaction identifies and removes personally identifiable information (PII) from transcripts. It works for batch and streaming.</li>
+    <li>It does not remove the personal information from the source audio. It gives you start and end timestamps for each PII phrase, so that you can redact the audio yourself.</li>
+    <li>It works only with audio as input. It cannot redact PII in a text transcript that you already have.</li>
+    <li>Because machine learning is predictive, it may miss some PII. Review the output to make sure that it meets your needs.</li>
+    <li>Streaming has two extras: you can identify PII without redacting it, and you can choose specific PII types, for example only social security numbers and card numbers.</li>
+    <li>Language and Region availability differs, so check the documentation.</li>
+  </ul>
+
+  <h2>4.2 Toxicity Detection</h2>
+  <ul>
+    <li>Toxicity detection finds and classifies toxic speech. It is designed to help moderate peer-to-peer dialogue, such as online gaming and social chat, and it uses audio cues, such as tone and pitch, as well as the text.</li>
+    <li>It uses seven categories: profanity, hate speech, sexual, insult, violence or threat, graphic, and harassment or abuse.</li>
+    <li>It analyzes speech segments, which are the speech between natural pauses. Each segment gets a score between 0 and 1 for each category, and an overall toxicity score. A higher score means a greater likelihood of toxic speech, so you choose a threshold for your use case.</li>
+    <li>It is available only for batch transcription in US English (en-US). Other job options are not supported with it, but you can turn on PII redaction in the same job.</li>
+    <li>It has additional charges.</li>
+    <li>It does not decide what to do. You choose the action, such as sending a clip to a moderator.</li>
+  </ul>
+
+  <h2>4.3 Transcribe Call Analytics</h2>
+  <ul>
+    <li>Transcribe Call Analytics is a separate API that adds conversation insights to transcripts, trained for customer care and outbound sales calls.</li>
+    <li>It works for post-call analytics, which is batch, and for real-time analytics, which is streaming. Real-time analytics is not available in every Region that supports post-call analytics.</li>
+    <li>A batch job can use a file of up to four hours and 500 MB, with two channels.</li>
+    <li>It gives customer and agent sentiment scores, call drivers, call categories, and call summarization. Call summarization works for English dialects, and issue detection works for Australian, British, and US English.</li>
+    <li>Common uses are agent assist, summarization, supervisor alerts, and call analytics.</li>
+    <li>It removes sensitive personal information from both the transcripts and the source audio.</li>
+    <li>It is priced separately from the standard Transcribe APIs. Generative call summarization is available only for post-call analytics and only in some Regions, so check the documentation.</li>
+  </ul>
+
+  <h2>4.4 Transcribe Medical</h2>
+  <ul>
+    <li>Transcribe Medical is an ASR service for medical speech: dictation by one person, and conversations between several people.</li>
+    <li>It supports medical transcription in US English, and it supports many medical specialties. Some specialties, such as cardiology, neurology, oncology, and radiology, are for streaming only, and primary care specialties work for batch and streaming.</li>
+    <li>A medical batch job can use a file of up to four hours and 2 GB.</li>
+    <li>Typical uses are clinical documentation, recording physician notes, and drug safety monitoring.</li>
+    <li>It is HIPAA eligible, and AWS says that it does not use the content for anything other than providing the service.</li>
+    <li>It is not a substitute for professional medical advice. It may not identify all protected health information, and it does not meet the HIPAA requirements for de-identification, so people must review the output.</li>
+  </ul>
+
+  <h2>4.5 Which Capability?</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Need</th><th scope="col">Use</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Remove personal data from transcripts</strong></td><td>PII redaction</td></tr>
+      <tr><td><strong>Remove personal data from the transcript and the audio</strong></td><td>Transcribe Call Analytics</td></tr>
+      <tr><td><strong>Flag harmful language for a moderator</strong></td><td>Toxicity detection</td></tr>
+      <tr><td><strong>Sentiment, call drivers, and summaries for call center calls</strong></td><td>Transcribe Call Analytics</td></tr>
+      <tr><td><strong>Medical dictation or clinician-patient conversations</strong></td><td>Transcribe Medical</td></tr>
+      </tbody>
+  </table></div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Toxicity detection works only for US English batch jobs, so it does not flag live speech or other languages. Standard PII redaction cleans the transcript only. The audio file still contains the personal information. For redacted audio, use Transcribe Call Analytics, or redact the audio yourself with the timestamps. Also, redaction may miss some PII, so review the results. And Transcribe Medical supports US English and is not a replacement for professional judgment.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Redaction cleans the words. Call Analytics cleans the words and the sound.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Remove names and card numbers from call transcripts”<br>→ Transcribe PII redaction</p>
+    <p><strong>Trigger 2:</strong> “Remove personal data from the transcript and the recording”<br>→ Transcribe Call Analytics</p>
+    <p><strong>Trigger 3:</strong> “Flag hate speech and threats in recorded US English audio”<br>→ Transcribe toxicity detection, in a batch job</p>
+    <p><strong>Trigger 4:</strong> “Sentiment and summaries of contact center calls”<br>→ Transcribe Call Analytics</p>
+    <p><strong>Trigger 5:</strong> “Transcribe a doctor’s dictation”<br>→ Amazon Transcribe Medical</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company must remove customer card numbers from the transcripts of its call recordings, with no custom code and the least effort. Which solution fits best?</p>
+    <ol type="A">
+      <li>Turn on automatic content redaction in the Amazon Transcribe job.</li>
+      <li>Run Amazon Textract on the transcript to find the numbers.</li>
+      <li>Add a vocabulary filter with the card numbers.</li>
+      <li>Train a custom language model with card numbers.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Automatic content redaction identifies and removes PII from transcripts as part of the transcription job.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. It is built into Transcribe.</td></tr>
+          <tr><td>B</td><td>Wrong. Textract reads documents and images. It does not process audio transcripts.</td></tr>
+          <tr><td>C</td><td>Wrong. It would need every number in advance, which is not possible.</td></tr>
+          <tr><td>D</td><td>Wrong. A language model does not redact anything.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>4.6 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html" target="_blank" rel="noopener">Redacting or Identifying PII in a Transcription</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/transcribe/latest/dg/call-analytics.html" target="_blank" rel="noopener">Amazon Transcribe Call Analytics</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/transcribe/latest/dg/transcribe-medical.html" target="_blank" rel="noopener">Amazon Transcribe Medical</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/transcribe/faqs/" target="_blank" rel="noopener">Amazon Transcribe FAQs</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="arch" role="tabpanel" aria-labelledby="tab-5" tabindex="0">
+  <h1>5. Architecture, Security, and Cost</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart wants every call recording transcribed within minutes of upload, with personal data removed and the sentiment of the call stored. The marketing team also dreams of a voice assistant that listens in one language and answers in another.</p>
+    <p>The security team asks what AWS does with the audio and what can be deleted. The finance team asks how the service is billed, and why Call Analytics shows up as a separate line.</p>
+    <p>The architect must draw the designs and answer both teams.</p>
+    <p><strong>Your challenge:</strong> Design the solution. Your answer should:</p>
+    <ul>
+      <li>Show how a recording leads to a redacted transcript and an analysis.</li>
+      <li>Show how Transcribe, Translate, and Polly work together.</li>
+      <li>Describe data privacy, deletion, and the billing model.</li>
+      </ul>
+  </div>
+
+  <h2>5.1 A Pipeline for Recordings</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 310" role="img" aria-labelledby="t5a d5a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t5a">A pipeline that transcribes and analyzes recordings</title>
+      <desc id="d5a">A recording is saved to Amazon S3. An S3 event starts an AWS Lambda function, which starts an Amazon Transcribe job with redaction turned on. When the job state changes, Amazon EventBridge starts a second Lambda function, which sends the transcript to Amazon Comprehend. The function stores the results in Amazon DynamoDB.</desc>
+      <defs><marker id="ar5a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="10" y="30" width="105" height="70" rx="8" class="s-box"/>
+      <text x="62" y="58" text-anchor="middle" class="s-b">Recording</text>
+      <text x="62" y="80" text-anchor="middle" class="s-m">saved to S3</text>
+      <rect x="150" y="30" width="115" height="70" rx="8" class="s-box"/>
+      <text x="207" y="58" text-anchor="middle" class="s-b">AWS Lambda</text>
+      <text x="207" y="80" text-anchor="middle" class="s-m">starts the job</text>
+      <rect x="300" y="30" width="190" height="70" rx="8" class="s-hot"/>
+      <text x="395" y="58" text-anchor="middle" class="s-b">Amazon Transcribe</text>
+      <text x="395" y="80" text-anchor="middle" class="s-m">job, with PII redaction</text>
+      <rect x="525" y="30" width="185" height="70" rx="8" class="s-box"/>
+      <text x="617" y="58" text-anchor="middle" class="s-b">Amazon EventBridge</text>
+      <text x="617" y="80" text-anchor="middle" class="s-m">job state change</text>
+      <rect x="525" y="200" width="185" height="70" rx="8" class="s-box"/>
+      <text x="617" y="228" text-anchor="middle" class="s-b">AWS Lambda</text>
+      <text x="617" y="250" text-anchor="middle" class="s-m">reads the transcript</text>
+      <rect x="300" y="200" width="190" height="70" rx="8" class="s-hot"/>
+      <text x="395" y="228" text-anchor="middle" class="s-b">Amazon Comprehend</text>
+      <text x="395" y="250" text-anchor="middle" class="s-m">sentiment and entities</text>
+      <rect x="150" y="200" width="115" height="70" rx="8" class="s-box"/>
+      <text x="207" y="228" text-anchor="middle" class="s-b">DynamoDB</text>
+      <text x="207" y="250" text-anchor="middle" class="s-m">stores results</text>
+      <line x1="117" y1="65" x2="148" y2="65" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="267" y1="65" x2="298" y2="65" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="492" y1="65" x2="523" y2="65" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="617" y1="102" x2="617" y2="198" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="523" y1="235" x2="492" y2="235" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="298" y1="235" x2="267" y2="235" class="s-line" marker-end="url(#ar5a)"/>
+    </svg>
+    <figcaption>Image 5a — A recording is transcribed, and the transcript is analyzed. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ol>
+    <li>A recording is saved to an Amazon S3 bucket.</li>
+    <li>The upload event starts an AWS Lambda function, which starts an Amazon Transcribe job with PII redaction turned on.</li>
+    <li>When the job status changes to <code>COMPLETED</code> or <code>FAILED</code>, an Amazon EventBridge rule starts a second Lambda function. The event carries the job name and the status, not the transcript.</li>
+    <li>The function reads the redacted transcript from the output location, and sends it to Amazon Comprehend for sentiment, entities, and key phrases (Lesson 299.3).</li>
+    <li>The function stores the results, for example in Amazon DynamoDB.</li>
+  </ol>
+  <p>To make an audio and video library searchable, index the transcripts in a search service such as Amazon OpenSearch Service.</p>
+
+  <h2>5.2 Speech to Speech in Another Language</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 200" role="img" aria-labelledby="t5b d5b" xmlns="http://www.w3.org/2000/svg">
+      <title id="t5b">Speech in one language, speech out in another</title>
+      <desc id="d5b">A person speaks in one language. Amazon Transcribe converts the speech to text. Amazon Translate translates the text into another language. Amazon Polly converts the translated text to speech.</desc>
+      <defs><marker id="ar5b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="10" y="50" width="115" height="90" rx="8" class="s-box"/>
+      <text x="67" y="88" text-anchor="middle" class="s-b">Speech in</text>
+      <text x="67" y="112" text-anchor="middle" class="s-m">language A</text>
+      <rect x="150" y="50" width="130" height="90" rx="8" class="s-hot"/>
+      <text x="215" y="88" text-anchor="middle" class="s-b">Transcribe</text>
+      <text x="215" y="112" text-anchor="middle" class="s-m">speech to text</text>
+      <rect x="305" y="50" width="130" height="90" rx="8" class="s-hot"/>
+      <text x="370" y="88" text-anchor="middle" class="s-b">Translate</text>
+      <text x="370" y="112" text-anchor="middle" class="s-m">to language B</text>
+      <rect x="460" y="50" width="120" height="90" rx="8" class="s-hot"/>
+      <text x="520" y="88" text-anchor="middle" class="s-b">Polly</text>
+      <text x="520" y="112" text-anchor="middle" class="s-m">text to speech</text>
+      <rect x="605" y="50" width="105" height="90" rx="8" class="s-box"/>
+      <text x="657" y="88" text-anchor="middle" class="s-b">Speech out</text>
+      <text x="657" y="112" text-anchor="middle" class="s-m">language B</text>
+      <line x1="127" y1="95" x2="148" y2="95" class="s-line" marker-end="url(#ar5b)"/>
+      <line x1="282" y1="95" x2="303" y2="95" class="s-line" marker-end="url(#ar5b)"/>
+      <line x1="437" y1="95" x2="458" y2="95" class="s-line" marker-end="url(#ar5b)"/>
+      <line x1="582" y1="95" x2="603" y2="95" class="s-line" marker-end="url(#ar5b)"/>
+      <text x="360" y="180" text-anchor="middle" class="s-m">Amazon Polly is the topic of Lesson 299.6.</text>
+    </svg>
+    <figcaption>Image 5b — Transcribe, Translate, and Polly together. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>Transcribe accepts the voice input, Translate converts the text to another language, and Polly produces the voice output. This enables multilingual conversations.</li>
+    <li>Transcribe and Translate also produce subtitles in many languages (Lesson 299.4).</li>
+  </ul>
+
+  <h2>5.3 Security and Data Privacy</h2>
+  <ul>
+    <li>Use AWS Identity and Access Management (IAM) policies and roles to control who can start jobs and read transcripts, and who can read the media in Amazon S3.</li>
+    <li>AWS says that it protects content with encryption at rest and in transit, and that only authorized employees can access it.</li>
+    <li>Transcribe may store and use voice inputs to provide the service and, unless you opt out, to improve Transcribe and other Amazon AI technologies. To opt out, use an AWS Organizations AI services opt-out policy.</li>
+    <li>Content is encrypted and stored at rest in the Region where you use Transcribe. A portion may be stored in another Region for improvement of the service, unless you opt out.</li>
+    <li>You always own your content. You can delete the data and artifacts of a transcription job with the delete APIs, such as <code>DeleteTranscriptionJob</code>, and you can ask AWS Support to delete voice inputs.</li>
+    <li>For custom language models, the training text is not stored after the model is built, and the model belongs to you and is available only to you.</li>
+    <li>Transcribe Medical does not use customer content to improve the service.</li>
+  </ul>
+
+  <h2>5.4 Quotas and Throttling</h2>
+  <ul>
+    <li>Defaults for an account in a Region: 250 concurrent batch jobs, 25 concurrent streams, and 25 requests per second to start a batch job or a stream. Most can be raised in the Service Quotas console.</li>
+    <li>A <code>LimitExceededException</code> on a stream has three causes. The most common is exceeding the concurrent stream quota: retry with exponential backoff, and request an increase if you hit it often.</li>
+    <li>The second cause is a stream that goes over the maximum session duration. This limit cannot be increased, so you start a new streaming session.</li>
+    <li>The third, which is rare, is raising the number of concurrent streams too quickly, for example in a load test. Retry with backoff and increase the number of streams gradually.</li>
+    <li>Job records are kept for 90 days. Store the transcripts that you need to keep.</li>
+  </ul>
+
+  <h2>5.5 The Cost Model</h2>
+  <ul>
+    <li>Transcribe is priced by the amount of audio that you transcribe. Check the pricing page for current rates.</li>
+    <li>Call Analytics and Transcribe Medical are priced separately from standard transcription, and toxicity detection has additional charges. Read the pricing page for the features that you turn on.</li>
+    <li>Transcribe once and store the transcript, instead of transcribing the same recording again.</li>
+    <li>Use batch jobs for archives. Use streaming only when you need the text while the person is still speaking.</li>
+    <li>Delete custom models that you no longer need.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Transcribe may store and use your audio to improve the service unless you opt out with an AWS Organizations policy. And a redacted transcript is not a redacted recording. Also remember that Polly speaks text: it does not transcribe audio.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Transcribe listens, Translate converts, Polly speaks.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Voice in one language, voice out in another”<br>→ Amazon Transcribe, Amazon Translate, and Amazon Polly</p>
+    <p><strong>Trigger 2:</strong> “Make a video library searchable by what is said”<br>→ Amazon Transcribe, then a search service on the transcripts</p>
+    <p><strong>Trigger 3:</strong> “Stop AWS from using audio to improve its services”<br>→ An AWS Organizations AI services opt-out policy</p>
+    <p><strong>Trigger 4:</strong> “Delete a transcription job and its data”<br>→ The Transcribe delete APIs</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company wants to transcribe every call recording in Amazon S3, remove PII, and store the sentiment of each call. It wants to run no servers. Which architecture fits best?</p>
+    <ol type="A">
+      <li>An S3 event starts an AWS Lambda function that starts a Transcribe job with PII redaction, and a second Lambda function sends the transcript to Amazon Comprehend.</li>
+      <li>An Amazon EC2 instance runs an open-source speech recognition model and a sentiment library.</li>
+      <li>Amazon Polly transcribes the audio, and Amazon Rekognition finds the sentiment.</li>
+      <li>A custom model on Amazon SageMaker AI transcribes and analyzes the calls.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Transcribe converts speech to text with redaction, and Comprehend finds the sentiment. Both are managed, and Lambda runs only when needed.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. It is serverless and uses pre-trained services.</td></tr>
+          <tr><td>B</td><td>Wrong. It uses servers and models that the team must run.</td></tr>
+          <tr><td>C</td><td>Wrong. Polly does not transcribe, and Rekognition does not analyze text sentiment.</td></tr>
+          <tr><td>D</td><td>Wrong. It needs expertise and effort that the managed services avoid.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>5.6 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/transcribe/faqs/" target="_blank" rel="noopener">Amazon Transcribe FAQs: Data Privacy</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/transcribe/latest/dg/API_DeleteTranscriptionJob.html" target="_blank" rel="noopener">DeleteTranscriptionJob API Reference</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/transcribe/latest/dg/monitoring-events.html" target="_blank" rel="noopener">Using Amazon EventBridge With Amazon Transcribe</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/general/latest/gr/transcribe.html" target="_blank" rel="noopener">Amazon Transcribe Endpoints and Quotas</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_ai-opt-out.html" target="_blank" rel="noopener">Managing AI Services Opt-Out Policies</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/transcribe/pricing/" target="_blank" rel="noopener">Amazon Transcribe Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="comparison" role="tabpanel" aria-labelledby="tab-6" tabindex="0">
+  <h1>6. Comparison and Scenarios</h1>
+
+  <h2>6.1 Choosing Between AWS AI Services</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">If you need to</th><th scope="col">Use</th><th scope="col">What it does</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Convert speech to text</strong></td><td>Amazon Transcribe</td><td>Automatic speech recognition for recorded and live audio.</td></tr>
+      <tr><td><strong>Convert text to speech</strong></td><td>Amazon Polly</td><td>Lifelike speech from text.</td></tr>
+      <tr><td><strong>Translate text</strong></td><td>Amazon Translate</td><td>Neural machine translation between supported languages.</td></tr>
+      <tr><td><strong>Understand text</strong></td><td>Amazon Comprehend</td><td>Language, entities, key phrases, and sentiment.</td></tr>
+      <tr><td><strong>Read scanned documents</strong></td><td>Amazon Textract</td><td>Text, forms, and tables from documents.</td></tr>
+      <tr><td><strong>Build a chatbot with voice and text</strong></td><td>Amazon Lex</td><td>Conversational interfaces. It is the topic of a later lesson.</td></tr>
+      </tbody>
+  </table></div>
+  <p>These services chain well: Transcribe makes text from speech, Translate converts it, Comprehend analyzes it, and Polly can speak the result.</p>
+
+  <h2>6.2 Transcribe Options Compared</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Option</th><th scope="col">Best for</th><th scope="col">Remember</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Batch</strong></td><td>Recorded files in Amazon S3.</td><td>Up to eight hours or 2 GB for each call.</td></tr>
+      <tr><td><strong>Streaming</strong></td><td>Live audio.</td><td>FLAC, Opus, or PCM. Text comes back in real time.</td></tr>
+      <tr><td><strong>Language identification</strong></td><td>Unknown languages.</td><td>A list of candidate languages improves accuracy.</td></tr>
+      <tr><td><strong>Speaker diarization</strong></td><td>Several speakers on one channel.</td><td>Up to 30 speakers. It does not say who they are.</td></tr>
+      <tr><td><strong>Channel identification</strong></td><td>Separate channels, such as agent and customer.</td><td>One transcript with channel labels. Two channels by default.</td></tr>
+      <tr><td><strong>Custom vocabulary</strong></td><td>A short list of names and terms.</td><td>Not guaranteed.</td></tr>
+      <tr><td><strong>Custom language model</strong></td><td>A whole domain.</td><td>At least 100,000 words of text.</td></tr>
+      <tr><td><strong>PII redaction</strong></td><td>Personal data in transcripts.</td><td>The audio is not redacted.</td></tr>
+      <tr><td><strong>Call Analytics</strong></td><td>Contact center insights.</td><td>Separate API and separate price.</td></tr>
+      <tr><td><strong>Transcribe Medical</strong></td><td>Medical speech.</td><td>US English. HIPAA eligible.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">#</th><th scope="col">If the question says…</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Convert speech to text with no ML expertise</td><td>Amazon Transcribe</td></tr>
+      <tr><td>2</td><td>Transcribe recorded files in Amazon S3</td><td>Batch transcription</td></tr>
+      <tr><td>3</td><td>Show live captions while a person speaks</td><td>Streaming transcription</td></tr>
+      <tr><td>4</td><td>The language of the audio is unknown</td><td>Automatic language identification</td></tr>
+      <tr><td>5</td><td>Label who spoke when several people share one channel</td><td>Speaker diarization</td></tr>
+      <tr><td>6</td><td>Agent and customer are recorded on separate channels</td><td>Channel identification</td></tr>
+      <tr><td>7</td><td>Company and product names are transcribed wrongly</td><td>Custom vocabulary</td></tr>
+      <tr><td>8</td><td>Keep unwanted words out of the transcript</td><td>Vocabulary filter</td></tr>
+      <tr><td>9</td><td>Improve accuracy for a specialized domain with a lot of in-house text</td><td>Custom language model</td></tr>
+      <tr><td>10</td><td>Remove personal data from transcripts</td><td>PII redaction</td></tr>
+      <tr><td>11</td><td>Remove personal data from the transcript and from the audio</td><td>Transcribe Call Analytics</td></tr>
+      <tr><td>12</td><td>Flag hate speech and threats in recorded US English audio</td><td>Toxicity detection, in a batch job</td></tr>
+      <tr><td>13</td><td>Sentiment, call drivers, and summaries for contact center calls</td><td>Transcribe Call Analytics</td></tr>
+      <tr><td>14</td><td>Transcribe a doctor’s dictation or a clinical conversation</td><td>Amazon Transcribe Medical</td></tr>
+      <tr><td>15</td><td>Subtitles in many languages</td><td>Amazon Transcribe and Amazon Translate</td></tr>
+      <tr><td>16</td><td>Sentiment of what customers said on calls</td><td>Amazon Transcribe, then Amazon Comprehend</td></tr>
+      <tr><td>17</td><td>Stop AWS from using audio to improve its AI services</td><td>An AWS Organizations AI services opt-out policy</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.4 Scenario Practice</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Scenario</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>A bank transcribes its call archive overnight and must not keep card numbers.</td><td>Batch jobs with PII redaction.</td></tr>
+      <tr><td>A conference wants live captions on screen.</td><td>Streaming transcription.</td></tr>
+      <tr><td>A media company has thousands of interviews in many languages.</td><td>Batch jobs with language identification.</td></tr>
+      <tr><td>A call center records agent and customer on two channels.</td><td>Channel identification.</td></tr>
+      <tr><td>A hospital wants clinicians’ dictation turned into text.</td><td>Amazon Transcribe Medical.</td></tr>
+      <tr><td>A support team wants a spoken question in Spanish answered in English speech.</td><td>Transcribe, then Translate, then Polly.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.5 Lesson Summary</h2>
+  <ul>
+    <li>Amazon Transcribe is a managed ASR service in the AI services layer. It converts speech to text in more than 100 languages with no ML expertise, and it outputs JSON, and subtitles on request.</li>
+    <li>Batch transcription handles recorded files in Amazon S3, up to eight hours and 2 GB. Streaming transcription returns text in real time, and accepts FLAC, Opus, and PCM audio.</li>
+    <li>Language identification handles unknown languages. Speaker diarization labels speakers on one channel, and channel identification labels separate channels. Neither says who a person is.</li>
+    <li>Custom vocabulary fixes a few terms, vocabulary filters keep words out, and custom language models learn a domain from at least 100,000 words of text.</li>
+    <li>PII redaction cleans the transcript but not the audio, and toxicity detection flags harmful speech in US English batch jobs. Call Analytics and Transcribe Medical are separate capabilities with their own prices.</li>
+    <li>Transcribe may store and use audio to improve the service unless you opt out. It combines with Comprehend, Translate, and Polly.</li>
+  </ul>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Pictures go to Rekognition. Documents go to Textract. Speech goes to Transcribe. Text goes to Comprehend or Translate.</p>
+  </div>
+</section>
+
+<section class="panel" id="knowledge-check" role="tabpanel" aria-labelledby="tab-7" tabindex="0">
+  <h1>7. Knowledge Check</h1>
+  <p>Answer each question in your own words before you open the model answer.</p>
+  <ol class="kc-list">
+    <li>
+      <p class="q">Explain what Amazon Transcribe is, and why FlashCart can use it with no ML engineers.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Transcribe is a managed automatic speech recognition service that converts speech to text. FlashCart calls an API, or uses the console, and AWS runs the deep learning models and the infrastructure, so no speech or ML expertise is needed.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Which inputs, languages, and limits does Transcribe support?</p>
+      <details><summary>Show the model answer</summary>
+        <p>It transcribes recorded audio and video files in Amazon S3 and live audio streams, in more than 100 languages. A batch file can be up to eight hours and 2 GB, and a streaming connection can stay open for up to eight hours. Features vary by language, so check the supported languages page.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What can lower the accuracy of a transcript?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Background noise, overlapping speakers, accented speech, and switches between languages inside one file. A lossless format is recommended for the best quality.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Compare batch and streaming transcription.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Batch transcribes a recorded file in Amazon S3 as an asynchronous job, and you read the transcript when the job finishes. Streaming opens a bidirectional stream over HTTP/2, so you send live audio and get text back in real time. Use batch for archives and overnight work, and streaming for live captions and live assistance.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How do you handle recordings in languages that you do not know in advance?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Use automatic language identification, which works for batch and streaming. Transcribe identifies the dominant language and returns it with a confidence score. Give a list of languages that might be present to improve accuracy. Batch jobs also support multi-language identification.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Compare speaker diarization with channel identification.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Speaker diarization separates different speakers on one channel by their voice characteristics and labels them, for example Speaker 0 and Speaker 1, with up to 30 speakers. Channel identification transcribes each channel of a multi-channel recording and returns one transcript with channel labels. Neither says who the person is.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">When would you use a custom vocabulary, a vocabulary filter, or a custom language model?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Use a custom vocabulary for a short list of names, codes, and acronyms, with DisplayAs for the output that you want. Use a vocabulary filter to mask or remove unwanted words. Use a custom language model to learn a whole domain from at least 100,000 words of text. None of them guarantees a result.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What does PII redaction do, and what are its limits?</p>
+      <details><summary>Show the model answer</summary>
+        <p>It identifies and removes PII from the transcript, for batch and streaming. It does not remove PII from the source audio, but it gives timestamps so that you can. It works only on audio input, and it may miss some PII, so review the output. Streaming can also identify without redacting, and can target specific PII types.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How do toxicity detection and Call Analytics differ?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Toxicity detection flags harmful speech in seven categories, such as profanity, hate speech, and violence or threat, for a person to review. It works only for US English batch jobs. Call Analytics is a separate API for contact center calls. It adds sentiment scores, call drivers, categories, and summaries, and it removes sensitive information from the transcript and the audio. It is priced separately.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">When would you choose Transcribe Medical, and what should you remember about it?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Use it for medical dictation and clinician-patient conversations, such as physician notes. It supports US English and is HIPAA eligible. It is not a substitute for professional judgment, it may not identify all protected health information, and it does not meet the HIPAA de-identification requirements, so people must review the output.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Draw a pipeline that transcribes recordings, removes PII, and stores the sentiment.</p>
+      <details><summary>Show the model answer</summary>
+        <p>A recording is saved to Amazon S3. An S3 event starts a Lambda function that starts a Transcribe job with PII redaction. When the job state changes, an EventBridge rule on the job status starts a second Lambda function, which reads the redacted transcript from the output location and sends it to Amazon Comprehend. The function stores the results in Amazon DynamoDB.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How can you build a voice that listens in one language and answers in another?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Chain Transcribe, Translate, and Polly. Transcribe converts the speech to text, Translate converts the text to the target language, and Polly converts the translated text to speech.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What does AWS do with the audio that Transcribe processes, and how can you delete it or opt out?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Transcribe may store and use voice inputs to provide the service and, unless you opt out, to improve Transcribe and other Amazon AI technologies. You own your content. Opt out with an AWS Organizations AI services opt-out policy. You can delete a job and its data with the delete APIs, and ask AWS Support to delete voice inputs.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How is Transcribe billed, and how can you control cost?</p>
+      <details><summary>Show the model answer</summary>
+        <p>It is priced by the amount of audio transcribed, with separate prices for Call Analytics and Transcribe Medical, and additional charges for features such as toxicity detection. Transcribe once and store the transcript, use batch jobs for archives, and delete custom models that you do not need.</p>
+      </details>
+    </li>
+  </ol>
+</section>
+
+    <footer>
+      <p>Copyright © 2026 Per Scholas. All rights reserved.</p>
+      <p>Sources: AWS documentation and the Amazon Transcribe FAQs, paraphrased. The slide image is credited in its caption. Diagrams are original to this course.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  var panels = tabs.map(function (t) { return document.getElementById(t.getAttribute('aria-controls')); });
+  var live = document.getElementById('live');
+  var current = 0;
+
+  function label(i) { return tabs[i].textContent.trim(); }
+
+  function show(i, opts) {
+    opts = opts || {};
+    if (i < 0 || i >= tabs.length) { return; }
+    current = i;
+    tabs.forEach(function (t, k) {
+      var on = k === i;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.setAttribute('tabindex', on ? '0' : '-1');
+      panels[k].classList.toggle('active', on);
+    });
+    if (!opts.keepScroll) { window.scrollTo(0, 0); }
+    if (opts.focusTab) { tabs[i].focus(); }
+    if (opts.focusHeading) {
+      var h = panels[i].querySelector('h1');
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    }
+    if (opts.updateHash) {
+      try { history.replaceState(null, '', '#' + panels[i].id); } catch (e) {}
+    }
+    if (live) {
+      live.textContent = '';
+      setTimeout(function () { live.textContent = 'Tab ' + (i + 1) + ' of ' + tabs.length + ': ' + label(i); }, 50);
+    }
+  }
+
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { show(i, { updateHash: true }); });
+    t.addEventListener('keydown', function (e) {
+      var n = null;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { n = (i + 1) % tabs.length; }
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { n = (i - 1 + tabs.length) % tabs.length; }
+      else if (e.key === 'Home') { n = 0; }
+      else if (e.key === 'End') { n = tabs.length - 1; }
+      if (n !== null) { e.preventDefault(); show(n, { focusTab: true, updateHash: true, keepScroll: true }); }
+    });
+  });
+
+  panels.forEach(function (p, i) {
+    var nav = document.createElement('div');
+    nav.className = 'panel-nav';
+    var prev = document.createElement('button');
+    var next = document.createElement('button');
+    prev.type = 'button'; next.type = 'button';
+    if (i > 0) {
+      prev.textContent = '\u2190 Previous: ' + label(i - 1);
+      prev.addEventListener('click', function () { show(i - 1, { updateHash: true, focusHeading: true }); });
+    } else { prev.style.visibility = 'hidden'; prev.setAttribute('aria-hidden', 'true'); prev.tabIndex = -1; }
+    if (i < panels.length - 1) {
+      next.textContent = 'Next: ' + label(i + 1) + ' \u2192';
+      next.addEventListener('click', function () { show(i + 1, { updateHash: true, focusHeading: true }); });
+    } else { next.style.visibility = 'hidden'; next.setAttribute('aria-hidden', 'true'); next.tabIndex = -1; }
+    nav.appendChild(prev); nav.appendChild(next);
+    p.appendChild(nav);
+  });
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) { return; }
+    var id = a.getAttribute('href').slice(1);
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { e.preventDefault(); show(idx, { updateHash: true, focusHeading: true }); }
+  });
+
+  function fromHash() {
+    var id = window.location.hash.replace('#', '');
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { show(idx, { keepScroll: true }); }
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+</body>
+</html>

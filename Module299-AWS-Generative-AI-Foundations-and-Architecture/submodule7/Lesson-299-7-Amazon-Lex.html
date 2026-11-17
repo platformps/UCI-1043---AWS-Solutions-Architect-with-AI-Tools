@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 299.7 - Amazon Lex</title>
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: light;
+    --page-bg: #ffffff;
+    --text: #1c2733;
+    --muted: #4f5b67;
+    --rule: #d5dce3;
+    --card: #f4f7fa;
+    --card-border: #ccd3da;
+    --hover: #ccd3da;
+    --h1: #611940;
+    --h3: #7a2455;
+    --link: #611940;
+    --code-bg: #f5f7f9;
+    --table-alt: #f6f8fa;
+    --problem-bg: #ffeef7;
+    --problem-bar: #611940;
+    --warn-bg: #fdf3e7;
+    --warn-bar: #c26a00;
+    --exam-bg: #eaf6ee;
+    --exam-bar: #2e7d4f;
+    --tip-bg: #e5fe77;
+    --tip-bar: #7a8f00;
+    --q-bg: #f7eef3;
+    --q-border: #611940;
+    --svg-box: #f7eef3;
+    --svg-stroke: #611940;
+    --svg-hot: #d9f6fd;
+    --svg-hot-stroke: #611940;
+    --focus: #611940;
+    --h2: #000000;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+      --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+      --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+      --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+      --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+      --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+      --focus: #71e2fd;
+      --h2: #ffffff;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+    --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+    --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+    --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+    --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+    --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+    --focus: #71e2fd;
+    --h2: #ffffff;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+  *, *::before, *::after { box-sizing: inherit; line-height: 1.5; }
+  body {
+    margin: 0; background: var(--page-bg); color: var(--text);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 17px;
+  }
+  .layout { display: flex; align-items: flex-start; max-width: 1280px; margin: 0 auto; padding: 28px 20px 60px; }
+  .side-wrap { width: 270px; flex: none; margin-right: 28px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); overflow-y: auto; }
+  .sidebar { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px; }
+  .tab-btn {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    border-left: 5px solid transparent; border-radius: 6px; padding: 10px 12px; margin: 0 0 2px;
+    font: inherit; font-size: 15px; color: var(--text); cursor: pointer;
+  }
+  .tab-btn:hover { background: var(--hover); }
+  .tab-btn[aria-selected="true"] { background: #611940; color: #ffffff; font-weight: 700; border-left-color: #71E2FD; }
+  .tab-btn:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible, .panel:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .content { flex: 1; min-width: 0; max-width: 900px; }
+  .brand { display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; margin: 0 0 14px; }
+  .brand img { display: block; width: 230px; max-width: 100%; height: auto; }
+  .page-title { color: var(--h2); font-size: 2.8rem; font-weight: 700; margin: 0 0 8px; }
+  .page-sub { color: var(--muted); font-size: 1.05rem; margin: 0 0 26px; max-width: 70ch; }
+  .js .panel { display: none; }
+  .js .panel.active { display: block; }
+  .panel { margin-bottom: 40px; }
+  .js .panel { margin-bottom: 0; }
+  .panel h1 { color: var(--h1); font-size: 2.35rem; font-weight: 700; margin: 6px 0 12px; }
+  h2 { color: var(--h2); font-size: 35px; font-weight: 700; margin: 34px 0 10px; }
+  h3 { color: var(--h3); font-size: 1.45rem; font-weight: 700; margin: 24px 0 8px; }
+  h4 { color: var(--h3); font-size: 1.15rem; font-weight: 700; margin: 18px 0 6px; }
+  p { margin: 0 0 14px; max-width: 76ch; }
+  ul, ol { margin: 0 0 16px; padding-left: 26px; max-width: 76ch; }
+  li { margin-bottom: 6px; }
+  a { color: var(--link); }
+  code { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 0.88em; }
+  pre.flowcode { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 14.5px; overflow-x: auto; margin: 6px 0 18px; white-space: pre; }
+  .table-scroll { overflow-x: auto; margin: 6px 0 22px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15.5px; }
+  th, td { border: 1px solid var(--rule); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #611940; color: #ffffff; font-weight: 600; border-color: #611940; }
+  tbody tr:nth-child(even) { background: var(--table-alt); }
+  .wide table { min-width: 860px; }
+  .callout { border-left: 5px solid; border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 22px 0; max-width: 880px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .label { font-weight: 700; display: block; margin-bottom: 6px; }
+  .tip { background: var(--tip-bg); border-color: var(--tip-bar); color: #1c2733; }
+  .tip a { color: #611940; }
+  .warn { background: var(--warn-bg); border-color: var(--warn-bar); }
+  .exam { background: var(--exam-bg); border-color: var(--exam-bar); }
+  .problem { border-left: 6px solid var(--problem-bar); background: var(--problem-bg); border-radius: 0 12px 12px 0; padding: 22px 25px; margin: 28px 0; }
+  .problem h2.ps-heading { font-size: 1.35rem; margin: 0 0 8px; }
+  .problem p:last-child { margin-bottom: 0; }
+  .overview-box { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 24px 14px; margin: 0 0 24px; }
+  .overview-box h2 { margin-top: 20px; }
+  figure.diagram { margin: 14px 0 26px; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 14px 8px; overflow-x: auto; background: var(--card); }
+  figure.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
+  figure.diagram figcaption { color: var(--muted); font-size: 14.5px; padding: 8px 4px 6px; }
+  .s-box { fill: var(--svg-box); stroke: var(--svg-stroke); stroke-width: 1.5; }
+  .s-hot { fill: var(--svg-hot); stroke: var(--svg-hot-stroke); stroke-width: 1.5; }
+  .s-line { stroke: var(--svg-stroke); stroke-width: 2; fill: none; }
+  .s-mark { fill: var(--svg-stroke); }
+  .s-t { fill: var(--text); font-size: 14.5px; }
+  .s-b { fill: var(--text); font-size: 15px; font-weight: 700; }
+  .s-m { fill: var(--muted); font-size: 13.5px; }
+  .exam-question { background: var(--q-bg); border: 2px solid var(--q-border); border-radius: 8px; padding: 16px 22px; margin: 22px 0; max-width: 880px; }
+  .exam-question .label { font-weight: 700; margin-bottom: 2px; }
+  .exam-question .note { color: var(--muted); font-size: 14.5px; }
+  .exam-question details { border-top: 1px solid var(--rule); margin-top: 12px; padding-top: 10px; }
+  .exam-question summary, .kc-list summary { cursor: pointer; font-weight: 700; color: var(--link); }
+  .lab-box { border: 2px dashed #333333; background: #fdf3d7; color: #1c2733; border-radius: 4px; padding: 20px 24px 18px; margin: 30px 0 0; max-width: 880px; }
+  .lab-box .lab-title { text-align: center; color: #611940; font-size: 1.9rem; font-weight: 700; margin: 0 0 16px; }
+  .lab-box .lab-sub { color: #611940; font-weight: 700; font-size: 1.2rem; margin: 0 0 6px; }
+  .lab-box a.lab-link { color: #611940; font-weight: 700; text-decoration: underline; }
+  .lab-expect { border: 1.5px solid #333333; background: #ffffff; color: #1c2733; border-radius: 4px; padding: 14px 24px; margin: 0 0 26px; max-width: 880px; }
+  .lab-expect p:last-child { margin-bottom: 0; }
+  .lab-expect a { color: #611940; font-weight: 700; }
+  .resources ul { list-style: none; padding-left: 0; }
+  .rtype { display: inline-block; font-size: 13px; font-weight: 700; color: #ffffff; background: #611940; border-radius: 4px; padding: 1px 8px; margin-right: 8px; }
+  .kc-list { list-style: none; padding-left: 0; max-width: none; counter-reset: kc; }
+  .kc-list > li { counter-increment: kc; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px; margin-bottom: 14px; }
+  .kc-list .q { font-weight: 600; margin-bottom: 8px; }
+  .kc-list .q::before { content: "Question " counter(kc) ". "; color: var(--h1); }
+  .kc-list details { background: var(--exam-bg); border-left: 4px solid var(--exam-bar); border-radius: 0 6px 6px 0; padding: 10px 14px; }
+  .kc-list details p:first-of-type { margin-top: 10px; }
+  .panel-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .panel-nav button { background: var(--card); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 16px; font: inherit; font-size: 15px; font-weight: 600; color: var(--link); cursor: pointer; max-width: 48%; text-align: left; }
+  .panel-nav button:hover { background: var(--hover); }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 2px solid var(--rule); color: var(--muted); font-size: 14.5px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 900px) {
+    .layout { display: block; padding: 16px 14px 50px; }
+    .side-wrap { width: 100%; margin: 0 0 24px; position: static; max-height: none; overflow: visible; }
+    .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .tab-btn { margin: 0; }
+    h2 { font-size: 1.4rem; }
+    .page-title { font-size: 2.15rem; }
+    .panel h1 { font-size: 1.85rem; }
+    h3 { font-size: 1.28rem; }
+  }
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .sidebar { grid-template-columns: 1fr; }
+    .lab-box { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="side-wrap" aria-label="Lesson navigation">
+    <div class="sidebar" role="tablist" aria-orientation="vertical" aria-label="Lesson tabs">
+      <button class="tab-btn" role="tab" id="tab-0" aria-controls="overview" aria-selected="true" tabindex="0">Overview and Objectives</button>
+      <button class="tab-btn" role="tab" id="tab-1" aria-controls="intro" aria-selected="false" tabindex="-1">1. Introduction to Amazon Lex</button>
+      <button class="tab-btn" role="tab" id="tab-2" aria-controls="build" aria-selected="false" tabindex="-1">2. Building a Bot</button>
+      <button class="tab-btn" role="tab" id="tab-3" aria-controls="fulfil" aria-selected="false" tabindex="-1">3. Fulfillment, Versions, and Channels</button>
+      <button class="tab-btn" role="tab" id="tab-4" aria-controls="voice" aria-selected="false" tabindex="-1">4. Voice, Streaming, and Amazon Connect</button>
+      <button class="tab-btn" role="tab" id="tab-5" aria-controls="arch" aria-selected="false" tabindex="-1">5. Architecture and Cost</button>
+      <button class="tab-btn" role="tab" id="tab-6" aria-controls="comparison" aria-selected="false" tabindex="-1">6. Comparison and Scenarios</button>
+      <button class="tab-btn" role="tab" id="tab-7" aria-controls="knowledge-check" aria-selected="false" tabindex="-1">7. Knowledge Check</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo." width="230" height="33"></div>
+    <h1 class="page-title" style="border:none;padding:0;">Amazon Lex</h1>
+    <p class="page-sub">How Amazon Lex builds chatbots with voice and text: intents, slots, and prompts, Lambda fulfillment, versions and aliases, streaming conversations, Amazon Connect, and the architecture and cost of a support bot.</p>
+    <div class="sr-only" id="live" aria-live="polite"></div>
+
+<section class="panel active" id="overview" role="tabpanel" aria-labelledby="tab-0" tabindex="0">
+
+  <div class="overview-box">
+    <h2>Lesson Overview</h2>
+    <p>Amazon Lex is a managed service for building conversational interfaces, or chatbots, that use voice and text. It is powered by the same conversational engine as Alexa. It combines automatic speech recognition (ASR), which converts speech to text, with natural language understanding (NLU), which works out what the user wants. You describe the conversation, and you need no machine learning (ML) expertise. This lesson follows FlashCart Inc., a fictional online marketplace that wants a support bot that answers order questions by chat and by phone. In this lesson, you will study:</p>
+    <ul>
+      <li><strong>Introduction to Amazon Lex:</strong> what Lex does, how a conversation works, and common use cases.</li>
+      <li><strong>Building a Bot:</strong> locales, intents, sample utterances, slots, slot types, prompts, the fallback intent, and the automated chatbot designer.</li>
+      <li><strong>Fulfillment, Versions, and Channels:</strong> AWS Lambda code hooks, versions and aliases, and the places where a bot can run.</li>
+      <li><strong>Voice, Streaming, and Amazon Connect:</strong> speech and text input, streaming conversations, and contact center bots.</li>
+      <li><strong>Architecture and Cost:</strong> a support bot design and the pricing model.</li>
+      <li><strong>Comparison and Scenarios:</strong> how Lex compares with other AWS artificial intelligence (AI) services, and an SAA-C03 cheat sheet.</li>
+      <li><strong>Knowledge Check:</strong> open-ended questions with model answers.</li>
+    </ul>
+  </div>
+
+  <div class="overview-box">
+    <h2>Learning Objectives</h2>
+    <p>At the end of this lesson, learners will be able to:</p>
+    <ol>
+      <li>Define Amazon Lex and conversational interfaces, and state where Lex fits in the AWS AI layers.</li>
+      <li>Describe the building blocks of a Lex V2 bot: locales, intents, sample utterances, slots, slot types, and prompts.</li>
+      <li>Explain how Lex collects slot values in a multi-turn conversation, and how the fallback intent works.</li>
+      <li>Choose between a Lambda dialog code hook, a Lambda fulfillment code hook, and returning the parsed values to the client.</li>
+      <li>Use versions and aliases to separate development from production and to update a bot without changing its clients.</li>
+      <li>Compare request-and-response conversations with streaming conversations, with text, speech, and keypad input.</li>
+      <li>Design a bot that works with Amazon Connect, Amazon Polly, and AWS Lambda.</li>
+      <li>Explain how Lex is billed, and how to control cost.</li>
+    </ol>
+  </div>
+
+  <div class="overview-box">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#intro">Introduction to Amazon Lex</a></li>
+      <li><a href="#build">Building a Bot</a></li>
+      <li><a href="#fulfil">Fulfillment, Versions, and Channels</a></li>
+      <li><a href="#voice">Voice, Streaming, and Amazon Connect</a></li>
+      <li><a href="#arch">Architecture and Cost</a></li>
+      <li><a href="#comparison">Comparison and Scenarios</a></li>
+      <li><a href="#knowledge-check">Knowledge Check</a></li>
+    </ol>
+  </div>
+</section>
+
+<section class="panel" id="intro" role="tabpanel" aria-labelledby="tab-1" tabindex="0">
+  <h1>1. Introduction to Amazon Lex</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart Inc. gets thousands of support contacts every day, and most ask the same few things: where is my order, how do I return an item, and what is your refund policy. Agents spend their day answering them, and customers wait on hold at night.</p>
+    <p>The engineering manager wants a bot that answers these questions on the website chat and on the phone line, and hands the hard cases to a person. The team has no speech scientists or language-processing engineers. She asks how a bot understands what a customer wants, how it collects an order number, and whether the same bot can serve both chat and phone.</p>
+    <p>She also asks about an old tutorial that she found, which uses a different version of Lex.</p>
+    <p><strong>Your challenge:</strong> Advise the manager. Your answer should:</p>
+    <ul>
+      <li>Explain what Lex does and why it needs no ML expertise.</li>
+      <li>Describe how a conversation works: intent, slots, and fulfillment.</li>
+      <li>Say which version of Lex to use, and where the bot can run.</li>
+      </ul>
+  </div>
+
+  <h2>1.1 What Amazon Lex Is</h2>
+  <ul>
+    <li>Amazon Lex is a service for building conversational interfaces using voice and text. It is powered by the same conversational engine as Alexa, and it provides high-quality speech recognition and language understanding.</li>
+    <li>It lets you add natural-language chatbots to new and existing applications, and publish them to mobile devices and to chat services.</li>
+    <li>No ML expertise is needed. You specify the conversation flow in a declarative way, and Lex handles the speech recognition and the language understanding. You give sample utterances in plain English and the information that you need to collect, and the language model is built for you.</li>
+    <li>It is a managed service, so you do not manage scaling or code maintenance. Your bot definition and language models are backed up automatically, and versioning lets you roll back.</li>
+    <li>It sits in the AI services layer, with Amazon Polly, Amazon Transcribe, Amazon Translate, Amazon Comprehend, Amazon Textract, and Amazon Rekognition. Lex is the one that holds a conversation.</li>
+  </ul>
+
+  <h2>1.2 How a Conversation Works</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 270" role="img" aria-labelledby="t1b d1b" xmlns="http://www.w3.org/2000/svg">
+      <title id="t1b">The parts of an Amazon Lex bot</title>
+      <desc id="d1b">A bot contains one or more languages, called locales. Each locale has intents. An intent has sample utterances that invoke it, slots that collect the information it needs, and a fulfillment step, which can be an AWS Lambda function or a response that returns the parsed values to the client.</desc>
+      <defs><marker id="ar1b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="20" width="160" height="70" rx="8" class="s-box"/>
+      <text x="95" y="50" text-anchor="middle" class="s-b">Bot</text>
+      <text x="95" y="72" text-anchor="middle" class="s-m">the chat application</text>
+      <rect x="215" y="20" width="160" height="70" rx="8" class="s-box"/>
+      <text x="295" y="50" text-anchor="middle" class="s-b">Locale</text>
+      <text x="295" y="72" text-anchor="middle" class="s-m">one language</text>
+      <rect x="415" y="20" width="160" height="70" rx="8" class="s-hot"/>
+      <text x="495" y="50" text-anchor="middle" class="s-b">Intent</text>
+      <text x="495" y="72" text-anchor="middle" class="s-m">one action</text>
+      <rect x="15" y="170" width="190" height="80" rx="8" class="s-box"/>
+      <text x="110" y="202" text-anchor="middle" class="s-b">Sample utterances</text>
+      <text x="110" y="226" text-anchor="middle" class="s-m">phrases that invoke it</text>
+      <rect x="245" y="170" width="190" height="80" rx="8" class="s-box"/>
+      <text x="340" y="202" text-anchor="middle" class="s-b">Slots and prompts</text>
+      <text x="340" y="226" text-anchor="middle" class="s-m">the data to collect</text>
+      <rect x="475" y="170" width="235" height="80" rx="8" class="s-box"/>
+      <text x="592" y="202" text-anchor="middle" class="s-b">Fulfillment</text>
+      <text x="592" y="226" text-anchor="middle" class="s-m">Lambda, or return to client</text>
+      <line x1="177" y1="55" x2="213" y2="55" class="s-line" marker-end="url(#ar1b)"/>
+      <line x1="377" y1="55" x2="413" y2="55" class="s-line" marker-end="url(#ar1b)"/>
+      <line x1="440" y1="92" x2="150" y2="168" class="s-line" marker-end="url(#ar1b)"/>
+      <line x1="495" y1="92" x2="340" y2="168" class="s-line" marker-end="url(#ar1b)"/>
+      <line x1="540" y1="92" x2="592" y2="168" class="s-line" marker-end="url(#ar1b)"/>
+    </svg>
+    <figcaption>Image 1a — The parts of an Amazon Lex bot. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ol>
+    <li>You define the actions that the bot performs. These are the <strong>intents</strong>.</li>
+    <li>For each intent, you add <strong>sample utterances</strong>, which are phrases that invoke the intent, such as “Can I make a reservation?”</li>
+    <li>You define <strong>slots</strong>, which are the pieces of information that the intent needs, and <strong>prompts</strong>, which are the questions that ask for them.</li>
+    <li>At runtime, Lex works out the intent from what the user says or types, asks for the missing slot values, one turn at a time, and then fulfills the intent.</li>
+    <li>You provide the business logic that carries out the action, usually in an AWS Lambda function.</li>
+  </ol>
+
+  <h2>1.3 Lex in a Contact Center</h2>
+  <figure class="diagram">
+    <img src="data:image/webp;base64,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" alt="A diagram of a phone call to schedule an appointment for a service. A phone icon sends a call to Amazon Connect. Connect streams the call to Amazon Lex. Lex invokes an AWS Lambda function, and the Lambda function schedules the appointment in a customer relationship management system, shown as a database icon." width="1300" height="265" style="display:block;width:100%;max-width:900px;height:auto;border:1px solid var(--rule);">
+    <figcaption>Image 1b — A call flows from Amazon Connect to Amazon Lex, AWS Lambda, and a customer system. (Source: Chetan Agrawal.)</figcaption>
+  </figure>
+  <p>In this flow, Amazon Connect receives the call and streams it to Lex. Lex recognizes the intent, for example scheduling an appointment, and invokes a Lambda function that schedules it in the customer relationship management (CRM) system. Tab 4 covers Amazon Connect.</p>
+
+  <h2>1.4 Common Use Cases</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Use case</th><th scope="col">What the bot does</th><th scope="col">FlashCart example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Self-service voice assistants and chatbots</strong></td><td>Acts as a call center bot.</td><td>Answer “Where is my order?” on the phone line.</td></tr>
+      <tr><td><strong>Informational bot</strong></td><td>Answers questions as an automated customer support agent.</td><td>Explain the refund policy in the website chat.</td></tr>
+      <tr><td><strong>Application or transactional bot</strong></td><td>Completes a task, such as an order or a booking.</td><td>Start a return and print the label.</td></tr>
+      <tr><td><strong>Enterprise productivity bot</strong></td><td>Connects to enterprise data resources.</td><td>Let staff ask for stock levels in a chat tool.</td></tr>
+      <tr><td><strong>Device control bot</strong></td><td>Issues control commands to connected devices.</td><td>Open a delivery locker by voice.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>1.5 Which Version of Lex?</h2>
+  <ul>
+    <li>Use Amazon Lex V2. It adds simplified versioning, several languages in one bot, and streaming conversations, and it is the console and the APIs that AWS documents now.</li>
+    <li>AWS ended support for Lex V1 on September 15, 2025. Older tutorials and slides that use V1 terms and operations, such as <code>PutIntent</code>, no longer apply.</li>
+    <li>Lex V2 also has generative AI features that use Amazon Bedrock. They are outside this lesson.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Lex holds a conversation: it works out the intent and collects the slot values. It does not synthesize speech, which Amazon Polly does, and it is not a general question-answering service for documents. Also, check which version of Lex a tutorial uses: Lex V1 is no longer supported.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Lex asks until the slots are full, and then it fulfills.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Build a chatbot with voice and text, with no ML expertise”<br>→ Amazon Lex</p>
+    <p><strong>Trigger 2:</strong> “Recognize what the user wants, and collect the details”<br>→ Intents and slots</p>
+    <p><strong>Trigger 3:</strong> “The same technology that powers Alexa”<br>→ Amazon Lex</p>
+    <p><strong>Trigger 4:</strong> “A call center bot”<br>→ Amazon Lex with Amazon Connect</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company wants a chatbot that understands customer requests by text and by voice, collects an order number, and starts a return. It has no ML experts and wants the least operational effort. Which solution fits best?</p>
+    <ol type="A">
+      <li>Build an Amazon Lex bot with an intent and slots, and fulfill it with an AWS Lambda function.</li>
+      <li>Train a language model on Amazon SageMaker AI, and host it on an endpoint.</li>
+      <li>Use Amazon Polly to understand the customer’s request.</li>
+      <li>Use Amazon Comprehend to hold the conversation.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Lex is a managed service for conversational interfaces. An intent with slots collects the details, and a Lambda function carries out the return.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. Lex is made for this need.</td></tr>
+          <tr><td>B</td><td>Wrong. It works, but it needs ML expertise and more operational effort.</td></tr>
+          <tr><td>C</td><td>Wrong. Polly converts text to speech. It does not understand requests.</td></tr>
+          <tr><td>D</td><td>Wrong. Comprehend analyzes text. It does not hold a conversation.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>1.6 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/lexv2/latest/dg/getting-started.html" target="_blank" rel="noopener">Getting Started With Amazon Lex V2</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/lex/faqs/" target="_blank" rel="noopener">Amazon Lex FAQs</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/lexv2/latest/dg/how-it-works.html" target="_blank" rel="noopener">Amazon Lex V2 Core Concepts</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/lex/pricing/" target="_blank" rel="noopener">Amazon Lex Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="build" role="tabpanel" aria-labelledby="tab-2" tabindex="0">
+  <h1>2. Building a Bot</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s first bot guesses wrong. A customer who types “Where is my stuff?” gets the refund policy, and a customer who says “It came broken” cannot start a return because the bot expected the word “damaged.”</p>
+    <p>The developer asks how to teach the bot more ways to say the same thing, how to make it ask for the order number only when it has not been given, and what happens when the bot does not understand at all. The company also sells in Spain and wants the same bot to work in Spanish.</p>
+    <p>The support lead has 5,000 transcripts of real agent calls and wants to use them to design the bot.</p>
+    <p><strong>Your challenge:</strong> Explain how to build the bot. Your answer should:</p>
+    <ul>
+      <li>Name the parts that teach the bot to recognize a request and to collect details.</li>
+      <li>Say how the bot handles words that it does not know, and requests that it does not understand.</li>
+      <li>Say how the support lead can use the transcripts.</li>
+      </ul>
+  </div>
+
+  <h2>2.1 Bots and Locales</h2>
+  <ul>
+    <li>A bot is the chat application. You create it in the console or with the API.</li>
+    <li>In Lex V2, a bot can have several languages, called locales, and you manage them as one resource.</li>
+    <li>Each locale has its own intents, slot types, and sample utterances, so the Spanish bot has its own phrases.</li>
+  </ul>
+
+  <h2>2.2 Intents and Sample Utterances</h2>
+  <ul>
+    <li>An intent is an action that the bot can fulfill, such as <code>TrackOrder</code> or <code>ReturnItem</code>. A bot can have many intents.</li>
+    <li>An utterance is the spoken or typed phrase that invokes an intent. You provide sample utterances, and Lex builds the language model from them.</li>
+    <li>Give several ways to say the same thing: “I want to return my order,” “It came broken,” and “Can I send this back?” The more varied the samples, the better the match.</li>
+    <li>Quotas: up to 1,500 sample utterances for each intent, and each one up to 500 characters.</li>
+  </ul>
+
+  <h2>2.3 Slots, Slot Types, and Prompts</h2>
+  <ul>
+    <li>A slot is a piece of information that an intent needs. For a return, the slots are the order number and the reason.</li>
+    <li>An intent can have zero or more slots, and up to 100. The user must give values for all required slots before Lex can fulfill the intent.</li>
+    <li>A slot type defines the values that a slot accepts. A built-in slot type, such as <code>AMAZON.Number</code>, handles common values. A custom slot type holds values that are specific to your business, with synonyms, for example a <em>Reason</em> type with the value Damaged and the synonyms “broken” and “cracked.”</li>
+    <li>A prompt is the question that asks for a slot, such as “What is your order number?” A slot can have up to 30 prompts. Lex can ask for several slots over several turns.</li>
+    <li>A custom slot type can have up to 10,000 values and synonyms, and a bot locale can have up to 50,000 in total.</li>
+  </ul>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 400" role="img" aria-labelledby="t2a d2a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t2a">A multi-turn conversation with an Amazon Lex bot</title>
+      <desc id="d2a">A conversation in four steps. The customer says I want to return my order, and Lex recognizes the intent ReturnItem. The bot asks for the order number, which fills the slot OrderNumber. The bot asks why, and the customer says it arrived damaged, which fills the slot Reason with the value Damaged. All required slots are full, so Lex calls the fulfillment Lambda function, and the bot confirms that the return has started.</desc>
+      <defs><marker id="ar2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="15" width="360" height="56" rx="8" class="s-box"/><text class="s-t" x="27" y="37" text-anchor="start">Customer</text><text class="s-m" x="27" y="59" text-anchor="start">I want to return my order.</text>
+      <rect x="335" y="85" width="375" height="56" rx="8" class="s-hot"/><text class="s-t" x="347" y="107" text-anchor="start">Bot</text><text class="s-m" x="347" y="129" text-anchor="start">What is your order number?</text>
+      <rect x="15" y="155" width="360" height="56" rx="8" class="s-box"/><text class="s-t" x="27" y="177" text-anchor="start">Customer</text><text class="s-m" x="27" y="199" text-anchor="start">48213</text>
+      <rect x="335" y="225" width="375" height="56" rx="8" class="s-hot"/><text class="s-t" x="347" y="247" text-anchor="start">Bot</text><text class="s-m" x="347" y="269" text-anchor="start">Why are you returning it?</text>
+      <rect x="15" y="295" width="360" height="56" rx="8" class="s-box"/><text class="s-t" x="27" y="317" text-anchor="start">Customer</text><text class="s-m" x="27" y="339" text-anchor="start">It arrived damaged.</text>
+      <rect x="395" y="20" width="315" height="48" fill="#611940"/><text x="408" y="40" font-size="12.5" font-weight="600" fill="#ffffff" font-family="inherit">Intent recognized: ReturnItem</text><text x="408" y="58" font-size="12" fill="#ffffff" font-family="inherit">from the sample utterances</text>
+      <rect x="15" y="115" width="300" height="30" fill="#611940"/><text x="25" y="135" font-size="12.5" font-weight="600" fill="#ffffff" font-family="inherit">Slot filled: OrderNumber = 48213</text>
+      <rect x="15" y="360" width="440" height="30" fill="#611940"/><text x="25" y="380" font-size="12.5" font-weight="600" fill="#ffffff" font-family="inherit">Slot filled: Reason = Damaged. All slots full, so Lex fulfills.</text>
+    </svg>
+    <figcaption>Image 2a — A multi-turn conversation fills the slots and then fulfills the intent. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>2.4 The Fallback Intent</h2>
+  <ul>
+    <li>Lex always includes a fallback intent in a bot. It is the built-in intent <code>AMAZON.FallbackIntent</code>.</li>
+    <li>Lex uses it whenever it cannot work out what the user wants.</li>
+    <li>Use it to ask the user to rephrase, or to hand the conversation to a person.</li>
+    <li>The monitoring dashboard shows the missed utterances, which are the phrases that the bot did not recognize. Add them as sample utterances to improve the bot.</li>
+  </ul>
+
+  <h2>2.5 Build and Test</h2>
+  <ul>
+    <li>Building a bot trains the language model from your intents, utterances, and slot types.</li>
+    <li>You test the bot in the console test window. Text works in all supported browsers, and voice can be tested in Chrome. A Lambda function that you attached is tested there too.</li>
+    <li>When the bot works, you publish a version and give it an alias (tab 3).</li>
+  </ul>
+
+  <h2>2.6 The Automated Chatbot Designer</h2>
+  <ul>
+    <li>The automated chatbot designer helps you start a bot design in a few clicks. You point it at conversation transcripts in Amazon Simple Storage Service (Amazon S3).</li>
+    <li>It processes the transcripts and surfaces a design: the user intents, sample phrases for each intent, and the information that is needed to fulfill each one. You review it and add the intents and slot types that suit your bot.</li>
+    <li>The transcripts must be conversations between a caller and an agent, in a standard JSON format. Amazon Connect customers who use Contact Lens can use their transcripts directly.</li>
+    <li>It works with the English locales that Lex supports.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>A bot recognizes only what its sample utterances teach it. If customers say something new, add the phrase as a sample utterance or use a slot type with synonyms, and watch the missed utterances. Also, the fallback intent is not an error: it is the built-in way to handle requests that the bot does not understand.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Utterances teach the bot to listen. Slots tell it what to ask. Prompts are the questions.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “The bot must collect an order number and a reason before it acts”<br>→ Slots with prompts</p>
+    <p><strong>Trigger 2:</strong> “The bot must accept “broken” as well as “damaged””<br>→ A custom slot type with synonyms</p>
+    <p><strong>Trigger 3:</strong> “The user says something the bot does not understand”<br>→ AMAZON.FallbackIntent</p>
+    <p><strong>Trigger 4:</strong> “Design a bot from real agent conversations”<br>→ The automated chatbot designer, with transcripts in Amazon S3</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A bot must accept the values “damaged,” “broken,” and “cracked” as the same reason for a return. Which feature meets the requirement with the least effort?</p>
+    <ol type="A">
+      <li>A custom slot type with one value and synonyms.</li>
+      <li>A separate intent for each word.</li>
+      <li>The fallback intent.</li>
+      <li>A new Lambda function for each word.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> A custom slot type holds values and synonyms, so several words resolve to one value.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. Synonyms map to one value.</td></tr>
+          <tr><td>B</td><td>Wrong. It multiplies intents and effort.</td></tr>
+          <tr><td>C</td><td>Wrong. The fallback intent handles requests that the bot cannot understand.</td></tr>
+          <tr><td>D</td><td>Wrong. It adds code for something that the slot type does without code.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>2.7 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/lexv2/latest/dg/how-it-works.html" target="_blank" rel="noopener">Amazon Lex V2 Core Concepts</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/lexv2/latest/dg/intent-slots.html" target="_blank" rel="noopener">Slots in Amazon Lex V2</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/lexv2/latest/dg/quotas.html" target="_blank" rel="noopener">Quotas for Amazon Lex V2</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/lex/chatbot-designer/" target="_blank" rel="noopener">Amazon Lex Automated Chatbot Designer</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="fulfil" role="tabpanel" aria-labelledby="tab-3" tabindex="0">
+  <h1>3. Fulfillment, Versions, and Channels</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s bot now collects the order number and the reason, but it cannot do anything with them. It must look up the order, check that the return window is still open, and start the return in the order system. The team also wants to reject an order number that has the wrong length before the bot goes on to the next question.</p>
+    <p>The team has a bot in production, and a developer wants to change the prompts. Last time a change went live too early and broke the chat for an hour. The company also wants the same bot on the website, in the mobile app, and in a messaging service.</p>
+    <p>The architect must choose how to fulfill requests, how to release changes safely, and where the bot runs.</p>
+    <p><strong>Your challenge:</strong> Design the fulfillment and the release process. Your answer should:</p>
+    <ul>
+      <li>Say where to validate the order number and where to start the return.</li>
+      <li>Explain how to change the bot without disturbing the live version.</li>
+      <li>List where the bot can run.</li>
+      </ul>
+  </div>
+
+  <h2>3.1 Fulfillment With AWS Lambda</h2>
+  <ul>
+    <li>Lex integrates with AWS Lambda for fulfillment, which is the business logic that carries out the intent. Or you can configure Lex to return the parsed intent and slot values to your client application, which then implements the logic.</li>
+    <li>A <strong>dialog code hook</strong> is a Lambda function that Lex calls after input from the user, on each turn, to initialize, validate, and customize the conversation. For example, it can reject an order number that is too short, and make Lex ask again.</li>
+    <li>A <strong>fulfillment code hook</strong> is a Lambda function that Lex calls after all required slots are filled and the intent is ready to be fulfilled.</li>
+    <li>The event that Lex sends to the function says which hook called it, <code>DialogCodeHook</code> or <code>FulfillmentCodeHook</code>, and it carries the bot, the locale, the version, the alias, the intent, and the slot values.</li>
+    <li>In Lex V2, you configure one Lambda function for each language in the alias. It serves both hooks, and you can turn the dialog hook and the fulfillment hook on or off for each intent.</li>
+    <li>Lambda output can carry up to 12 KB of session attributes. The function can run up to 30 seconds by default for a bot, and the limit can be raised.</li>
+  </ul>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Need</th><th scope="col">Use</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Check a slot value on every turn</strong></td><td>A dialog code hook.</td></tr>
+      <tr><td><strong>Carry out the action when the slots are full</strong></td><td>A fulfillment code hook.</td></tr>
+      <tr><td><strong>Let the client application carry out the action</strong></td><td>Return the parsed intent and slot values to the client.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>3.2 Versions and Aliases</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 260" role="img" aria-labelledby="t3a d3a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t3a">Bot versions and aliases</title>
+      <desc id="d3a">The draft version of a bot is where you work. You publish numbered versions from it, such as version 1 and version 2, and each version stays the same. An alias is a pointer to a version. Client applications call the alias named prod. When version 2 is ready, you move the prod alias from version 1 to version 2, and no client changes.</desc>
+      <defs><marker id="ar3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="30" width="150" height="70" rx="8" class="s-box"/>
+      <text x="90" y="58" text-anchor="middle" class="s-b">Draft</text>
+      <text x="90" y="80" text-anchor="middle" class="s-m">where you work</text>
+      <rect x="215" y="30" width="150" height="70" rx="8" class="s-box"/>
+      <text x="290" y="58" text-anchor="middle" class="s-b">Version 1</text>
+      <text x="290" y="80" text-anchor="middle" class="s-m">a fixed snapshot</text>
+      <rect x="415" y="30" width="150" height="70" rx="8" class="s-box"/>
+      <text x="490" y="58" text-anchor="middle" class="s-b">Version 2</text>
+      <text x="490" y="80" text-anchor="middle" class="s-m">a fixed snapshot</text>
+      <rect x="215" y="170" width="150" height="70" rx="8" class="s-hot"/>
+      <text x="290" y="198" text-anchor="middle" class="s-b">Alias prod</text>
+      <text x="290" y="220" text-anchor="middle" class="s-m">points to version 1</text>
+      <rect x="560" y="170" width="150" height="70" rx="8" class="s-box"/>
+      <text x="635" y="198" text-anchor="middle" class="s-b">Your app</text>
+      <text x="635" y="220" text-anchor="middle" class="s-m">calls the alias</text>
+      <line x1="167" y1="65" x2="213" y2="65" class="s-line" marker-end="url(#ar3a)"/>
+      <line x1="367" y1="65" x2="413" y2="65" class="s-line" marker-end="url(#ar3a)"/>
+      <line x1="290" y1="172" x2="290" y2="102" class="s-line" marker-end="url(#ar3a)"/>
+      <line x1="558" y1="205" x2="367" y2="205" class="s-line" marker-end="url(#ar3a)"/>
+      <path d="M 366 190 C 430 150, 470 130, 480 104" fill="none" stroke="#611940" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#ar3a)"/>
+      <text x="520" y="140" text-anchor="start" class="s-m">later, move to version 2</text>
+    </svg>
+    <figcaption>Image 3a — Versions are fixed snapshots, and an alias points to one of them. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>You work in the draft version. When it is ready, you publish a numbered version, a snapshot of the bot that includes the languages that you choose. A published version stays the same while you keep working on the draft. A bot can have up to 100 versions.</li>
+    <li>An alias is a pointer to a specific version. Your applications call the alias, so when you publish a new version, you point the alias to it, and every client gets the change with no update.</li>
+    <li>Use aliases to set up development, staging, and production environments, and to roll back by pointing the alias to the earlier version.</li>
+    <li>The Lambda function, the conversation logs, and the sentiment analysis setting are configured on the alias.</li>
+  </ul>
+
+  <h2>3.3 Channels</h2>
+  <ul>
+    <li><strong>Web and mobile applications:</strong> call the Lex runtime APIs through an AWS SDK. Lex provides SDKs for iOS and Android, and runtime SDKs for languages such as Java, JavaScript, Python, .NET, Ruby, PHP, Go, and C++. User sign-in can use Amazon Cognito.</li>
+    <li><strong>Messaging services:</strong> a bot can be published to platforms such as Facebook Messenger, Slack, Kik, and Twilio SMS. You give the tokens for authentication in the console, and Lex gives you a callback URL for the chat service.</li>
+    <li><strong>Amazon Connect:</strong> contact flows can call a Lex bot for self-service voice and chat (tab 4).</li>
+    <li>You can deploy a specific version, through an alias, to each channel, and you can deploy several bots to the same messaging service. A bot does not need Amazon certification before you deploy it.</li>
+    <li>You can export a bot’s schema as JSON that is compatible with Alexa, to create an Alexa skill. The Lambda functions are not included in the export. Lex does not support a wake word, so the app decides when to start listening.</li>
+  </ul>
+
+  <h2>3.4 Monitoring</h2>
+  <ul>
+    <li>The Monitoring dashboard in the Lex console shows the number of missed utterances, the request latency, and the traffic by channel.</li>
+    <li>Conversation logs, set on the alias, record what users said and how the bot answered. Use them to improve the bot.</li>
+    <li>Lex integrates with Amazon CloudWatch.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Do not change the version that users are on. Publish a new version, test it on a separate alias, and then move the production alias. Also remember that a version is a fixed snapshot: to change it, change the draft and publish a new version. And a dialog code hook runs on every turn, so keep it fast.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Draft to work, version to freeze, alias to release.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Validate a slot value on every turn of the conversation”<br>→ A Lambda dialog code hook</p>
+    <p><strong>Trigger 2:</strong> “Carry out the action when all slots are filled”<br>→ A Lambda fulfillment code hook</p>
+    <p><strong>Trigger 3:</strong> “Update the bot without changing any client application”<br>→ Publish a version and move the alias to it</p>
+    <p><strong>Trigger 4:</strong> “Separate development, staging, and production”<br>→ Aliases that point to different versions</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company has a production Lex bot. It wants to release a new version without changing its web and mobile clients, and to be able to roll back at once. Which approach meets the requirement?</p>
+    <ol type="A">
+      <li>Publish a new version, and point the production alias to it. To roll back, point the alias to the earlier version.</li>
+      <li>Edit the version that is in production.</li>
+      <li>Create a new bot, and ask every client to switch to it.</li>
+      <li>Delete the old version, and publish the new one under the same number.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Clients call an alias. Moving the alias to another version changes the live bot, and moving it back rolls the change back.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. This is what aliases are for.</td></tr>
+          <tr><td>B</td><td>Wrong. A published version is a fixed snapshot, and you cannot edit it.</td></tr>
+          <tr><td>C</td><td>Wrong. It forces every client to change.</td></tr>
+          <tr><td>D</td><td>Wrong. Versions are numbered snapshots, and that removes the rollback.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>3.5 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/lexv2/latest/dg/lambda-input-format" target="_blank" rel="noopener">AWS Lambda Input Event Format for Lex V2</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/lexv2/latest/dg/migration.html" target="_blank" rel="noopener">Amazon Lex V1 to V2 Migration Guide</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/lex/faqs/" target="_blank" rel="noopener">Amazon Lex FAQs</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="voice" role="tabpanel" aria-labelledby="tab-4" tabindex="0">
+  <h1>4. Voice, Streaming, and Amazon Connect</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s phone customers speak in long, rambling sentences and pause to look for an order number. The first voice bot cut them off after a few seconds, and it did not let them interrupt when it read a long answer.</p>
+    <p>The contact center manager wants callers to reach the bot first, with a hand-off to an agent when the bot cannot help. Customers should also be able to type their order number on the phone keypad.</p>
+    <p>The architect must choose how the bot takes voice input and how it connects to the phone system.</p>
+    <p><strong>Your challenge:</strong> Design the voice experience. Your answer should:</p>
+    <ul>
+      <li>Compare a request-and-response conversation with a streaming conversation.</li>
+      <li>Say how a bot handles pauses, interruptions, and keypad input.</li>
+      <li>Explain how the bot connects to a contact center.</li>
+      </ul>
+  </div>
+
+  <h2>4.1 Text, Speech, and Audio Formats</h2>
+  <ul>
+    <li>A bot can take text or speech. Lex converts the speech to text with ASR, and works out the intent with NLU.</li>
+    <li>You can use speech input with text output. Choose the <code>RecognizeUtterance</code> operation for voice input.</li>
+    <li>Input audio formats are LPCM and Opus, and output audio formats are MPEG, OGG, and PCM. Lex uses Amazon Polly for text-to-speech, so a bot can answer in a Polly voice (Lesson 299.6). Lex does not offer the Alexa voice.</li>
+    <li>Lex V2 supports many languages and locales. Check the supported languages page for the current list before you plan a new language.</li>
+  </ul>
+
+  <h2>4.2 Request-and-Response and Streaming</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 260" role="img" aria-labelledby="t4a d4a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t4a">Request-and-response compared with streaming conversations</title>
+      <desc id="d4a">Two rows. In the request-and-response row, each user input, a text message or up to 15 seconds of speech, is sent as a separate call and a response comes back. In the streaming row, the application opens one streaming call, the audio flows continuously, and the bot listens all the time, so it can respond to pauses and interruptions.</desc>
+      <defs><marker id="ar4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="25" width="170" height="80" rx="8" class="s-box"/>
+      <text x="100" y="58" text-anchor="middle" class="s-b">User input</text>
+      <text x="100" y="82" text-anchor="middle" class="s-m">text or short speech</text>
+      <rect x="265" y="25" width="190" height="80" rx="8" class="s-hot"/>
+      <text x="360" y="52" text-anchor="middle" class="s-b">Amazon Lex bot</text>
+      <text x="360" y="74" text-anchor="middle" class="s-m">RecognizeText or</text>
+      <text x="360" y="92" text-anchor="middle" class="s-m">RecognizeUtterance</text>
+      <rect x="535" y="25" width="175" height="80" rx="8" class="s-box"/>
+      <text x="622" y="58" text-anchor="middle" class="s-b">Response</text>
+      <text x="622" y="82" text-anchor="middle" class="s-m">for each input</text>
+      <rect x="15" y="150" width="170" height="90" rx="8" class="s-box"/>
+      <text x="100" y="183" text-anchor="middle" class="s-b">Live audio</text>
+      <text x="100" y="207" text-anchor="middle" class="s-m">one continuous stream</text>
+      <rect x="265" y="150" width="190" height="90" rx="8" class="s-hot"/>
+      <text x="360" y="177" text-anchor="middle" class="s-b">Amazon Lex bot</text>
+      <text x="360" y="199" text-anchor="middle" class="s-m">StartConversation</text>
+      <text x="360" y="217" text-anchor="middle" class="s-m">always listening</text>
+      <rect x="535" y="150" width="175" height="90" rx="8" class="s-box"/>
+      <text x="622" y="183" text-anchor="middle" class="s-b">Responses</text>
+      <text x="622" y="207" text-anchor="middle" class="s-m">and interruptions</text>
+      <line x1="187" y1="65" x2="263" y2="65" class="s-line" marker-end="url(#ar4a)"/>
+      <line x1="457" y1="65" x2="533" y2="65" class="s-line" marker-end="url(#ar4a)"/>
+      <line x1="187" y1="190" x2="263" y2="190" class="s-line" marker-end="url(#ar4a)"/>
+      <line x1="457" y1="190" x2="533" y2="190" class="s-line" marker-end="url(#ar4a)"/>
+      <line x1="263" y1="225" x2="187" y2="225" class="s-line" marker-end="url(#ar4a)"/>
+    </svg>
+    <figcaption>Image 4a — Request-and-response and streaming conversations. (Original diagram for this course.)</figcaption>
+  </figure>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col"></th><th scope="col">Request and response</th><th scope="col">Streaming conversation</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Operations</strong></td><td><code>RecognizeText</code> for text, and <code>RecognizeUtterance</code> for speech or text.</td><td><code>StartConversation</code>.</td></tr>
+      <tr><td><strong>How input is processed</strong></td><td>Each user input is a separate call.</td><td>All inputs across several turns go in one streaming call.</td></tr>
+      <tr><td><strong>Limits</strong></td><td>Text input up to 1,024 characters. Speech input up to 15 seconds.</td><td>The bot listens continuously. A single conversation can last up to 15 minutes.</td></tr>
+      <tr><td><strong>Best for</strong></td><td>Chat and simple voice apps.</td><td>Natural phone conversations.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>With streaming, the bot continuously listens and can respond to pauses and interruptions. For example, it can say “Take your time. Let me know once you are ready.” when a user needs more time.</li>
+    <li>You tune the behavior with session attributes. By default, the user can interrupt a prompt. The maximum length of an utterance is 13 seconds by default and can go up to 55 seconds, and the bot waits 30 seconds for text input before it asks again.</li>
+    <li>Keypad (DTMF) input is supported on an audio conversation. The default end character is #, the bot waits 5 seconds after the last key, and an input can have up to 1,024 digits. You can limit the digits for one slot, such as 16 for a card number.</li>
+  </ul>
+
+  <h2>4.3 Amazon Connect and Lex</h2>
+  <ul>
+    <li>Amazon Connect is a cloud-based contact center. It receives calls and chats, and its contact flows can call a Lex bot to handle the conversation.</li>
+    <li>Contact flows work with Lex V2 bots, and you can create and connect a bot in the Lex V2 console.</li>
+    <li>In the flow in Image 1b, a call arrives in Connect, Connect streams it to Lex, Lex recognizes the intent, and a Lambda function carries out the task, for example in a CRM system.</li>
+    <li>Amazon Connect also provides an agent workspace, so that a person can take over with the context of the case.</li>
+    <li>The slides call Amazon Connect up to 80 percent cheaper than traditional contact centers. That is a marketing claim. Check the Amazon Connect pricing page for your own numbers.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Request-and-response speech input is limited to 15 seconds, so long, pausing callers need a streaming conversation. Also, Lex does not support a wake word, and it does not speak in Alexa’s voice. Finally, a bot that works in the Lex test window still needs a channel, such as Connect, a mobile app, or a messaging service, to reach customers.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>A short message is a request. A real conversation is a stream.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Callers pause and interrupt, and the bot must keep listening”<br>→ The streaming conversation API (StartConversation)</p>
+    <p><strong>Trigger 2:</strong> “Callers type their order number on the phone keypad”<br>→ DTMF input</p>
+    <p><strong>Trigger 3:</strong> “Route calls to a bot first, and then to an agent”<br>→ Amazon Connect contact flows with Amazon Lex</p>
+    <p><strong>Trigger 4:</strong> “Voice for the bot’s answers”<br>→ Amazon Polly</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company’s phone bot cuts callers off, because they pause to look for their order number. Callers must also be able to interrupt long answers. Which approach fits best?</p>
+    <ol type="A">
+      <li>Use a streaming conversation, so that the bot keeps listening and handles pauses and interruptions.</li>
+      <li>Use RecognizeText for every spoken word.</li>
+      <li>Increase the length of the order number slot.</li>
+      <li>Move the bot to a different Region.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> In a streaming conversation, the bot listens continuously, so it can respond to pauses and interruptions.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. This is what the streaming API is for.</td></tr>
+          <tr><td>B</td><td>Wrong. RecognizeText takes text, not speech.</td></tr>
+          <tr><td>C</td><td>Wrong. The slot length does not change how the bot listens.</td></tr>
+          <tr><td>D</td><td>Wrong. The Region has no effect on pauses or interruptions.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>4.4 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/lexv2/latest/dg/session-attribs-speech.html" target="_blank" rel="noopener">Configuring Timeouts for Capturing User Input</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/connect/connect-lexchatbot/" target="_blank" rel="noopener">Amazon Connect and Amazon Lex</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/lex/faqs/" target="_blank" rel="noopener">Amazon Lex FAQs</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="arch" role="tabpanel" aria-labelledby="tab-5" tabindex="0">
+  <h1>5. Architecture and Cost</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart wants its support bot live on the website and on the phone line within a quarter. The finance team asks how Lex is billed and how to keep the cost in check.</p>
+    <p>The product team also asks whether to start with a large number of intents.</p>
+    <p>The architect must draw the design and answer both teams.</p>
+    <p><strong>Your challenge:</strong> Design the solution. Your answer should:</p>
+    <ul>
+      <li>Show how a customer question reaches the order data and comes back as an answer.</li>
+      <li>Explain how Lex is billed and how to start small.</li>
+      </ul>
+  </div>
+
+  <h2>5.1 A Support Bot Architecture</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 310" role="img" aria-labelledby="t5a d5a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t5a">A support bot that answers order questions</title>
+      <desc id="d5a">A customer uses the website chat or the phone. The message goes to an Amazon Lex bot, which recognizes the intent and collects the order number. Lex calls an AWS Lambda function, which reads the order status from Amazon DynamoDB. Lex returns the answer to the customer. For voice, Amazon Polly speaks the answer. Conversation logs go to Amazon CloudWatch.</desc>
+      <defs><marker id="ar5a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="10" y="40" width="120" height="70" rx="8" class="s-box"/>
+      <text x="70" y="68" text-anchor="middle" class="s-b">Customer</text>
+      <text x="70" y="90" text-anchor="middle" class="s-m">chat or phone</text>
+      <rect x="165" y="40" width="150" height="70" rx="8" class="s-hot"/>
+      <text x="240" y="68" text-anchor="middle" class="s-b">Amazon Lex</text>
+      <text x="240" y="90" text-anchor="middle" class="s-m">intent and slots</text>
+      <rect x="350" y="40" width="150" height="70" rx="8" class="s-box"/>
+      <text x="425" y="68" text-anchor="middle" class="s-b">AWS Lambda</text>
+      <text x="425" y="90" text-anchor="middle" class="s-m">fulfillment</text>
+      <rect x="535" y="40" width="175" height="70" rx="8" class="s-box"/>
+      <text x="622" y="68" text-anchor="middle" class="s-b">Amazon DynamoDB</text>
+      <text x="622" y="90" text-anchor="middle" class="s-m">order status</text>
+      <rect x="165" y="200" width="150" height="70" rx="8" class="s-box"/>
+      <text x="240" y="228" text-anchor="middle" class="s-b">Amazon Polly</text>
+      <text x="240" y="250" text-anchor="middle" class="s-m">speaks the answer</text>
+      <rect x="350" y="200" width="150" height="70" rx="8" class="s-box"/>
+      <text x="425" y="228" text-anchor="middle" class="s-b">CloudWatch</text>
+      <text x="425" y="250" text-anchor="middle" class="s-m">conversation logs</text>
+      <line x1="132" y1="75" x2="163" y2="75" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="317" y1="75" x2="348" y2="75" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="502" y1="75" x2="533" y2="75" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="215" y1="112" x2="215" y2="198" class="s-line" marker-end="url(#ar5a)"/>
+      <line x1="275" y1="112" x2="385" y2="198" class="s-line" marker-end="url(#ar5a)"/>
+    </svg>
+    <figcaption>Image 5a — A support bot that answers order questions. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ol>
+    <li>A customer sends a message in the website chat, or calls the phone line through Amazon Connect.</li>
+    <li>Lex recognizes the intent, for example <code>TrackOrder</code>, and collects the order number in a slot.</li>
+    <li>A Lambda function reads the order status from Amazon DynamoDB, and Lex returns the answer.</li>
+    <li>For voice, Polly speaks the answer. Conversation logs go to Amazon CloudWatch, where the team finds the missed utterances.</li>
+    <li>For a request that the bot cannot handle, the fallback intent hands the customer to an agent.</li>
+  </ol>
+  <p>Start with the two or three intents that customers use most, review the missed utterances each week, and add intents over time.</p>
+
+  <h2>5.2 The Cost Model</h2>
+  <ul>
+    <li>Lex is billed per request. Every input to a bot counts as a request, so a customer who gives five inputs creates five requests.</li>
+    <li>In a streaming conversation, all the inputs across several turns go in one streaming call. Check the pricing page for the rates for text, speech, and streaming.</li>
+    <li>The AWS Free Tier lets new customers try Lex. Check the pricing page for the current amounts.</li>
+    <li>Other services add their own cost: Lambda runs, DynamoDB reads, Polly characters, and Amazon Connect usage.</li>
+    <li>Control the cost by sending only the inputs that need a bot, answering simple questions without extra calls, and keeping fulfillment fast.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Every user input is a billed request, so a bot with long, repeated dialogs costs more.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Start with three intents, read the missed utterances, and grow.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Read an order from a database during a conversation”<br>→ A Lambda fulfillment function that reads Amazon DynamoDB</p>
+    <p><strong>Trigger 2:</strong> “Hand off to a person when the bot cannot help”<br>→ The fallback intent, with Amazon Connect</p>
+    <p><strong>Trigger 3:</strong> “Find the phrases that the bot missed”<br>→ The missed utterances on the Monitoring dashboard</p>
+    <p><strong>Trigger 4:</strong> “Pay only for what customers use”<br>→ Lex is billed per request</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company wants a support bot that answers order questions by chat and by phone, and reads each order’s status from a database. It wants the least operational effort. Which design fits best?</p>
+    <ol type="A">
+      <li>An Amazon Lex bot with a Lambda fulfillment function that reads the order status from Amazon DynamoDB.</li>
+      <li>A model trained on Amazon SageMaker AI and hosted on an endpoint.</li>
+      <li>Amazon Polly to recognize the customer’s request.</li>
+      <li>Amazon Comprehend to hold the conversation.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Lex recognizes the intent and collects the order number, and a Lambda function reads the status and returns it. All of it is managed.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. Lex, Lambda, and DynamoDB need no servers or ML expertise.</td></tr>
+          <tr><td>B</td><td>Wrong. It needs ML expertise and more operational effort.</td></tr>
+          <tr><td>C</td><td>Wrong. Polly converts text to speech. It does not recognize requests.</td></tr>
+          <tr><td>D</td><td>Wrong. Comprehend analyzes text. It does not hold a conversation.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>5.3 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/lex/faqs/" target="_blank" rel="noopener">Amazon Lex FAQs</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/lex/pricing/" target="_blank" rel="noopener">Amazon Lex Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="comparison" role="tabpanel" aria-labelledby="tab-6" tabindex="0">
+  <h1>6. Comparison and Scenarios</h1>
+
+  <h2>6.1 Choosing Between AWS AI Services</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">If you need to</th><th scope="col">Use</th><th scope="col">What it does</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Hold a conversation by voice or text</strong></td><td>Amazon Lex</td><td>Recognizes intents, collects slots, and fulfills requests.</td></tr>
+      <tr><td><strong>Convert text to speech</strong></td><td>Amazon Polly</td><td>Lifelike speech that Lex can use for its answers.</td></tr>
+      <tr><td><strong>Convert recorded or live speech to text</strong></td><td>Amazon Transcribe</td><td>Speech to text for recordings and streams that are not a bot conversation.</td></tr>
+      <tr><td><strong>Analyze text</strong></td><td>Amazon Comprehend</td><td>Language, entities, key phrases, and sentiment.</td></tr>
+      <tr><td><strong>Translate text</strong></td><td>Amazon Translate</td><td>Neural machine translation between supported languages.</td></tr>
+      <tr><td><strong>Run a cloud contact center</strong></td><td>Amazon Connect</td><td>Receives calls and chats, and calls Lex bots from contact flows.</td></tr>
+      </tbody>
+  </table></div>
+  <p>Lex has its own speech recognition for the conversation. Use Transcribe when you need the transcript of a recording, and Polly when you need audio from text outside a bot.</p>
+
+  <h2>6.2 Lex Building Blocks Compared</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Part</th><th scope="col">What it is</th><th scope="col">Remember</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Intent</strong></td><td>An action the bot fulfills.</td><td>Invoked by sample utterances.</td></tr>
+      <tr><td><strong>Slot</strong></td><td>A piece of information to collect.</td><td>Required slots must be full before fulfillment.</td></tr>
+      <tr><td><strong>Slot type</strong></td><td>The values that a slot accepts.</td><td>Built-in, or custom with synonyms.</td></tr>
+      <tr><td><strong>Dialog code hook</strong></td><td>Lambda on each turn.</td><td>Validate input.</td></tr>
+      <tr><td><strong>Fulfillment code hook</strong></td><td>Lambda when slots are full.</td><td>Carry out the action.</td></tr>
+      <tr><td><strong>Version</strong></td><td>A fixed snapshot.</td><td>Published from the draft.</td></tr>
+      <tr><td><strong>Alias</strong></td><td>A pointer to a version.</td><td>Clients call the alias. It also holds the Lambda and the logs.</td></tr>
+      <tr><td><strong>Fallback intent</strong></td><td>Handles what the bot does not understand.</td><td>AMAZON.FallbackIntent.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">#</th><th scope="col">If the question says…</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Build a chatbot with voice and text, with no ML expertise</td><td>Amazon Lex</td></tr>
+      <tr><td>2</td><td>Recognize what the user wants</td><td>An intent with sample utterances</td></tr>
+      <tr><td>3</td><td>Collect the order number and the reason before acting</td><td>Slots with prompts</td></tr>
+      <tr><td>4</td><td>Accept several words as one value</td><td>A custom slot type with synonyms</td></tr>
+      <tr><td>5</td><td>Validate user input on every turn</td><td>A Lambda dialog code hook</td></tr>
+      <tr><td>6</td><td>Carry out the action when all slots are filled</td><td>A Lambda fulfillment code hook</td></tr>
+      <tr><td>7</td><td>Let the client application do the fulfillment</td><td>Return the parsed intent and slots to the client</td></tr>
+      <tr><td>8</td><td>The bot does not understand the request</td><td><code>AMAZON.FallbackIntent</code></td></tr>
+      <tr><td>9</td><td>Release a new version with no client change, and roll back fast</td><td>Publish a version and move the alias</td></tr>
+      <tr><td>10</td><td>Separate development, staging, and production</td><td>Aliases that point to different versions</td></tr>
+      <tr><td>11</td><td>Callers pause and interrupt</td><td>The streaming conversation API</td></tr>
+      <tr><td>12</td><td>A call center bot that hands off to an agent</td><td>Amazon Connect with Amazon Lex</td></tr>
+      <tr><td>13</td><td>Speak the bot’s answers</td><td>Amazon Polly</td></tr>
+      <tr><td>14</td><td>Design a bot from agent call transcripts</td><td>The automated chatbot designer, with transcripts in Amazon S3</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.4 Scenario Practice</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Scenario</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>A bank wants customers to check balances by chat and by phone.</td><td>A Lex bot with Lambda fulfillment, connected to Amazon Connect for the phone.</td></tr>
+      <tr><td>A bot must reject a card number of the wrong length.</td><td>A dialog code hook that validates the slot.</td></tr>
+      <tr><td>A team wants to test a new prompt without affecting customers.</td><td>Publish a version, and test it through a separate alias.</td></tr>
+      <tr><td>A hotel wants one bot in English and Spanish.</td><td>One bot with two locales.</td></tr>
+      <tr><td>A utility wants a bot designed from thousands of call transcripts.</td><td>The automated chatbot designer.</td></tr>
+      <tr><td>A bot must answer in a natural voice.</td><td>Amazon Polly voices for the bot’s speech output.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.5 Lesson Summary</h2>
+  <ul>
+    <li>Amazon Lex is a managed service for conversational interfaces, powered by the same engine as Alexa. It combines speech recognition and language understanding, and needs no ML expertise. Use Lex V2, because V1 is no longer supported.</li>
+    <li>A bot has locales, and each locale has intents. Sample utterances invoke an intent, slots collect the information, prompts ask for it, and slot types define the allowed values. The fallback intent handles what the bot does not understand.</li>
+    <li>A Lambda dialog code hook validates input on each turn, and a fulfillment code hook carries out the action. Or Lex returns the parsed values to the client.</li>
+    <li>Versions are fixed snapshots, and aliases point to them, so you release and roll back without changing clients. Bots run on web and mobile apps, messaging services, and Amazon Connect.</li>
+    <li>Request-and-response conversations take text or up to 15 seconds of speech. Streaming conversations listen continuously and handle pauses, interruptions, and keypad input.</li>
+    <li>Lex is billed per request, and every user input counts as a request. Start with the most common intents and grow from the missed utterances.</li>
+  </ul>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Pictures go to Rekognition. Documents go to Textract. Speech goes to Transcribe. Text goes to Comprehend, Translate, or Polly. Conversations go to Lex.</p>
+  </div>
+</section>
+
+<section class="panel" id="knowledge-check" role="tabpanel" aria-labelledby="tab-7" tabindex="0">
+  <h1>7. Knowledge Check</h1>
+  <p>Answer each question in your own words before you open the model answer.</p>
+  <ol class="kc-list">
+    <li>
+      <p class="q">Explain what Amazon Lex is, and why FlashCart can use it with no ML engineers.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Lex is a managed service for building conversational interfaces with voice and text, powered by the same engine as Alexa. FlashCart describes the conversation with intents, sample utterances, and slots, and Lex provides the speech recognition and language understanding. AWS runs the models and the infrastructure.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Describe the main parts of a Lex V2 bot.</p>
+      <details><summary>Show the model answer</summary>
+        <p>A bot has one or more locales, which are languages. Each locale has intents, which are actions. An intent has sample utterances that invoke it, slots that collect the information it needs, prompts that ask for the slots, and a fulfillment step. Slot types define the values that a slot accepts.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How does a bot collect information in a multi-turn conversation?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Lex recognizes the intent from the user’s input, and then elicits each required slot with its prompt, one turn at a time. When all required slots are filled, Lex fulfills the intent, with a Lambda function or by returning the values to the client.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">When would you use a custom slot type, and what do synonyms do?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Use a custom slot type for values that are specific to the business, such as a return reason. A value can have synonyms, so “broken” and “cracked” resolve to the value Damaged. A built-in slot type, such as AMAZON.Number, handles common values.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What is the fallback intent?</p>
+      <details><summary>Show the model answer</summary>
+        <p>It is the built-in intent AMAZON.FallbackIntent. Lex uses it when it cannot work out what the user wants. You can use it to ask the user to rephrase or to hand the conversation to a person, and the missed utterances help you improve the bot.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Compare a dialog code hook with a fulfillment code hook.</p>
+      <details><summary>Show the model answer</summary>
+        <p>A dialog code hook is a Lambda function that Lex calls after input from the user, on every turn, to initialize, validate, and customize the conversation. A fulfillment code hook is called after all required slots are filled, and it carries out the action. In Lex V2, one function for each language is set on the alias and can serve both.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How do versions and aliases let you release safely?</p>
+      <details><summary>Show the model answer</summary>
+        <p>You work in the draft and publish numbered versions, which are fixed snapshots. An alias points to a version, and clients call the alias. To release, point the alias to the new version. To roll back, point it to the earlier one. You can use aliases for development, staging, and production.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Where can a Lex bot run?</p>
+      <details><summary>Show the model answer</summary>
+        <p>In web and mobile apps through the runtime APIs and the SDKs, on messaging services such as Slack and Twilio SMS, and in Amazon Connect contact flows. You can deploy a specific version to each channel through an alias.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Compare a request-and-response conversation with a streaming conversation.</p>
+      <details><summary>Show the model answer</summary>
+        <p>In request and response, each input is a separate call: RecognizeText for text, up to 1,024 characters, or RecognizeUtterance for speech, up to 15 seconds. In a streaming conversation, StartConversation carries all the inputs in one call, the bot listens continuously, and it can handle pauses, interruptions, and keypad input.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How do Lex, Amazon Connect, Lambda, and Polly work together in a phone bot?</p>
+      <details><summary>Show the model answer</summary>
+        <p>A call arrives in Amazon Connect, and a contact flow streams it to a Lex bot. Lex recognizes the intent and collects the slots. A Lambda function carries out the task, for example reading an order from DynamoDB or scheduling an appointment in a CRM system. Polly speaks the answer, and the fallback intent can hand the caller to an agent.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How can you design a bot from existing conversations?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Use the automated chatbot designer. Point it at transcripts of caller and agent conversations in Amazon S3, in the standard JSON format. It surfaces intents, sample phrases, and the information needed to fulfill each intent, and you review and add what suits your bot.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How is Lex billed, and how would you start small?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Lex is billed per request, and every user input is a request. A streaming conversation sends the inputs of several turns in one streaming call. Start with the two or three most common intents, review the missed utterances each week, and add intents over time. Other services add their own cost.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Which version of Lex should a new project use, and why?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Lex V2. It supports several languages in one bot, simplified versioning, and streaming conversations. AWS ended support for Lex V1 on September 15, 2025, so tutorials that use V1 operations no longer apply.</p>
+      </details>
+    </li>
+  </ol>
+</section>
+
+    <footer>
+      <p>Copyright © 2026 Per Scholas. All rights reserved.</p>
+      <p>Sources: AWS documentation and the Amazon Lex FAQs, paraphrased. The slide image is credited in its caption. Diagrams are original to this course.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  var panels = tabs.map(function (t) { return document.getElementById(t.getAttribute('aria-controls')); });
+  var live = document.getElementById('live');
+  var current = 0;
+
+  function label(i) { return tabs[i].textContent.trim(); }
+
+  function show(i, opts) {
+    opts = opts || {};
+    if (i < 0 || i >= tabs.length) { return; }
+    current = i;
+    tabs.forEach(function (t, k) {
+      var on = k === i;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.setAttribute('tabindex', on ? '0' : '-1');
+      panels[k].classList.toggle('active', on);
+    });
+    if (!opts.keepScroll) { window.scrollTo(0, 0); }
+    if (opts.focusTab) { tabs[i].focus(); }
+    if (opts.focusHeading) {
+      var h = panels[i].querySelector('h1');
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    }
+    if (opts.updateHash) {
+      try { history.replaceState(null, '', '#' + panels[i].id); } catch (e) {}
+    }
+    if (live) {
+      live.textContent = '';
+      setTimeout(function () { live.textContent = 'Tab ' + (i + 1) + ' of ' + tabs.length + ': ' + label(i); }, 50);
+    }
+  }
+
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { show(i, { updateHash: true }); });
+    t.addEventListener('keydown', function (e) {
+      var n = null;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { n = (i + 1) % tabs.length; }
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { n = (i - 1 + tabs.length) % tabs.length; }
+      else if (e.key === 'Home') { n = 0; }
+      else if (e.key === 'End') { n = tabs.length - 1; }
+      if (n !== null) { e.preventDefault(); show(n, { focusTab: true, updateHash: true, keepScroll: true }); }
+    });
+  });
+
+  panels.forEach(function (p, i) {
+    var nav = document.createElement('div');
+    nav.className = 'panel-nav';
+    var prev = document.createElement('button');
+    var next = document.createElement('button');
+    prev.type = 'button'; next.type = 'button';
+    if (i > 0) {
+      prev.textContent = '\u2190 Previous: ' + label(i - 1);
+      prev.addEventListener('click', function () { show(i - 1, { updateHash: true, focusHeading: true }); });
+    } else { prev.style.visibility = 'hidden'; prev.setAttribute('aria-hidden', 'true'); prev.tabIndex = -1; }
+    if (i < panels.length - 1) {
+      next.textContent = 'Next: ' + label(i + 1) + ' \u2192';
+      next.addEventListener('click', function () { show(i + 1, { updateHash: true, focusHeading: true }); });
+    } else { next.style.visibility = 'hidden'; next.setAttribute('aria-hidden', 'true'); next.tabIndex = -1; }
+    nav.appendChild(prev); nav.appendChild(next);
+    p.appendChild(nav);
+  });
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) { return; }
+    var id = a.getAttribute('href').slice(1);
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { e.preventDefault(); show(idx, { updateHash: true, focusHeading: true }); }
+  });
+
+  function fromHash() {
+    var id = window.location.hash.replace('#', '');
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { show(idx, { keepScroll: true }); }
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+</body>
+</html>

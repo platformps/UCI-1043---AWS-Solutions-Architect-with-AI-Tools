@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 299.2 - Amazon Textract</title>
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: light;
+    --page-bg: #ffffff;
+    --text: #1c2733;
+    --muted: #4f5b67;
+    --rule: #d5dce3;
+    --card: #f4f7fa;
+    --card-border: #ccd3da;
+    --hover: #ccd3da;
+    --h1: #611940;
+    --h3: #7a2455;
+    --link: #611940;
+    --code-bg: #f5f7f9;
+    --table-alt: #f6f8fa;
+    --problem-bg: #ffeef7;
+    --problem-bar: #611940;
+    --warn-bg: #fdf3e7;
+    --warn-bar: #c26a00;
+    --exam-bg: #eaf6ee;
+    --exam-bar: #2e7d4f;
+    --tip-bg: #e5fe77;
+    --tip-bar: #7a8f00;
+    --q-bg: #f7eef3;
+    --q-border: #611940;
+    --svg-box: #f7eef3;
+    --svg-stroke: #611940;
+    --svg-hot: #d9f6fd;
+    --svg-hot-stroke: #611940;
+    --focus: #611940;
+    --h2: #000000;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+      --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+      --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+      --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+      --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+      --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+      --focus: #71e2fd;
+      --h2: #ffffff;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+    --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+    --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+    --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+    --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+    --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+    --focus: #71e2fd;
+    --h2: #ffffff;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+  *, *::before, *::after { box-sizing: inherit; line-height: 1.5; }
+  body {
+    margin: 0; background: var(--page-bg); color: var(--text);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 17px;
+  }
+  .layout { display: flex; align-items: flex-start; max-width: 1280px; margin: 0 auto; padding: 28px 20px 60px; }
+  .side-wrap { width: 270px; flex: none; margin-right: 28px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); overflow-y: auto; }
+  .sidebar { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px; }
+  .tab-btn {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    border-left: 5px solid transparent; border-radius: 6px; padding: 10px 12px; margin: 0 0 2px;
+    font: inherit; font-size: 15px; color: var(--text); cursor: pointer;
+  }
+  .tab-btn:hover { background: var(--hover); }
+  .tab-btn[aria-selected="true"] { background: #611940; color: #ffffff; font-weight: 700; border-left-color: #71E2FD; }
+  .tab-btn:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible, .panel:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .content { flex: 1; min-width: 0; max-width: 900px; }
+  .brand { display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; margin: 0 0 14px; }
+  .brand img { display: block; width: 230px; max-width: 100%; height: auto; }
+  .page-title { color: var(--h2); font-size: 2.8rem; font-weight: 700; margin: 0 0 8px; }
+  .page-sub { color: var(--muted); font-size: 1.05rem; margin: 0 0 26px; max-width: 70ch; }
+  .js .panel { display: none; }
+  .js .panel.active { display: block; }
+  .panel { margin-bottom: 40px; }
+  .js .panel { margin-bottom: 0; }
+  .panel h1 { color: var(--h1); font-size: 2.35rem; font-weight: 700; margin: 6px 0 12px; }
+  h2 { color: var(--h2); font-size: 35px; font-weight: 700; margin: 34px 0 10px; }
+  h3 { color: var(--h3); font-size: 1.45rem; font-weight: 700; margin: 24px 0 8px; }
+  h4 { color: var(--h3); font-size: 1.15rem; font-weight: 700; margin: 18px 0 6px; }
+  p { margin: 0 0 14px; max-width: 76ch; }
+  ul, ol { margin: 0 0 16px; padding-left: 26px; max-width: 76ch; }
+  li { margin-bottom: 6px; }
+  a { color: var(--link); }
+  code { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 0.88em; }
+  pre.flowcode { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 14.5px; overflow-x: auto; margin: 6px 0 18px; white-space: pre; }
+  .table-scroll { overflow-x: auto; margin: 6px 0 22px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15.5px; }
+  th, td { border: 1px solid var(--rule); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #611940; color: #ffffff; font-weight: 600; border-color: #611940; }
+  tbody tr:nth-child(even) { background: var(--table-alt); }
+  .wide table { min-width: 860px; }
+  .callout { border-left: 5px solid; border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 22px 0; max-width: 880px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .label { font-weight: 700; display: block; margin-bottom: 6px; }
+  .tip { background: var(--tip-bg); border-color: var(--tip-bar); color: #1c2733; }
+  .tip a { color: #611940; }
+  .warn { background: var(--warn-bg); border-color: var(--warn-bar); }
+  .exam { background: var(--exam-bg); border-color: var(--exam-bar); }
+  .problem { border-left: 6px solid var(--problem-bar); background: var(--problem-bg); border-radius: 0 12px 12px 0; padding: 22px 25px; margin: 28px 0; }
+  .problem h2.ps-heading { font-size: 1.35rem; margin: 0 0 8px; }
+  .problem p:last-child { margin-bottom: 0; }
+  .overview-box { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 24px 14px; margin: 0 0 24px; }
+  .overview-box h2 { margin-top: 20px; }
+  figure.diagram { margin: 14px 0 26px; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 14px 8px; overflow-x: auto; background: var(--card); }
+  figure.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
+  figure.diagram figcaption { color: var(--muted); font-size: 14.5px; padding: 8px 4px 6px; }
+  .s-box { fill: var(--svg-box); stroke: var(--svg-stroke); stroke-width: 1.5; }
+  .s-hot { fill: var(--svg-hot); stroke: var(--svg-hot-stroke); stroke-width: 1.5; }
+  .s-line { stroke: var(--svg-stroke); stroke-width: 2; fill: none; }
+  .s-mark { fill: var(--svg-stroke); }
+  .s-t { fill: var(--text); font-size: 14.5px; }
+  .s-b { fill: var(--text); font-size: 15px; font-weight: 700; }
+  .s-m { fill: var(--muted); font-size: 13.5px; }
+  .exam-question { background: var(--q-bg); border: 2px solid var(--q-border); border-radius: 8px; padding: 16px 22px; margin: 22px 0; max-width: 880px; }
+  .exam-question .label { font-weight: 700; margin-bottom: 2px; }
+  .exam-question .note { color: var(--muted); font-size: 14.5px; }
+  .exam-question details { border-top: 1px solid var(--rule); margin-top: 12px; padding-top: 10px; }
+  .exam-question summary, .kc-list summary { cursor: pointer; font-weight: 700; color: var(--link); }
+  .lab-box { border: 2px dashed #333333; background: #fdf3d7; color: #1c2733; border-radius: 4px; padding: 20px 24px 18px; margin: 30px 0 0; max-width: 880px; }
+  .lab-box .lab-title { text-align: center; color: #611940; font-size: 1.9rem; font-weight: 700; margin: 0 0 16px; }
+  .lab-box .lab-sub { color: #611940; font-weight: 700; font-size: 1.2rem; margin: 0 0 6px; }
+  .lab-box a.lab-link { color: #611940; font-weight: 700; text-decoration: underline; }
+  .lab-expect { border: 1.5px solid #333333; background: #ffffff; color: #1c2733; border-radius: 4px; padding: 14px 24px; margin: 0 0 26px; max-width: 880px; }
+  .lab-expect p:last-child { margin-bottom: 0; }
+  .lab-expect a { color: #611940; font-weight: 700; }
+  .resources ul { list-style: none; padding-left: 0; }
+  .rtype { display: inline-block; font-size: 13px; font-weight: 700; color: #ffffff; background: #611940; border-radius: 4px; padding: 1px 8px; margin-right: 8px; }
+  .kc-list { list-style: none; padding-left: 0; max-width: none; counter-reset: kc; }
+  .kc-list > li { counter-increment: kc; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px; margin-bottom: 14px; }
+  .kc-list .q { font-weight: 600; margin-bottom: 8px; }
+  .kc-list .q::before { content: "Question " counter(kc) ". "; color: var(--h1); }
+  .kc-list details { background: var(--exam-bg); border-left: 4px solid var(--exam-bar); border-radius: 0 6px 6px 0; padding: 10px 14px; }
+  .kc-list details p:first-of-type { margin-top: 10px; }
+  .panel-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .panel-nav button { background: var(--card); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 16px; font: inherit; font-size: 15px; font-weight: 600; color: var(--link); cursor: pointer; max-width: 48%; text-align: left; }
+  .panel-nav button:hover { background: var(--hover); }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 2px solid var(--rule); color: var(--muted); font-size: 14.5px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 900px) {
+    .layout { display: block; padding: 16px 14px 50px; }
+    .side-wrap { width: 100%; margin: 0 0 24px; position: static; max-height: none; overflow: visible; }
+    .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .tab-btn { margin: 0; }
+    h2 { font-size: 1.4rem; }
+    .page-title { font-size: 2.15rem; }
+    .panel h1 { font-size: 1.85rem; }
+    h3 { font-size: 1.28rem; }
+  }
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .sidebar { grid-template-columns: 1fr; }
+    .lab-box { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="side-wrap" aria-label="Lesson navigation">
+    <div class="sidebar" role="tablist" aria-orientation="vertical" aria-label="Lesson tabs">
+      <button class="tab-btn" role="tab" id="tab-0" aria-controls="overview" aria-selected="true" tabindex="0">Overview and Objectives</button>
+      <button class="tab-btn" role="tab" id="tab-1" aria-controls="intro" aria-selected="false" tabindex="-1">1. Introduction to Amazon Textract</button>
+      <button class="tab-btn" role="tab" id="tab-2" aria-controls="analyze" aria-selected="false" tabindex="-1">2. Detecting and Analyzing Documents</button>
+      <button class="tab-btn" role="tab" id="tab-3" aria-controls="special" aria-selected="false" tabindex="-1">3. Invoices, Receipts, and ID Documents</button>
+      <button class="tab-btn" role="tab" id="tab-4" aria-controls="arch" aria-selected="false" tabindex="-1">4. Architecture, Security, and Cost</button>
+      <button class="tab-btn" role="tab" id="tab-5" aria-controls="comparison" aria-selected="false" tabindex="-1">5. Comparison and Scenarios</button>
+      <button class="tab-btn" role="tab" id="tab-6" aria-controls="knowledge-check" aria-selected="false" tabindex="-1">6. Knowledge Check</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo." width="230" height="33"></div>
+    <h1 class="page-title" style="border:none;padding:0;">Amazon Textract</h1>
+    <p class="page-sub">How Amazon Textract extracts text, forms, tables, and data from documents: detecting and analyzing documents, invoices, receipts, and ID documents, and the architecture, security, and cost of a document processing pipeline.</p>
+    <div class="sr-only" id="live" aria-live="polite"></div>
+
+<section class="panel active" id="overview" role="tabpanel" aria-labelledby="tab-0" tabindex="0">
+
+  <div class="overview-box">
+    <h2>Lesson Overview</h2>
+    <p>Amazon Textract is a managed document analysis service. It reads printed text and handwriting from scanned documents and photos of documents, and it also finds the structure: form fields, tables, signatures, and layout. You call it through an application programming interface (API), so you need no machine learning (ML) expertise. This lesson follows FlashCart Inc., a fictional online marketplace that wants to stop retyping data from supplier invoices, seller applications, and identity documents. In this lesson, you will study:</p>
+    <ul>
+      <li><strong>Introduction to Amazon Textract:</strong> what the service does, how it differs from simple optical character recognition (OCR), how you call it, and the formats and languages it supports.</li>
+      <li><strong>Detecting and Analyzing Documents:</strong> reading plain text, and the Forms, Tables, Queries, Signatures, and Layout features, with synchronous and asynchronous operations.</li>
+      <li><strong>Invoices, Receipts, and ID Documents:</strong> the specialized operations for expenses, identity documents, and lending packets.</li>
+      <li><strong>Architecture, Security, and Cost:</strong> an event-driven pipeline, throttling, access control, data privacy, and the pricing model.</li>
+      <li><strong>Comparison and Scenarios:</strong> how Textract compares with Amazon Rekognition and Amazon Comprehend, and an SAA-C03 cheat sheet.</li>
+      <li><strong>Knowledge Check:</strong> open-ended questions with model answers.</li>
+    </ul>
+  </div>
+
+  <div class="overview-box">
+    <h2>Learning Objectives</h2>
+    <p>At the end of this lesson, learners will be able to:</p>
+    <ol>
+      <li>Define Amazon Textract, and state how it differs from simple OCR.</li>
+      <li>Describe the document formats, languages, and limits that Textract supports.</li>
+      <li>Explain how confidence scores and bounding boxes help you use Textract results.</li>
+      <li>Differentiate <code>DetectDocumentText</code> from <code>AnalyzeDocument</code>, and name the <code>AnalyzeDocument</code> features.</li>
+      <li>Apply Forms, Tables, Queries, Signatures, and Layout to a document processing need.</li>
+      <li>Choose between synchronous and asynchronous operations, and explain how an asynchronous job reports completion.</li>
+      <li>Select <code>AnalyzeExpense</code>, <code>AnalyzeID</code>, or <code>AnalyzeLending</code> for a given type of document.</li>
+      <li>Design an event-driven document processing pipeline that addresses security, privacy, throttling, and cost.</li>
+    </ol>
+  </div>
+
+  <div class="overview-box">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#intro">Introduction to Amazon Textract</a></li>
+      <li><a href="#analyze">Detecting and Analyzing Documents</a></li>
+      <li><a href="#special">Invoices, Receipts, and ID Documents</a></li>
+      <li><a href="#arch">Architecture, Security, and Cost</a></li>
+      <li><a href="#comparison">Comparison and Scenarios</a></li>
+      <li><a href="#knowledge-check">Knowledge Check</a></li>
+    </ol>
+  </div>
+</section>
+
+<section class="panel" id="intro" role="tabpanel" aria-labelledby="tab-1" tabindex="0">
+  <h1>1. Introduction to Amazon Textract</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart Inc. receives supplier invoices as PDFs and phone photos, seller applications as scanned forms, and identity documents for seller verification. Three people retype this data into the finance system, and every week a typing error causes a wrong payment.</p>
+    <p>The engineering manager asks for automation. The team has no machine learning engineers, and the manager points out that an older OCR tool they tried only returned a wall of text: it did not know which number was the invoice total.</p>
+    <p>She asks what Textract adds beyond plain OCR, which kinds of documents it accepts, and how the team would call it.</p>
+    <p><strong>Your challenge:</strong> Advise the manager. Your answer should:</p>
+    <ul>
+      <li>Explain what Textract does and how it differs from simple OCR.</li>
+      <li>List the document formats and the languages that it supports.</li>
+      <li>Say how the team can tell which results to trust.</li>
+      </ul>
+  </div>
+
+  <h2>1.1 What Amazon Textract Is</h2>
+  <ul>
+    <li>Amazon Textract is a document analysis service. It detects and extracts printed text, handwriting, structured data such as fields and their values, and tables from images and scans of documents.</li>
+    <li>Its machine learning models were trained on millions of documents, so it recognizes and processes virtually any document type that you upload.</li>
+    <li>It is fully managed and pre-trained. You call it from the AWS Management Console, the AWS Command Line Interface (AWS CLI), or the API.</li>
+    <li>It sits in the artificial intelligence (AI) services layer, with Amazon Rekognition, which you studied in Lesson 299.1. Both services need no machine learning expertise.</li>
+  </ul>
+
+  <h2>1.2 Textract Compared With Simple OCR</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col"></th><th scope="col">Simple OCR</th><th scope="col">Amazon Textract</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Output</strong></td><td>A block of text.</td><td>Text plus structure: lines, words, form fields, tables, and layout.</td></tr>
+      <tr><td><strong>Handwriting</strong></td><td>Usually not handled.</td><td>Recognizes English handwriting.</td></tr>
+      <tr><td><strong>Key-value data</strong></td><td>You write rules to find fields.</td><td>Returns form data as key-value pairs.</td></tr>
+      <tr><td><strong>Tables</strong></td><td>Rows and columns are lost.</td><td>Returns rows, columns, and cells, including merged cells.</td></tr>
+      <tr><td><strong>Trust</strong></td><td>No signal about quality.</td><td>A confidence score and a bounding box for every result.</td></tr>
+      </tbody>
+  </table></div>
+  <p>Textract does perform OCR with the <code>DetectDocumentText</code> API. The <code>AnalyzeDocument</code> API goes a step further and keeps the structure of the document.</p>
+
+  <h2>1.3 How You Call Textract</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 250" role="img" aria-labelledby="t1a d1a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t1a">How an application calls Amazon Textract</title>
+      <desc id="d1a">An application sends a request to Amazon Textract with a document, either as an object in an Amazon S3 bucket or as bytes. Textract returns a JSON response with words, lines, form fields, and tables, each with a confidence score and a bounding box.</desc>
+      <defs><marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="255" y="10" width="210" height="60" rx="8" class="s-box"/>
+      <text x="360" y="36" text-anchor="middle" class="s-b">Amazon S3 bucket</text>
+      <text x="360" y="58" text-anchor="middle" class="s-m">PNG, JPEG, TIFF, or PDF</text>
+      <rect x="15" y="110" width="170" height="90" rx="8" class="s-box"/>
+      <text x="100" y="150" text-anchor="middle" class="s-b">Your application</text>
+      <text x="100" y="174" text-anchor="middle" class="s-m">or AWS Lambda</text>
+      <rect x="255" y="110" width="210" height="90" rx="8" class="s-hot"/>
+      <text x="360" y="148" text-anchor="middle" class="s-b">Amazon Textract</text>
+      <text x="360" y="172" text-anchor="middle" class="s-m">pre-trained models</text>
+      <rect x="540" y="110" width="170" height="100" rx="8" class="s-box"/>
+      <text x="625" y="140" text-anchor="middle" class="s-b">JSON response</text>
+      <text x="625" y="164" text-anchor="middle" class="s-m">words, lines, forms,</text>
+      <text x="625" y="182" text-anchor="middle" class="s-m">tables, confidence,</text>
+      <text x="625" y="200" text-anchor="middle" class="s-m">bounding boxes</text>
+      <line x1="187" y1="155" x2="253" y2="155" class="s-line" marker-end="url(#ar1)"/>
+      <text x="220" y="100" text-anchor="middle" class="s-m">request</text>
+      <line x1="467" y1="155" x2="538" y2="155" class="s-line" marker-end="url(#ar1)"/>
+      <line x1="360" y1="72" x2="360" y2="108" class="s-line" marker-end="url(#ar1)"/>
+      <text x="374" y="96" text-anchor="start" class="s-m">reads the document</text>
+      <text x="360" y="236" text-anchor="middle" class="s-m">A synchronous call can also send the document as bytes.</text>
+    </svg>
+    <figcaption>Image 1a — An application calls Amazon Textract with a document. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>Textract supports Portable Network Graphics (PNG), Joint Photographic Experts Group (JPEG), Tagged Image File Format (TIFF), and Portable Document Format (PDF) files. It does not read every kind of file, even though it reads almost any kind of document.</li>
+    <li>For synchronous operations, you can send an image as an object in Amazon S3 or as a byte array. For asynchronous operations, the document must be in Amazon S3.</li>
+    <li>If a file is already in a supported format, upload it as it is. Do not convert it or reduce its resolution first.</li>
+    <li>Use the best quality that you can. AWS suggests at least 150 dots per inch (DPI). The smallest text that Textract detects is 15 pixels high, which at 150 DPI is the same as an 8-point font.</li>
+    <li>JPEG and PNG files can be up to 10 MB, and an image can have up to 10,000 pixels on each side. PDF and TIFF files can have one page in a synchronous operation, and up to 3,000 pages and 500 MB in an asynchronous operation.</li>
+    <li>A PDF cannot be password protected, and PDFs that are based on XFA forms are not supported.</li>
+    <li>Access uses AWS Identity and Access Management (IAM) policies, so only authorized users and roles can call the APIs.</li>
+  </ul>
+
+  <h2>1.4 Confidence Scores and Bounding Boxes</h2>
+  <ul>
+    <li>A <strong>confidence score</strong> is a number from 0 to 100 that shows how likely a prediction is to be correct. Textract returns one for each element that it identifies.</li>
+    <li>A <strong>bounding box</strong> is a polygon that fully frames each piece of data. It shows where a word or number appears on the page.</li>
+    <li>Use the score to decide what to trust. For example, when you extract data from tax documents, you can add a rule that flags any value with a score below 95.</li>
+    <li>The bounding box lets you trace a result back to its place on the source page, or draw the result over the image for a person to check.</li>
+  </ul>
+
+  <h2>1.5 What Textract Can Read</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Content</th><th scope="col">Languages</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Printed text</strong></td><td>More than 40 languages, including right-to-left and mixed-script documents, such as Arabic, Chinese (Simplified and Traditional), Hebrew, Hindi, Japanese, Korean, and 32 European Union (EU) languages.</td></tr>
+      <tr><td><strong>Handwriting</strong></td><td>English.</td></tr>
+      <tr><td><strong>Forms as key-value pairs, with checkboxes and other selection elements</strong></td><td>English, Spanish, Italian, Portuguese, French, and German.</td></tr>
+      <tr><td><strong>Invoices and receipts, identity documents, and Queries</strong></td><td>English only.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>1.6 Common Use Cases</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Use case</th><th scope="col">FlashCart example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Import documents and forms into business applications</strong></td><td>Send supplier invoice data to the finance system without retyping it.</td></tr>
+      <tr><td><strong>Create smart search indexes</strong></td><td>Make scanned contracts searchable by the text inside them.</td></tr>
+      <tr><td><strong>Build automated document processing workflows</strong></td><td>Route each uploaded application through checks, then to approval.</td></tr>
+      <tr><td><strong>Maintain compliance in document archives</strong></td><td>Find archived documents that contain a given policy number.</td></tr>
+      <tr><td><strong>Extract text for natural language processing (NLP)</strong></td><td>Feed the text of supplier emails and letters to a language analysis tool.</td></tr>
+      <tr><td><strong>Extract text for document classification</strong></td><td>Sort incoming documents into invoices, applications, and ID documents.</td></tr>
+      </tbody>
+  </table></div>
+  <p>Typical industries include financial services (invoices and financial reports), healthcare (medical records and insurance claims), and the public sector (tax forms, ID documents, and passports).</p>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Textract is for documents. It is not for photos of scenes, such as a street sign, where Amazon Rekognition text detection fits. Also, Textract is not “any file”: it accepts PNG, JPEG, TIFF, and PDF only, and handwriting, invoices, identity documents, and Queries work in English only.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Textract reads documents and understands their structure. OCR only reads the letters.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Extract text, forms, and tables from scanned documents”<br>→ Amazon Textract</p>
+    <p><strong>Trigger 2:</strong> “Extract data from invoices and receipts without templates”<br>→ Amazon Textract (AnalyzeExpense)</p>
+    <p><strong>Trigger 3:</strong> “Read text on a street sign in a photo”<br>→ Amazon Rekognition text detection</p>
+    <p><strong>Trigger 4:</strong> “A score and a bounding box for each extracted item”<br>→ Amazon Textract confidence scores and bounding boxes</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company receives scanned loan applications that contain forms and tables. It wants the field names and values extracted into a database, with no machine learning expertise and the least operational effort. Which solution fits best?</p>
+    <ol type="A">
+      <li>Call Amazon Textract to extract the forms and tables from the documents.</li>
+      <li>Train a custom OCR model on Amazon SageMaker AI, and host it on an endpoint.</li>
+      <li>Use Amazon Rekognition text detection on each scanned page.</li>
+      <li>Use Amazon Comprehend to read the scanned pages.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Textract is a pre-trained, fully managed service that extracts text, form fields, and tables from document images.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. Textract returns forms and tables from scanned documents.</td></tr>
+          <tr><td>B</td><td>Wrong. It works, but it needs machine learning expertise and more operational effort.</td></tr>
+          <tr><td>C</td><td>Wrong. Rekognition text detection is for text in real-world scenes, and it does not return forms and tables.</td></tr>
+          <tr><td>D</td><td>Wrong. Comprehend analyzes text that is already machine-readable. It does not read images.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>1.7 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/textract/latest/dg/what-is.html" target="_blank" rel="noopener">What Is Amazon Textract?</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/textract/faqs/" target="_blank" rel="noopener">Amazon Textract FAQs</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/textract/pricing/" target="_blank" rel="noopener">Amazon Textract Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="analyze" role="tabpanel" aria-labelledby="tab-2" tabindex="0">
+  <h1>2. Detecting and Analyzing Documents</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s legal team has thousands of scanned contracts and only wants them to be searchable, so they need all the text but no structure. The vendor team has a different need: supplier application forms with fields, a table of items, and a signature at the bottom.</p>
+    <p>The finance lead asks for one more thing. She does not want to learn each supplier’s layout. She wants to ask, in plain language, “What is the total amount due?” and get the answer. The marketing team also has a two-column newsletter, and its text must come back in reading order.</p>
+    <p>The architect must decide which Textract operation and which features fit each need, and whether to call them synchronously or asynchronously.</p>
+    <p><strong>Your challenge:</strong> Match the needs to Textract features. Your answer should:</p>
+    <ul>
+      <li>Say when plain text detection is enough and when analysis is needed.</li>
+      <li>Name the feature for fields, tables, signatures, reading order, and plain-language questions.</li>
+      <li>Explain how an asynchronous job reports that it is finished.</li>
+      </ul>
+  </div>
+
+  <h2>2.1 DetectDocumentText</h2>
+  <ul>
+    <li><code>DetectDocumentText</code> is Textract’s OCR operation. It returns the text of a document as pages, lines, and words.</li>
+    <li>It does not look for fields, tables, or other structure.</li>
+    <li>Use it when you need only the text, for example to build a search index of scanned contracts.</li>
+  </ul>
+
+  <h2>2.2 AnalyzeDocument and Its Features</h2>
+  <p>The <code>AnalyzeDocument</code> operation analyzes a document for relationships between the items that it detects. You choose the features in the <code>FeatureTypes</code> list, and you can use them alone or in any combination.</p>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 430" role="img" aria-labelledby="t2a d2a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t2a">What Textract finds in one document</title>
+      <desc id="d2a">A drawn supplier application form with a title, a company name field, a small table of items, and a signature. Plum boxes mark each finding: layout title, forms key-value pair, a table with rows and columns, and a signature. A panel on the right lists what Textract returns for each feature, and shows a query that asks What is the customer name and returns Jane Doe.</desc>
+      <defs><marker id="ar2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="50" width="330" height="360" rx="4" fill="#ffffff" stroke="#9aa3ab" stroke-width="1.5"/>
+      <text x="180" y="90" text-anchor="middle" font-size="15" font-weight="700" fill="#1c2733" font-family="inherit">SUPPLIER APPLICATION</text>
+      <rect x="40" y="104" width="280" height="4" fill="#d3d8dd"/><rect x="40" y="114" width="220" height="4" fill="#d3d8dd"/>
+      <text x="46" y="160" font-size="13" fill="#1c2733" font-family="inherit">Company name:</text><text x="170" y="160" font-size="13" font-weight="700" fill="#1c2733" font-family="inherit">Northwind Co.</text>
+      <rect x="40" y="200" width="280" height="84" fill="#ffffff" stroke="#6b7785" stroke-width="1.2"/><line x1="40" y1="228" x2="320" y2="228" stroke="#6b7785"/><line x1="40" y1="256" x2="320" y2="256" stroke="#6b7785"/><line x1="150" y1="200" x2="150" y2="284" stroke="#6b7785"/><line x1="240" y1="200" x2="240" y2="284" stroke="#6b7785"/>
+      <g font-size="12" fill="#1c2733" font-family="inherit"><text x="48" y="219">Item</text><text x="158" y="219">Qty</text><text x="248" y="219">Price</text><text x="48" y="247">Box</text><text x="158" y="247">100</text><text x="248" y="247">$4.50</text><text x="48" y="275">Tape</text><text x="158" y="275">20</text><text x="248" y="275">$2.00</text></g>
+      <text x="46" y="352" font-size="13" fill="#1c2733" font-family="inherit">Signature:</text><path d="M140 352 q10 -22 20 0 t22 -4 t24 2 t26 -6" fill="none" stroke="#1c2733" stroke-width="2"/>
+      <rect x="40" y="70" width="280" height="28" fill="none" stroke="#611940" stroke-width="3"/><rect x="40" y="50" width="100" height="20" fill="#611940"/><text x="46" y="64" font-size="12.5" font-weight="600" fill="#ffffff" font-family="inherit">Layout: title</text>
+      <rect x="40" y="142" width="280" height="26" fill="none" stroke="#611940" stroke-width="3"/><rect x="40" y="122" width="150" height="20" fill="#611940"/><text x="46" y="136" font-size="12.5" font-weight="600" fill="#ffffff" font-family="inherit">Forms: key-value pair</text>
+      <rect x="36" y="196" width="288" height="92" fill="none" stroke="#611940" stroke-width="3"/><rect x="36" y="176" width="170" height="20" fill="#611940"/><text x="42" y="190" font-size="12.5" font-weight="600" fill="#ffffff" font-family="inherit">Tables: rows and columns</text>
+      <rect x="130" y="330" width="170" height="36" fill="none" stroke="#611940" stroke-width="3"/><rect x="130" y="308" width="150" height="20" fill="#611940"/><text x="136" y="322" font-size="12.5" font-weight="600" fill="#ffffff" font-family="inherit">Signatures: location</text>
+      <rect x="370" y="50" width="340" height="360" rx="6" class="s-box"/>
+      <text class="s-b" x="540" y="80" text-anchor="middle">What Textract returns</text>
+      <text class="s-t" x="388" y="112" text-anchor="start">Layout</text><text class="s-m" x="388" y="132" text-anchor="start">title and reading order</text>
+      <text class="s-t" x="388" y="166" text-anchor="start">Forms</text><text class="s-m" x="388" y="186" text-anchor="start">Company name = Northwind Co.</text>
+      <text class="s-t" x="388" y="220" text-anchor="start">Tables</text><text class="s-m" x="388" y="240" text-anchor="start">rows, columns, and cells</text>
+      <text class="s-t" x="388" y="274" text-anchor="start">Signatures</text><text class="s-m" x="388" y="294" text-anchor="start">where a signature appears</text>
+      <text class="s-t" x="388" y="328" text-anchor="start">Queries</text><text class="s-m" x="388" y="348" text-anchor="start">“What is the customer name?”</text><text class="s-m" x="388" y="366" text-anchor="start">returns “Jane Doe”</text>
+      <text class="s-m" x="540" y="396" text-anchor="middle">Each result has a confidence score.</text>
+      <text class="s-b" x="180" y="32" text-anchor="middle">One document goes in</text>
+    </svg>
+    <figcaption>Image 2a — The features of AnalyzeDocument on one document. (Original diagram for this course.)</figcaption>
+  </figure>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Feature</th><th scope="col">What it answers</th><th scope="col">Example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Forms</strong></td><td>What are the field names and their values? It returns key-value pairs, checkboxes, and other selection elements.</td><td>“First Name” and the value “Jane Smith.”</td></tr>
+      <tr><td><strong>Tables</strong></td><td>What is in this table? It returns rows, columns, and cells, including merged cells, even when the table spans pages.</td><td>The items, quantities, and prices on an order.</td></tr>
+      <tr><td><strong>Queries</strong></td><td>What is the answer to my question? You ask in natural language, and the answer comes back in the response.</td><td>“What is the customer name?” returns “Jane Doe.”</td></tr>
+      <tr><td><strong>Signatures</strong></td><td>Where is the signature? It returns the location of each signature.</td><td>A signature at the bottom of an agreement.</td></tr>
+      <tr><td><strong>Layout</strong></td><td>How is the page organized? It identifies titles, headers, section headings, paragraphs, lists, figures, page numbers, and footers, and returns the content in reading order.</td><td>A two-column newsletter read in the right order.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>2.3 Queries in Detail</h2>
+  <ul>
+    <li>A query is a question in natural language, for example “What is the total amount due?” Textract finds the answer, wherever the data sits on the page and however the document is laid out.</li>
+    <li>To write a good query, ask a natural question that uses words from the document.</li>
+    <li>Queries are processed for each page. A synchronous request supports up to 15 queries per page, and an asynchronous request supports up to 30.</li>
+    <li>Queries work in English.</li>
+    <li><strong>Custom Queries</strong> let you improve accuracy on documents that are specific to your business. You train an adapter. The training content is processed in the Region where you train, it is encrypted, and it is deleted when training finishes.</li>
+  </ul>
+
+  <h2>2.4 Getting the Best Results</h2>
+  <ul>
+    <li>Use a document in a language that Textract supports (tab 1, section 1.5).</li>
+    <li>Provide a high-quality image, ideally at least 150 DPI, and do not convert or reduce the resolution of a supported file.</li>
+    <li>Tables work best when they are visually separate from the rest of the page, not placed over an image or a complex pattern, and when the text in the table is upright.</li>
+    <li>Handwriting, invoices and receipts, identity documents, and Queries are in English only.</li>
+    <li>Text must run horizontally. Textract reads horizontal text at any rotation, including a 45-degree tilt, but it does not support vertical text, such as the vertical lines that are common in Japanese and Chinese.</li>
+  </ul>
+
+  <h2>2.5 Synchronous and Asynchronous Operations</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col"></th><th scope="col">Synchronous</th><th scope="col">Asynchronous</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Operations</strong></td><td><code>DetectDocumentText</code> and <code>AnalyzeDocument</code></td><td><code>StartDocumentTextDetection</code> and <code>StartDocumentAnalysis</code>, with <code>GetDocumentTextDetection</code> and <code>GetDocumentAnalysis</code></td></tr>
+      <tr><td><strong>How you get results</strong></td><td>In the response to the same call.</td><td>You start a job, and read the results later with the job ID.</td></tr>
+      <tr><td><strong>Where the document is</strong></td><td>An S3 object or a byte array.</td><td>An S3 object.</td></tr>
+      <tr><td><strong>Maximum size</strong></td><td>10 MB. A PDF or TIFF file can have one page.</td><td>10 MB for JPEG and PNG. A PDF or TIFF file can be up to 500 MB and 3,000 pages.</td></tr>
+      <tr><td><strong>Queries per page</strong></td><td>Up to 15.</td><td>Up to 30.</td></tr>
+      </tbody>
+  </table></div>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 270" role="img" aria-labelledby="t2b d2b" xmlns="http://www.w3.org/2000/svg">
+      <title id="t2b">How an asynchronous Textract job works</title>
+      <desc id="d2b">A document in Amazon S3 is submitted with a Start operation, which returns a job ID. Textract runs the job and publishes the completion status to an Amazon SNS topic. Your application then calls the matching Get operation with the job ID to read the results.</desc>
+      <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="30" width="190" height="70" rx="8" class="s-box"/>
+      <text x="110" y="58" text-anchor="middle" class="s-b">Document in S3</text>
+      <text x="110" y="80" text-anchor="middle" class="s-m">PDF, TIFF, JPEG, or PNG</text>
+      <rect x="265" y="30" width="190" height="70" rx="8" class="s-box"/>
+      <text x="360" y="58" text-anchor="middle" class="s-b">Start operation</text>
+      <text x="360" y="80" text-anchor="middle" class="s-m">returns a JobId</text>
+      <rect x="515" y="30" width="190" height="70" rx="8" class="s-hot"/>
+      <text x="610" y="58" text-anchor="middle" class="s-b">Textract job</text>
+      <text x="610" y="80" text-anchor="middle" class="s-m">runs asynchronously</text>
+      <rect x="515" y="170" width="190" height="70" rx="8" class="s-box"/>
+      <text x="610" y="198" text-anchor="middle" class="s-b">Amazon SNS topic</text>
+      <text x="610" y="220" text-anchor="middle" class="s-m">completion status</text>
+      <rect x="265" y="170" width="190" height="70" rx="8" class="s-box"/>
+      <text x="360" y="198" text-anchor="middle" class="s-b">Your application</text>
+      <text x="360" y="220" text-anchor="middle" class="s-m">sees SUCCEEDED</text>
+      <rect x="15" y="170" width="190" height="70" rx="8" class="s-box"/>
+      <text x="110" y="198" text-anchor="middle" class="s-b">Get operation</text>
+      <text x="110" y="220" text-anchor="middle" class="s-m">with the JobId</text>
+      <line x1="207" y1="65" x2="263" y2="65" class="s-line" marker-end="url(#ar3)"/>
+      <line x1="457" y1="65" x2="513" y2="65" class="s-line" marker-end="url(#ar3)"/>
+      <line x1="610" y1="102" x2="610" y2="168" class="s-line" marker-end="url(#ar3)"/>
+      <line x1="513" y1="205" x2="457" y2="205" class="s-line" marker-end="url(#ar3)"/>
+      <line x1="263" y1="205" x2="207" y2="205" class="s-line" marker-end="url(#ar3)"/>
+    </svg>
+    <figcaption>Image 2b — An asynchronous job reports completion through Amazon SNS. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ol>
+    <li>Call a Start operation. It returns a <code>JobId</code> at once, not results.</li>
+    <li>When the job finishes, Textract publishes a completion status to the Amazon Simple Notification Service (Amazon SNS) topic that you named in <code>NotificationChannel</code>. A role that you supply lets Textract publish to the topic.</li>
+    <li>If the status is <code>SUCCEEDED</code>, call the matching Get operation with the <code>JobId</code> to read the results.</li>
+  </ol>
+  <p>Use a <code>ClientRequestToken</code> so that the same job is not started twice by accident, and a <code>JobTag</code> to identify the job in the completion message. If you start too many jobs at once, a Start call fails with a limit error until some jobs finish.</p>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Choosing DetectDocumentText when you need fields or tables is a mistake: it returns only text. Use AnalyzeDocument with the Forms or Tables feature. Also, an asynchronous Start call returns a JobId, not results. Wait for the SNS completion status, and then call the Get operation.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Detect reads the words. Analyze understands the page. Start, wait for SNS, then Get.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Extract only the text of scanned documents”<br>→ DetectDocumentText</p>
+    <p><strong>Trigger 2:</strong> “Extract key-value pairs from forms”<br>→ AnalyzeDocument with Forms</p>
+    <p><strong>Trigger 3:</strong> “Extract rows and columns from a table”<br>→ AnalyzeDocument with Tables</p>
+    <p><strong>Trigger 4:</strong> “Ask “What is the customer name?” and get the answer”<br>→ AnalyzeDocument with Queries</p>
+    <p><strong>Trigger 5:</strong> “A 300 MB PDF must be processed”<br>→ An asynchronous operation with a document in Amazon S3</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A developer calls StartDocumentAnalysis on a PDF in Amazon S3. The call returns a job ID. How should the application get the extracted tables?</p>
+    <ol type="A">
+      <li>Wait for the completion status on the Amazon SNS topic, and then call GetDocumentAnalysis with the job ID.</li>
+      <li>Call AnalyzeDocument in a loop until it returns the tables.</li>
+      <li>Read the tables from the metadata of the S3 object.</li>
+      <li>Call StartDocumentAnalysis again to receive the tables.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Asynchronous operations publish the completion status to Amazon SNS, and the application then calls the Get operation with the JobId.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. This is the asynchronous job pattern.</td></tr>
+          <tr><td>B</td><td>Wrong. AnalyzeDocument is a synchronous call on a document that you send with the request.</td></tr>
+          <tr><td>C</td><td>Wrong. Textract does not write results into the S3 object.</td></tr>
+          <tr><td>D</td><td>Wrong. Calling Start again starts a new job.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>2.6 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/textract/latest/dg/API_AnalyzeDocument.html" target="_blank" rel="noopener">AnalyzeDocument API Reference</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/textract/latest/APIReference/API_StartDocumentAnalysis.html" target="_blank" rel="noopener">StartDocumentAnalysis API Reference</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/textract/faqs/" target="_blank" rel="noopener">Amazon Textract FAQs</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="special" role="tabpanel" aria-labelledby="tab-3" tabindex="0">
+  <h1>3. Invoices, Receipts, and ID Documents</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s finance team gets invoices from hundreds of suppliers, and no two look alike. On some, the vendor name appears only in a logo. On others, the line items have no column headings. Staff now retype each one.</p>
+    <p>The seller onboarding team asks sellers to upload a picture of a driver’s license or a passport, and they type the name and address into a form. FlashCart’s seller financing program also receives loan application packets that mix many kinds of documents.</p>
+    <p>The architect knows that AnalyzeDocument can extract forms and tables, but she asks whether Textract has operations built for these three document types, so that nobody has to write templates.</p>
+    <p><strong>Your challenge:</strong> Choose the right operation for each document. Your answer should:</p>
+    <ul>
+      <li>Name the operation for invoices and receipts, for identity documents, and for lending packets.</li>
+      <li>Say what each operation returns, and what it needs no templates for.</li>
+      <li>State the language limits.</li>
+      </ul>
+  </div>
+
+  <h2>3.1 AnalyzeExpense: Invoices and Receipts</h2>
+  <ul>
+    <li>The <code>AnalyzeExpense</code> operation extracts explicitly labeled data, implied data, and line items from an itemized list of goods or services, from almost any invoice or receipt in English, with no templates or configuration.</li>
+    <li>It can find the vendor name on a receipt even when the name appears only in a logo and is not labeled “vendor.”</li>
+    <li>It can find items, quantities, and prices that have no column headings.</li>
+    <li>It returns normalized key names and column headings, so that downstream applications can easily compare the output of many different documents.</li>
+  </ul>
+
+  <h2>3.2 AnalyzeID: Identity Documents</h2>
+  <ul>
+    <li>The <code>AnalyzeID</code> operation understands the context of identity documents, such as U.S. passports and driver’s licenses, with no templates or configuration.</li>
+    <li>It extracts specific data, and implied data such as names and addresses, from English-language identity documents.</li>
+    <li>Businesses that verify identity, and companies in finance, healthcare, and insurance, use it to automate account creation, appointment scheduling, and employment applications. The customer submits a picture or a scan of the document.</li>
+  </ul>
+  <figure class="diagram">
+    <img src="data:image/webp;base64,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" alt="A diagram that shows a sample driver license with the name Jane A Sample on the left. An arrow labeled Analyse leads to the Amazon Textract icon, and an arrow labeled Result leads to a JSON box that lists Document ID, Name, SEX, and DOB, followed by an ellipsis." width="1300" height="265" style="display:block;width:100%;max-width:900px;height:auto;border:1px solid var(--rule);">
+    <figcaption>Image 3a — Textract turns a scanned ID into structured data. The field names are simplified. (Source: Chetan Agrawal.)</figcaption>
+  </figure>
+  <p>The picture simplifies the result. The point is the same: Textract turns a scan of an identity document into labeled data that an application can use.</p>
+
+  <h2>3.3 AnalyzeLending: Lending Documents</h2>
+  <ul>
+    <li>Lending analysis works on a packet of lending documents. It classifies and analyzes the documents in the packet.</li>
+    <li>It is asynchronous: you start the job with <code>StartLendingAnalysis</code> on a document in Amazon S3, and Textract publishes the completion status to the Amazon SNS topic that you name.</li>
+    <li>Check the Textract documentation for the document types that it supports.</li>
+  </ul>
+
+  <h2>3.4 Which Operation for Which Document?</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Document</th><th scope="col">Operation</th><th scope="col">What it returns</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Any document, text only</strong></td><td><code>DetectDocumentText</code></td><td>Pages, lines, and words.</td></tr>
+      <tr><td><strong>Forms, tables, or questions to ask</strong></td><td><code>AnalyzeDocument</code></td><td>Key-value pairs, tables, answers to queries, signatures, and layout.</td></tr>
+      <tr><td><strong>Invoices and receipts</strong></td><td><code>AnalyzeExpense</code></td><td>Labeled and implied fields, and line items, with normalized names.</td></tr>
+      <tr><td><strong>Identity documents</strong></td><td><code>AnalyzeID</code></td><td>Fields from U.S. passports and driver’s licenses.</td></tr>
+      <tr><td><strong>Loan application packets</strong></td><td><code>AnalyzeLending</code></td><td>Classified documents with their extracted data.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>3.5 Textract and Rekognition for Identity Verification</h2>
+  <p>In Lesson 299.1, Rekognition used text detection to read key text on a photo of an ID card, as part of an identity verification workflow. Textract’s <code>AnalyzeID</code> is the document service for the same job: it returns structured data from a passport or a driver’s license. Use Textract when you need the fields, and Rekognition for the face checks, such as liveness and face comparison.</p>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>AnalyzeExpense is for invoices and receipts, and AnalyzeID is for identity documents. Do not pick AnalyzeDocument with Forms for them just because they look like forms: the specialized operations need no templates and return normalized fields. Also remember that these operations work in English only.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Expense for money documents, ID for identity documents, Lending for loan packets.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Extract vendor, totals, and line items from invoices with no templates”<br>→ AnalyzeExpense</p>
+    <p><strong>Trigger 2:</strong> “Extract data from a driver’s license or a passport”<br>→ AnalyzeID</p>
+    <p><strong>Trigger 3:</strong> “Process a packet of loan application documents”<br>→ AnalyzeLending</p>
+    <p><strong>Trigger 4:</strong> “Compare the face on an ID with a selfie”<br>→ Amazon Rekognition face comparison</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company receives thousands of supplier invoices in many layouts. It wants vendor names, totals, and line items extracted into a database, with no templates to build or maintain. Which solution fits best?</p>
+    <ol type="A">
+      <li>Amazon Textract AnalyzeExpense.</li>
+      <li>Amazon Textract DetectDocumentText, with a regular expression for each supplier layout.</li>
+      <li>Amazon Rekognition text detection on each invoice.</li>
+      <li>A custom model on Amazon SageMaker AI for each supplier.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> AnalyzeExpense is built for invoices and receipts. It finds labeled and implied data and line items without templates.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. It needs no templates.</td></tr>
+          <tr><td>B</td><td>Wrong. It returns only text, and you would maintain rules for each layout.</td></tr>
+          <tr><td>C</td><td>Wrong. Rekognition text detection is for real-world scenes.</td></tr>
+          <tr><td>D</td><td>Wrong. A custom model for each supplier needs expertise and a lot of effort.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>3.6 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/textract/latest/dg/API_Reference.html" target="_blank" rel="noopener">Amazon Textract API Reference</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/textract/faqs/" target="_blank" rel="noopener">Amazon Textract FAQs: Which APIs Does Textract Offer?</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/blogs/machine-learning/identity-verification-using-amazon-rekognition" target="_blank" rel="noopener">Blog: Identity Verification Using Amazon Rekognition</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="arch" role="tabpanel" aria-labelledby="tab-4" tabindex="0">
+  <h1>4. Architecture, Security, and Cost</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart wants to process every supplier invoice within minutes of upload. The volume is uneven: very few documents arrive at night, and thousands arrive on the first day of the month. During the first test, many requests failed with throttling errors.</p>
+    <p>The security team asks who can call Textract, what AWS does with the documents, and whether the service can be reached without the public internet. The finance team asks how Textract is billed.</p>
+    <p>The architect must draw the pipeline and answer both teams.</p>
+    <p><strong>Your challenge:</strong> Design the pipeline. Your answer should:</p>
+    <ul>
+      <li>Show how an upload leads to extraction, storage of fields, and a check of doubtful results.</li>
+      <li>Explain how to avoid throttling when traffic is uneven.</li>
+      <li>Describe access, data privacy, logging, and the billing model.</li>
+      </ul>
+  </div>
+
+  <h2>4.1 An Event-Driven Document Pipeline</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 310" role="img" aria-labelledby="t4a d4a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t4a">An event-driven document processing pipeline</title>
+      <desc id="d4a">A supplier uploads an invoice to Amazon S3. An S3 event puts a message in an Amazon SQS queue, which smooths the traffic. An AWS Lambda function reads the queue and calls Amazon Textract. The function stores the extracted fields in Amazon DynamoDB. Low-confidence results go to a review queue for people.</desc>
+      <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="10" y="40" width="100" height="70" rx="8" class="s-box"/>
+      <text x="60" y="70" text-anchor="middle" class="s-b">Supplier</text>
+      <text x="60" y="92" text-anchor="middle" class="s-m">uploads</text>
+      <rect x="140" y="40" width="100" height="70" rx="8" class="s-box"/>
+      <text x="190" y="70" text-anchor="middle" class="s-b">Amazon S3</text>
+      <text x="190" y="92" text-anchor="middle" class="s-m">upload event</text>
+      <rect x="270" y="40" width="115" height="70" rx="8" class="s-box"/>
+      <text x="327" y="70" text-anchor="middle" class="s-b">Amazon SQS</text>
+      <text x="327" y="92" text-anchor="middle" class="s-m">smooths traffic</text>
+      <rect x="415" y="40" width="100" height="70" rx="8" class="s-box"/>
+      <text x="465" y="70" text-anchor="middle" class="s-b">AWS Lambda</text>
+      <text x="465" y="92" text-anchor="middle" class="s-m">function</text>
+      <rect x="545" y="40" width="165" height="70" rx="8" class="s-hot"/>
+      <text x="627" y="70" text-anchor="middle" class="s-b">Amazon Textract</text>
+      <text x="627" y="92" text-anchor="middle" class="s-m">extracts the fields</text>
+      <rect x="415" y="200" width="100" height="70" rx="8" class="s-box"/>
+      <text x="465" y="228" text-anchor="middle" class="s-b">DynamoDB</text>
+      <text x="465" y="250" text-anchor="middle" class="s-m">stores fields</text>
+      <rect x="545" y="200" width="165" height="70" rx="8" class="s-box"/>
+      <text x="627" y="226" text-anchor="middle" class="s-b">Review queue</text>
+      <text x="627" y="248" text-anchor="middle" class="s-m">a person checks</text>
+      <text x="627" y="264" text-anchor="middle" class="s-m">low-confidence fields</text>
+      <line x1="112" y1="75" x2="138" y2="75" class="s-line" marker-end="url(#ar4)"/>
+      <line x1="242" y1="75" x2="268" y2="75" class="s-line" marker-end="url(#ar4)"/>
+      <line x1="387" y1="75" x2="413" y2="75" class="s-line" marker-end="url(#ar4)"/>
+      <line x1="517" y1="75" x2="543" y2="75" class="s-line" marker-end="url(#ar4)"/>
+      <line x1="465" y1="112" x2="465" y2="198" class="s-line" marker-end="url(#ar4)"/>
+      <line x1="627" y1="112" x2="627" y2="198" class="s-line" marker-end="url(#ar4)"/>
+      <text x="618" y="160" text-anchor="end" class="s-m">below the threshold</text>
+    </svg>
+    <figcaption>Image 4a — An upload triggers extraction, storage, and a review queue. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ol>
+    <li>A supplier uploads an invoice to an Amazon S3 bucket.</li>
+    <li>The upload event puts a message in an Amazon Simple Queue Service (Amazon SQS) queue. The queue smooths uneven traffic.</li>
+    <li>An AWS Lambda function reads the queue and calls Textract, for example <code>AnalyzeExpense</code>.</li>
+    <li>The function stores the extracted fields, for example in Amazon DynamoDB.</li>
+    <li>Fields with a confidence score below your threshold go to a review queue, where a person on your team checks them.</li>
+  </ol>
+  <p>Use synchronous calls for single images and small documents. Use asynchronous jobs with Amazon SNS for large or multi-page files, up to the size limits in tab 2.</p>
+
+  <h2>4.2 Avoiding Throttling</h2>
+  <ul>
+    <li>Implement retry logic for throttling errors, as the error handling guidance describes.</li>
+    <li>Use exponential backoff and jitter with the retries. This raises the throughput that you can achieve.</li>
+    <li>Smooth the traffic. Spiky traffic lowers throughput, so use a queue, or another way, to make the flow of requests steady.</li>
+    <li>Manage your service quotas in the AWS Service Quotas console, and estimate what you need with the Textract Service Quota calculator. You can request an increase from the console.</li>
+  </ul>
+
+  <h2>4.3 Security and Access Control</h2>
+  <ul>
+    <li>Use IAM policies and roles to control who can call Textract. Give the Lambda function a role with only the Textract actions it needs and read access to the bucket.</li>
+    <li>Textract supports AWS CloudTrail logging for these actions: <code>DetectDocumentText</code>, <code>AnalyzeDocument</code>, <code>StartDocumentTextDetection</code>, <code>StartDocumentAnalysis</code>, <code>GetDocumentTextDetection</code>, and <code>GetDocumentAnalysis</code>.</li>
+    <li>Textract supports Amazon Virtual Private Cloud (Amazon VPC) endpoints through AWS PrivateLink, so that you can call Textract from inside a VPC without using the public internet.</li>
+    <li>AWS says that it protects content with encryption at rest and in transit. For asynchronous jobs, you can supply an AWS Key Management Service (AWS KMS) key for the output.</li>
+    <li>Textract is eligible for the Health Insurance Portability and Accountability Act (HIPAA) when you have a Business Associate Agreement with AWS. It is also compliant with PCI, ISO, and SOC programs.</li>
+  </ul>
+
+  <h2>4.4 Data Privacy</h2>
+  <ul>
+    <li>Textract may store and use the documents and images that it processes to provide the service and, unless you opt out, to improve Textract and other Amazon AI technologies.</li>
+    <li>To opt out, use an AWS Organizations AI services opt-out policy.</li>
+    <li>Processed content is encrypted and stored at rest in the Region where you use Textract. Unless you opt out, a portion may be stored in another Region for improvement. If you opt out, your content is not stored in another Region.</li>
+    <li>You always own your content. You can ask AWS Support to delete the document and image inputs that are linked to your account.</li>
+  </ul>
+
+  <h2>4.5 The Cost Model</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">What you use</th><th scope="col">How it is billed</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Textract operations</strong></td><td>By the number of pages and images processed.</td></tr>
+      <tr><td><strong>Counting pages</strong></td><td>An image (PNG, TIFF, or JPEG) counts as one page. Each page of a PDF counts as one page.</td></tr>
+      <tr><td><strong>Features and operations</strong></td><td>Each operation and feature has its own price. Check the pricing page.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>Process each document once, and store the results instead of calling Textract again.</li>
+    <li>Choose the cheapest operation that meets the need. For example, use <code>DetectDocumentText</code> when you need only text.</li>
+    <li>Pick a confidence threshold that avoids needless reviews.</li>
+  </ul>
+  <p>Prices and free tier amounts change. Use the pricing page and the AWS Pricing Calculator for current numbers. Check the Region list in the AWS documentation before you pick a Region.</p>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Throttling errors do not mean that Textract is broken. They mean that your traffic is spiky or your quota is low. Add retries with exponential backoff and jitter, smooth the traffic with a queue, and request a quota increase. Also remember that Textract may store and use your documents to improve the service unless you opt out with an AWS Organizations policy.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Upload, queue, Lambda, Textract, store, and check the doubtful.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Spiky traffic causes throttling errors”<br>→ Retries with exponential backoff and jitter, and a queue to smooth the traffic</p>
+    <p><strong>Trigger 2:</strong> “Call Textract with no public internet access”<br>→ An Amazon VPC endpoint through AWS PrivateLink</p>
+    <p><strong>Trigger 3:</strong> “Stop AWS from using documents to improve its services”<br>→ An AWS Organizations AI services opt-out policy</p>
+    <p><strong>Trigger 4:</strong> “Record who called Textract”<br>→ AWS CloudTrail</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company must process scanned documents with Textract from a VPC that has no internet access. Which solution meets the requirement?</p>
+    <ol type="A">
+      <li>Create an Amazon VPC endpoint for Textract by using AWS PrivateLink.</li>
+      <li>Add an internet gateway and send traffic to the public Textract endpoint.</li>
+      <li>Copy the documents to an Amazon EC2 instance and run an open-source OCR tool.</li>
+      <li>Use an AWS Site-to-Site VPN to reach an on-premises OCR server.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Textract supports VPC endpoints through AWS PrivateLink, so calls stay off the public internet.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. The endpoint keeps the traffic inside the AWS network.</td></tr>
+          <tr><td>B</td><td>Wrong. It uses the public internet, which the requirement rules out.</td></tr>
+          <tr><td>C</td><td>Wrong. It gives up Textract and adds operational work.</td></tr>
+          <tr><td>D</td><td>Wrong. It does not use Textract at all.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>4.6 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/textract/faqs/" target="_blank" rel="noopener">Amazon Textract FAQs: Billing and Data Privacy</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/textract/latest/dg/logging-using-cloudtrail.html" target="_blank" rel="noopener">Logging Amazon Textract API Calls With AWS CloudTrail</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/textract/latest/dg/data-protection.html" target="_blank" rel="noopener">Data Protection in Amazon Textract</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/textract/latest/dg/handling-errors.html" target="_blank" rel="noopener">Error Handling in Amazon Textract</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/general/latest/gr/api-retries.html" target="_blank" rel="noopener">Error Retries and Exponential Backoff in AWS</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_ai-opt-out.html" target="_blank" rel="noopener">Managing AI Services Opt-Out Policies</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="comparison" role="tabpanel" aria-labelledby="tab-5" tabindex="0">
+  <h1>5. Comparison and Scenarios</h1>
+
+  <h2>5.1 Choosing Between AWS AI Services</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">If the input is</th><th scope="col">Use</th><th scope="col">What it does</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Scanned documents, forms, and tables</strong></td><td>Amazon Textract</td><td>Extracts text, handwriting, form fields, and tables.</td></tr>
+      <tr><td><strong>Photos and video</strong></td><td>Amazon Rekognition</td><td>Finds objects, scenes, faces, scene text, and unsafe content.</td></tr>
+      <tr><td><strong>Text that is already machine-readable</strong></td><td>Amazon Comprehend</td><td>Natural language processing: meaning, sentiment, and entities.</td></tr>
+      <tr><td><strong>Speech</strong></td><td>Amazon Transcribe</td><td>Converts audio to text.</td></tr>
+      <tr><td><strong>A custom model that you design</strong></td><td>Amazon SageMaker AI</td><td>Builds, trains, and deploys your own machine learning models.</td></tr>
+      </tbody>
+  </table></div>
+  <p>A common pipeline uses Textract first and Comprehend next: Textract turns a scanned letter into text, and Comprehend analyzes what the text means.</p>
+
+  <h2>5.2 Textract Operations Compared</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Operation or feature</th><th scope="col">Best for</th><th scope="col">Remember</th></tr></thead>
+    <tbody>
+      <tr><td><strong>DetectDocumentText</strong></td><td>Text only, such as search indexes.</td><td>Pages, lines, and words. No structure.</td></tr>
+      <tr><td><strong>AnalyzeDocument: Forms and Tables</strong></td><td>Fields and tabular data.</td><td>Key-value pairs, rows, columns, and cells.</td></tr>
+      <tr><td><strong>AnalyzeDocument: Queries</strong></td><td>Plain-language questions.</td><td>Up to 15 per page synchronous, 30 asynchronous. English.</td></tr>
+      <tr><td><strong>AnalyzeDocument: Signatures and Layout</strong></td><td>Signature locations and reading order.</td><td>Layout finds titles, paragraphs, lists, and more.</td></tr>
+      <tr><td><strong>AnalyzeExpense</strong></td><td>Invoices and receipts.</td><td>No templates. English.</td></tr>
+      <tr><td><strong>AnalyzeID</strong></td><td>U.S. passports and driver’s licenses.</td><td>No templates. English.</td></tr>
+      <tr><td><strong>AnalyzeLending</strong></td><td>Loan application packets.</td><td>Asynchronous, with SNS.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">#</th><th scope="col">If the question says…</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Extract text, forms, and tables from scanned documents with no ML expertise</td><td>Amazon Textract</td></tr>
+      <tr><td>2</td><td>Extract only the text from scanned documents</td><td><code>DetectDocumentText</code></td></tr>
+      <tr><td>3</td><td>Extract key-value pairs from forms</td><td><code>AnalyzeDocument</code> with Forms</td></tr>
+      <tr><td>4</td><td>Extract rows and columns from tables</td><td><code>AnalyzeDocument</code> with Tables</td></tr>
+      <tr><td>5</td><td>Ask a question in plain language and get the answer from the document</td><td><code>AnalyzeDocument</code> with Queries</td></tr>
+      <tr><td>6</td><td>Find where signatures appear</td><td><code>AnalyzeDocument</code> with Signatures</td></tr>
+      <tr><td>7</td><td>Extract vendor, totals, and line items from invoices or receipts with no templates</td><td><code>AnalyzeExpense</code></td></tr>
+      <tr><td>8</td><td>Extract data from a driver’s license or a passport</td><td><code>AnalyzeID</code></td></tr>
+      <tr><td>9</td><td>Process a packet of loan application documents</td><td><code>AnalyzeLending</code></td></tr>
+      <tr><td>10</td><td>A large PDF, for example 300 MB</td><td>An asynchronous operation, with the document in Amazon S3</td></tr>
+      <tr><td>11</td><td>An asynchronous job has finished</td><td>Amazon SNS completion status, and then the Get operation with the JobId</td></tr>
+      <tr><td>12</td><td>Throttling errors with spiky traffic</td><td>Retries with exponential backoff and jitter, a queue, and a quota increase</td></tr>
+      <tr><td>13</td><td>Call Textract with no public internet access</td><td>An Amazon VPC endpoint through AWS PrivateLink</td></tr>
+      <tr><td>14</td><td>Stop AWS from using documents to improve its AI services</td><td>An AWS Organizations AI services opt-out policy</td></tr>
+      <tr><td>15</td><td>Read text on a street sign in a photo</td><td>Amazon Rekognition text detection</td></tr>
+      <tr><td>16</td><td>Find the meaning or sentiment of text</td><td>Amazon Comprehend</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.4 Scenario Practice</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Scenario</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>A law firm wants thousands of scanned contracts to be searchable.</td><td><code>DetectDocumentText</code>, with the text sent to a search index.</td></tr>
+      <tr><td>A bank wants the fields and tables in scanned loan forms extracted into a database.</td><td><code>AnalyzeDocument</code> with Forms and Tables.</td></tr>
+      <tr><td>A finance team wants the total due on invoices from many suppliers.</td><td><code>AnalyzeExpense</code>, or a query such as “What is the total amount due?”</td></tr>
+      <tr><td>A hospital wants to read scanned insurance claims in a HIPAA-eligible service.</td><td>Textract, with a Business Associate Agreement in place.</td></tr>
+      <tr><td>A startup verifies sellers with a photo of a passport.</td><td><code>AnalyzeID</code> for the data, and Rekognition for the face checks.</td></tr>
+      <tr><td>A nightly batch of 400 MB PDFs must be processed.</td><td>Asynchronous operations, with the PDFs in Amazon S3.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.5 Lesson Summary</h2>
+  <ul>
+    <li>Amazon Textract is a fully managed, pre-trained document analysis service in the AI services layer. It extracts printed text, handwriting, form fields, tables, signatures, and layout, and it needs no machine learning expertise.</li>
+    <li>It accepts PNG, JPEG, TIFF, and PDF files. Every result has a confidence score and a bounding box, so you can decide what to trust and trace each result to the page.</li>
+    <li><code>DetectDocumentText</code> returns only text. <code>AnalyzeDocument</code> adds Forms, Tables, Queries, Signatures, and Layout. <code>AnalyzeExpense</code>, <code>AnalyzeID</code>, and <code>AnalyzeLending</code> handle invoices and receipts, identity documents, and loan packets.</li>
+    <li>Synchronous calls return results in the response, up to 10 MB. Asynchronous jobs take documents in Amazon S3, up to 500 MB for PDFs, and report completion through Amazon SNS before you call the Get operation.</li>
+    <li>A typical design uses an S3 event, an SQS queue, a Lambda function, Textract, and a store for the fields. Add retries with backoff and jitter, an Amazon VPC endpoint if needed, and an opt-out policy if you do not want AWS to use your documents to improve its services.</li>
+  </ul>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Pictures go to Rekognition. Documents go to Textract. Text goes to Comprehend.</p>
+  </div>
+</section>
+
+<section class="panel" id="knowledge-check" role="tabpanel" aria-labelledby="tab-6" tabindex="0">
+  <h1>6. Knowledge Check</h1>
+  <p>Answer each question in your own words before you open the model answer.</p>
+  <ol class="kc-list">
+    <li>
+      <p class="q">Explain what Amazon Textract is, and how it differs from simple OCR.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Textract is a fully managed, pre-trained document analysis service. It detects and extracts printed text, handwriting, structured data such as fields and values, and tables from images and scans of documents. Simple OCR returns only a block of text. Textract also returns the structure, with a confidence score and a bounding box for each result.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Which document formats, languages, and limits does Textract support?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Textract supports PNG, JPEG, TIFF, and PDF. It reads printed text in more than 40 languages and English handwriting. Forms work in English, Spanish, Italian, Portuguese, French, and German. Invoices and receipts, identity documents, and Queries work in English only. A synchronous call can take a document up to 10 MB, with one page for a PDF or TIFF file. An asynchronous job takes a PDF or TIFF file of up to 500 MB and 3,000 pages.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What are a confidence score and a bounding box, and how would you use them?</p>
+      <details><summary>Show the model answer</summary>
+        <p>A confidence score is a number from 0 to 100 that shows how likely a prediction is to be correct. A bounding box is a polygon that frames each piece of data and shows where it appears on the page. You can flag any value below a threshold, such as 95, for a person to check, and use the bounding box to show the result on the source page.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">When would you use DetectDocumentText, and when would you use AnalyzeDocument?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Use DetectDocumentText when you need only the text, for example to make scanned contracts searchable. Use AnalyzeDocument when you need structure: Forms for key-value pairs, Tables for rows and columns, Queries for answers to questions, Signatures for signature locations, and Layout for titles, paragraphs, and reading order.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How do Queries work, and what are their limits?</p>
+      <details><summary>Show the model answer</summary>
+        <p>You write a question in natural language that uses words from the document, such as “What is the customer name?” Textract returns the answer, however the page is laid out. A synchronous request supports up to 15 queries per page and an asynchronous request up to 30. Queries work in English. Custom Queries use an adapter that you train to improve accuracy on documents specific to your business.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Describe how an asynchronous Textract job works, and when you would use one.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Put the document in Amazon S3 and call a Start operation, such as StartDocumentAnalysis, which returns a JobId. Textract runs the job and publishes a completion status to the Amazon SNS topic that you named. When the status is SUCCEEDED, call the matching Get operation with the JobId. Use asynchronous jobs for large files, such as PDFs above 10 MB, up to 500 MB.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Which operation would you use for supplier invoices, for driver’s licenses, and for loan application packets?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Use AnalyzeExpense for invoices and receipts, AnalyzeID for identity documents such as U.S. passports and driver’s licenses, and AnalyzeLending for packets of lending documents. The first two need no templates and work in English.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Draw an event-driven pipeline that processes every uploaded invoice, and say how it copes with uneven traffic.</p>
+      <details><summary>Show the model answer</summary>
+        <p>A supplier uploads an invoice to Amazon S3. The upload event puts a message in an Amazon SQS queue, which smooths the traffic. An AWS Lambda function reads the queue, calls AnalyzeExpense, and stores the fields, for example in Amazon DynamoDB. Fields below the confidence threshold go to a review queue for a person. The function retries with exponential backoff and jitter if Textract throttles a request.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Why do throttling errors happen, and how do you reduce them?</p>
+      <details><summary>Show the model answer</summary>
+        <p>They happen when traffic is spiky or the request rate goes above the quota. Add retries with exponential backoff and jitter, smooth the traffic with a queue, and manage the quota in the AWS Service Quotas console, using the Textract quota calculator to estimate what you need and requesting an increase if necessary.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What access control, logging, and network options does Textract offer?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Use IAM policies and roles to limit who can call it. AWS CloudTrail logs actions such as DetectDocumentText, AnalyzeDocument, and the Start and Get operations. An Amazon VPC endpoint through AWS PrivateLink lets you call Textract without the public internet. Content is encrypted at rest and in transit, and Textract is HIPAA eligible with a Business Associate Agreement.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What does AWS do with the documents that Textract processes, and how can an organization opt out?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Textract may store and use document and image inputs to provide the service and, unless you opt out, to improve Textract and other Amazon AI technologies. You keep ownership of your content. To opt out, use an AWS Organizations AI services opt-out policy, and ask AWS Support if you need stored inputs deleted.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How is Textract billed, and what are two ways to control cost?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Textract is billed by the number of pages and images processed. An image counts as one page, and each page of a PDF counts as a page. Process each document once and store the results, and choose the cheapest operation that meets the need, such as DetectDocumentText when you need only text.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">When would you choose Textract, Rekognition, or Comprehend?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Choose Textract for scanned documents, forms, and tables. Choose Rekognition for photos and video, including text in scenes such as street signs. Choose Comprehend for text that is already machine-readable. A common pipeline uses Textract to get the text and Comprehend to analyze what it means.</p>
+      </details>
+    </li>
+  </ol>
+</section>
+
+    <footer>
+      <p>Copyright © 2026 Per Scholas. All rights reserved.</p>
+      <p>Sources: AWS documentation and the Amazon Textract FAQs, paraphrased. The slide image is credited in its caption. Diagrams are original to this course.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  var panels = tabs.map(function (t) { return document.getElementById(t.getAttribute('aria-controls')); });
+  var live = document.getElementById('live');
+  var current = 0;
+
+  function label(i) { return tabs[i].textContent.trim(); }
+
+  function show(i, opts) {
+    opts = opts || {};
+    if (i < 0 || i >= tabs.length) { return; }
+    current = i;
+    tabs.forEach(function (t, k) {
+      var on = k === i;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.setAttribute('tabindex', on ? '0' : '-1');
+      panels[k].classList.toggle('active', on);
+    });
+    if (!opts.keepScroll) { window.scrollTo(0, 0); }
+    if (opts.focusTab) { tabs[i].focus(); }
+    if (opts.focusHeading) {
+      var h = panels[i].querySelector('h1');
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    }
+    if (opts.updateHash) {
+      try { history.replaceState(null, '', '#' + panels[i].id); } catch (e) {}
+    }
+    if (live) {
+      live.textContent = '';
+      setTimeout(function () { live.textContent = 'Tab ' + (i + 1) + ' of ' + tabs.length + ': ' + label(i); }, 50);
+    }
+  }
+
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { show(i, { updateHash: true }); });
+    t.addEventListener('keydown', function (e) {
+      var n = null;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { n = (i + 1) % tabs.length; }
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { n = (i - 1 + tabs.length) % tabs.length; }
+      else if (e.key === 'Home') { n = 0; }
+      else if (e.key === 'End') { n = tabs.length - 1; }
+      if (n !== null) { e.preventDefault(); show(n, { focusTab: true, updateHash: true, keepScroll: true }); }
+    });
+  });
+
+  panels.forEach(function (p, i) {
+    var nav = document.createElement('div');
+    nav.className = 'panel-nav';
+    var prev = document.createElement('button');
+    var next = document.createElement('button');
+    prev.type = 'button'; next.type = 'button';
+    if (i > 0) {
+      prev.textContent = '\u2190 Previous: ' + label(i - 1);
+      prev.addEventListener('click', function () { show(i - 1, { updateHash: true, focusHeading: true }); });
+    } else { prev.style.visibility = 'hidden'; prev.setAttribute('aria-hidden', 'true'); prev.tabIndex = -1; }
+    if (i < panels.length - 1) {
+      next.textContent = 'Next: ' + label(i + 1) + ' \u2192';
+      next.addEventListener('click', function () { show(i + 1, { updateHash: true, focusHeading: true }); });
+    } else { next.style.visibility = 'hidden'; next.setAttribute('aria-hidden', 'true'); next.tabIndex = -1; }
+    nav.appendChild(prev); nav.appendChild(next);
+    p.appendChild(nav);
+  });
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) { return; }
+    var id = a.getAttribute('href').slice(1);
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { e.preventDefault(); show(idx, { updateHash: true, focusHeading: true }); }
+  });
+
+  function fromHash() {
+    var id = window.location.hash.replace('#', '');
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { show(idx, { keepScroll: true }); }
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+</body>
+</html>

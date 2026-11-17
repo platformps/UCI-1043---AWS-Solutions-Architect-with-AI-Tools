@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 299.4 - Amazon Translate</title>
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: light;
+    --page-bg: #ffffff;
+    --text: #1c2733;
+    --muted: #4f5b67;
+    --rule: #d5dce3;
+    --card: #f4f7fa;
+    --card-border: #ccd3da;
+    --hover: #ccd3da;
+    --h1: #611940;
+    --h3: #7a2455;
+    --link: #611940;
+    --code-bg: #f5f7f9;
+    --table-alt: #f6f8fa;
+    --problem-bg: #ffeef7;
+    --problem-bar: #611940;
+    --warn-bg: #fdf3e7;
+    --warn-bar: #c26a00;
+    --exam-bg: #eaf6ee;
+    --exam-bar: #2e7d4f;
+    --tip-bg: #e5fe77;
+    --tip-bar: #7a8f00;
+    --q-bg: #f7eef3;
+    --q-border: #611940;
+    --svg-box: #f7eef3;
+    --svg-stroke: #611940;
+    --svg-hot: #d9f6fd;
+    --svg-hot-stroke: #611940;
+    --focus: #611940;
+    --h2: #000000;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+      --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+      --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+      --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+      --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+      --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+      --focus: #71e2fd;
+      --h2: #ffffff;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+    --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+    --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+    --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+    --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+    --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+    --focus: #71e2fd;
+    --h2: #ffffff;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+  *, *::before, *::after { box-sizing: inherit; line-height: 1.5; }
+  body {
+    margin: 0; background: var(--page-bg); color: var(--text);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 17px;
+  }
+  .layout { display: flex; align-items: flex-start; max-width: 1280px; margin: 0 auto; padding: 28px 20px 60px; }
+  .side-wrap { width: 270px; flex: none; margin-right: 28px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); overflow-y: auto; }
+  .sidebar { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px; }
+  .tab-btn {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    border-left: 5px solid transparent; border-radius: 6px; padding: 10px 12px; margin: 0 0 2px;
+    font: inherit; font-size: 15px; color: var(--text); cursor: pointer;
+  }
+  .tab-btn:hover { background: var(--hover); }
+  .tab-btn[aria-selected="true"] { background: #611940; color: #ffffff; font-weight: 700; border-left-color: #71E2FD; }
+  .tab-btn:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible, .panel:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .content { flex: 1; min-width: 0; max-width: 900px; }
+  .brand { display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; margin: 0 0 14px; }
+  .brand img { display: block; width: 230px; max-width: 100%; height: auto; }
+  .page-title { color: var(--h2); font-size: 2.8rem; font-weight: 700; margin: 0 0 8px; }
+  .page-sub { color: var(--muted); font-size: 1.05rem; margin: 0 0 26px; max-width: 70ch; }
+  .js .panel { display: none; }
+  .js .panel.active { display: block; }
+  .panel { margin-bottom: 40px; }
+  .js .panel { margin-bottom: 0; }
+  .panel h1 { color: var(--h1); font-size: 2.35rem; font-weight: 700; margin: 6px 0 12px; }
+  h2 { color: var(--h2); font-size: 35px; font-weight: 700; margin: 34px 0 10px; }
+  h3 { color: var(--h3); font-size: 1.45rem; font-weight: 700; margin: 24px 0 8px; }
+  h4 { color: var(--h3); font-size: 1.15rem; font-weight: 700; margin: 18px 0 6px; }
+  p { margin: 0 0 14px; max-width: 76ch; }
+  ul, ol { margin: 0 0 16px; padding-left: 26px; max-width: 76ch; }
+  li { margin-bottom: 6px; }
+  a { color: var(--link); }
+  code { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 0.88em; }
+  pre.flowcode { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 14.5px; overflow-x: auto; margin: 6px 0 18px; white-space: pre; }
+  .table-scroll { overflow-x: auto; margin: 6px 0 22px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15.5px; }
+  th, td { border: 1px solid var(--rule); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #611940; color: #ffffff; font-weight: 600; border-color: #611940; }
+  tbody tr:nth-child(even) { background: var(--table-alt); }
+  .wide table { min-width: 860px; }
+  .callout { border-left: 5px solid; border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 22px 0; max-width: 880px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .label { font-weight: 700; display: block; margin-bottom: 6px; }
+  .tip { background: var(--tip-bg); border-color: var(--tip-bar); color: #1c2733; }
+  .tip a { color: #611940; }
+  .warn { background: var(--warn-bg); border-color: var(--warn-bar); }
+  .exam { background: var(--exam-bg); border-color: var(--exam-bar); }
+  .problem { border-left: 6px solid var(--problem-bar); background: var(--problem-bg); border-radius: 0 12px 12px 0; padding: 22px 25px; margin: 28px 0; }
+  .problem h2.ps-heading { font-size: 1.35rem; margin: 0 0 8px; }
+  .problem p:last-child { margin-bottom: 0; }
+  .overview-box { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 24px 14px; margin: 0 0 24px; }
+  .overview-box h2 { margin-top: 20px; }
+  figure.diagram { margin: 14px 0 26px; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 14px 8px; overflow-x: auto; background: var(--card); }
+  figure.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
+  figure.diagram figcaption { color: var(--muted); font-size: 14.5px; padding: 8px 4px 6px; }
+  .s-box { fill: var(--svg-box); stroke: var(--svg-stroke); stroke-width: 1.5; }
+  .s-hot { fill: var(--svg-hot); stroke: var(--svg-hot-stroke); stroke-width: 1.5; }
+  .s-line { stroke: var(--svg-stroke); stroke-width: 2; fill: none; }
+  .s-mark { fill: var(--svg-stroke); }
+  .s-t { fill: var(--text); font-size: 14.5px; }
+  .s-b { fill: var(--text); font-size: 15px; font-weight: 700; }
+  .s-m { fill: var(--muted); font-size: 13.5px; }
+  .exam-question { background: var(--q-bg); border: 2px solid var(--q-border); border-radius: 8px; padding: 16px 22px; margin: 22px 0; max-width: 880px; }
+  .exam-question .label { font-weight: 700; margin-bottom: 2px; }
+  .exam-question .note { color: var(--muted); font-size: 14.5px; }
+  .exam-question details { border-top: 1px solid var(--rule); margin-top: 12px; padding-top: 10px; }
+  .exam-question summary, .kc-list summary { cursor: pointer; font-weight: 700; color: var(--link); }
+  .lab-box { border: 2px dashed #333333; background: #fdf3d7; color: #1c2733; border-radius: 4px; padding: 20px 24px 18px; margin: 30px 0 0; max-width: 880px; }
+  .lab-box .lab-title { text-align: center; color: #611940; font-size: 1.9rem; font-weight: 700; margin: 0 0 16px; }
+  .lab-box .lab-sub { color: #611940; font-weight: 700; font-size: 1.2rem; margin: 0 0 6px; }
+  .lab-box a.lab-link { color: #611940; font-weight: 700; text-decoration: underline; }
+  .lab-expect { border: 1.5px solid #333333; background: #ffffff; color: #1c2733; border-radius: 4px; padding: 14px 24px; margin: 0 0 26px; max-width: 880px; }
+  .lab-expect p:last-child { margin-bottom: 0; }
+  .lab-expect a { color: #611940; font-weight: 700; }
+  .resources ul { list-style: none; padding-left: 0; }
+  .rtype { display: inline-block; font-size: 13px; font-weight: 700; color: #ffffff; background: #611940; border-radius: 4px; padding: 1px 8px; margin-right: 8px; }
+  .kc-list { list-style: none; padding-left: 0; max-width: none; counter-reset: kc; }
+  .kc-list > li { counter-increment: kc; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px; margin-bottom: 14px; }
+  .kc-list .q { font-weight: 600; margin-bottom: 8px; }
+  .kc-list .q::before { content: "Question " counter(kc) ". "; color: var(--h1); }
+  .kc-list details { background: var(--exam-bg); border-left: 4px solid var(--exam-bar); border-radius: 0 6px 6px 0; padding: 10px 14px; }
+  .kc-list details p:first-of-type { margin-top: 10px; }
+  .panel-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .panel-nav button { background: var(--card); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 16px; font: inherit; font-size: 15px; font-weight: 600; color: var(--link); cursor: pointer; max-width: 48%; text-align: left; }
+  .panel-nav button:hover { background: var(--hover); }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 2px solid var(--rule); color: var(--muted); font-size: 14.5px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 900px) {
+    .layout { display: block; padding: 16px 14px 50px; }
+    .side-wrap { width: 100%; margin: 0 0 24px; position: static; max-height: none; overflow: visible; }
+    .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .tab-btn { margin: 0; }
+    h2 { font-size: 1.4rem; }
+    .page-title { font-size: 2.15rem; }
+    .panel h1 { font-size: 1.85rem; }
+    h3 { font-size: 1.28rem; }
+  }
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .sidebar { grid-template-columns: 1fr; }
+    .lab-box { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="side-wrap" aria-label="Lesson navigation">
+    <div class="sidebar" role="tablist" aria-orientation="vertical" aria-label="Lesson tabs">
+      <button class="tab-btn" role="tab" id="tab-0" aria-controls="overview" aria-selected="true" tabindex="0">Overview and Objectives</button>
+      <button class="tab-btn" role="tab" id="tab-1" aria-controls="intro" aria-selected="false" tabindex="-1">1. Introduction to Amazon Translate</button>
+      <button class="tab-btn" role="tab" id="tab-2" aria-controls="modes" aria-selected="false" tabindex="-1">2. Translating Text and Documents</button>
+      <button class="tab-btn" role="tab" id="tab-3" aria-controls="custom" aria-selected="false" tabindex="-1">3. Customizing Translations</button>
+      <button class="tab-btn" role="tab" id="tab-4" aria-controls="arch" aria-selected="false" tabindex="-1">4. Architecture, Security, and Cost</button>
+      <button class="tab-btn" role="tab" id="tab-5" aria-controls="comparison" aria-selected="false" tabindex="-1">5. Comparison and Scenarios</button>
+      <button class="tab-btn" role="tab" id="tab-6" aria-controls="knowledge-check" aria-selected="false" tabindex="-1">6. Knowledge Check</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo." width="230" height="33"></div>
+    <h1 class="page-title" style="border:none;padding:0;">Amazon Translate</h1>
+    <p class="page-sub">How Amazon Translate translates text and documents: real-time, document, and batch translation, custom terminology and Active Custom Translation, and the architecture, security, and cost of a translation pipeline.</p>
+    <div class="sr-only" id="live" aria-live="polite"></div>
+
+<section class="panel active" id="overview" role="tabpanel" aria-labelledby="tab-0" tabindex="0">
+
+  <div class="overview-box">
+    <h2>Lesson Overview</h2>
+    <p>Amazon Translate is a managed neural machine translation service. It translates text between supported languages with deep learning, and you call it through an application programming interface (API), so you need no machine learning (ML) expertise. This lesson follows FlashCart Inc., a fictional online marketplace that is opening stores in new countries and must translate product pages, reviews, support chat, and documents. In this lesson, you will study:</p>
+    <ul>
+      <li><strong>Introduction to Amazon Translate:</strong> what the service does, its languages, how you call it, and common use cases.</li>
+      <li><strong>Translating Text and Documents:</strong> real-time text translation, document translation, and asynchronous batch jobs, with their formats and limits.</li>
+      <li><strong>Customizing Translations:</strong> custom terminology, Active Custom Translation, formality, profanity masking, and brevity.</li>
+      <li><strong>Architecture, Security, and Cost:</strong> patterns that combine Translate with other AWS services, access control, data privacy, throttling, and the pricing model.</li>
+      <li><strong>Comparison and Scenarios:</strong> how Translate compares with other AWS AI services, and an SAA-C03 cheat sheet.</li>
+      <li><strong>Knowledge Check:</strong> open-ended questions with model answers.</li>
+    </ul>
+  </div>
+
+  <div class="overview-box">
+    <h2>Learning Objectives</h2>
+    <p>At the end of this lesson, learners will be able to:</p>
+    <ol>
+      <li>Define Amazon Translate and neural machine translation, and state where Translate fits in the AWS artificial intelligence (AI) layers.</li>
+      <li>Describe the languages, the input formats, and the size limits of real-time, document, and batch translation.</li>
+      <li>Explain how Translate detects the source language by using Amazon Comprehend.</li>
+      <li>Choose between real-time text translation, document translation, and asynchronous batch translation.</li>
+      <li>Apply custom terminology to keep brand names and key terms consistent.</li>
+      <li>Differentiate Active Custom Translation from custom terminology, and describe formality, profanity masking, and brevity.</li>
+      <li>Judge when raw machine translation is good enough and when human post-editing is needed.</li>
+      <li>Design a translation pipeline that addresses security, privacy, throttling, and cost, and combines Translate with other AWS AI services.</li>
+    </ol>
+  </div>
+
+  <div class="overview-box">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#intro">Introduction to Amazon Translate</a></li>
+      <li><a href="#modes">Translating Text and Documents</a></li>
+      <li><a href="#custom">Customizing Translations</a></li>
+      <li><a href="#arch">Architecture, Security, and Cost</a></li>
+      <li><a href="#comparison">Comparison and Scenarios</a></li>
+      <li><a href="#knowledge-check">Knowledge Check</a></li>
+    </ol>
+  </div>
+</section>
+
+<section class="panel" id="intro" role="tabpanel" aria-labelledby="tab-1" tabindex="0">
+  <h1>1. Introduction to Amazon Translate</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart Inc. is opening stores in four new countries. It must translate thousands of product pages, the help center, and a stream of customer reviews that arrive in many languages. A human translation agency quoted a price and a timeline that the business cannot accept.</p>
+    <p>The engineering manager wants to try machine translation. The team has no machine learning engineers. She worries about two things: how many languages the service supports, and what to do when the source language of a message is not known.</p>
+    <p>She also wants to know how good the output is, and which content still needs a person to check it.</p>
+    <p><strong>Your challenge:</strong> Advise the manager. Your answer should:</p>
+    <ul>
+      <li>Explain what Amazon Translate is and why it needs no machine learning expertise.</li>
+      <li>Say which languages it supports and how it handles an unknown source language.</li>
+      <li>Say when the raw output is enough and when a person should review it.</li>
+      </ul>
+  </div>
+
+  <h2>1.1 What Amazon Translate Is</h2>
+  <ul>
+    <li>Amazon Translate is a neural machine translation service for translating text between supported languages. It uses deep learning to give high-quality, affordable, and customizable translation.</li>
+    <li>Its neural network takes into account the context of the source sentence and the translation that it has produced so far.</li>
+    <li>It is a fully managed service with an API, so you can use it for real-time or batch translation of text from a source language to a target language.</li>
+    <li>You can start in the console, call it from the AWS Command Line Interface (AWS CLI), or use an AWS software development kit (SDK).</li>
+    <li>It sits in the AI services layer, with Amazon Rekognition, Amazon Textract, and Amazon Comprehend, which you studied in Lessons 299.1 to 299.3.</li>
+  </ul>
+
+  <h2>1.2 Languages</h2>
+  <ul>
+    <li>Amazon Translate supports translation between 75 languages, and the list is growing. It supports translation between all supported languages, so a source and a target can be any two of them.</li>
+    <li>Examples are Arabic, Chinese (Simplified), Chinese (Traditional), English, French, French (Canada), German, Hindi, Japanese, Korean, Portuguese, Portuguese (Portugal), Spanish, and Spanish (Mexico), among many others.</li>
+    <li>If you ask for a language or a pair that is not supported, Translate returns an unsupported language pair error.</li>
+    <li>Check the supported languages page in the documentation for the current list and the language codes.</li>
+  </ul>
+
+  <h2>1.3 How You Call Translate</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 250" role="img" aria-labelledby="t1c d1c" xmlns="http://www.w3.org/2000/svg">
+      <title id="t1c">How an application calls Amazon Translate</title>
+      <desc id="d1c">An application sends text and the source and target language codes to Amazon Translate. If the source language is set to auto, Translate uses Amazon Comprehend to detect it. Translate returns the translated text and the detected source language.</desc>
+      <defs><marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="255" y="10" width="210" height="60" rx="8" class="s-box"/>
+      <text x="360" y="36" text-anchor="middle" class="s-b">Amazon Comprehend</text>
+      <text x="360" y="58" text-anchor="middle" class="s-m">detects the source language</text>
+      <rect x="15" y="110" width="170" height="90" rx="8" class="s-box"/>
+      <text x="100" y="150" text-anchor="middle" class="s-b">Your application</text>
+      <text x="100" y="174" text-anchor="middle" class="s-m">or AWS Lambda</text>
+      <rect x="255" y="110" width="210" height="90" rx="8" class="s-hot"/>
+      <text x="360" y="148" text-anchor="middle" class="s-b">Amazon Translate</text>
+      <text x="360" y="172" text-anchor="middle" class="s-m">neural machine translation</text>
+      <rect x="540" y="110" width="170" height="100" rx="8" class="s-box"/>
+      <text x="625" y="142" text-anchor="middle" class="s-b">Translated text</text>
+      <text x="625" y="166" text-anchor="middle" class="s-m">in the target</text>
+      <text x="625" y="184" text-anchor="middle" class="s-m">language and the</text>
+      <text x="625" y="202" text-anchor="middle" class="s-m">source if auto</text>
+      <line x1="187" y1="155" x2="253" y2="155" class="s-line" marker-end="url(#ar1)"/>
+      <text x="220" y="100" text-anchor="middle" class="s-m">request</text>
+      <line x1="467" y1="155" x2="538" y2="155" class="s-line" marker-end="url(#ar1)"/>
+      <line x1="360" y1="72" x2="360" y2="108" class="s-line" marker-end="url(#ar1)"/>
+      <text x="374" y="96" text-anchor="start" class="s-m">only if source is auto</text>
+      <text x="360" y="236" text-anchor="middle" class="s-m">The request carries the text and the language codes.</text>
+    </svg>
+    <figcaption>Image 1a — An application calls Amazon Translate with text and language codes. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>You send the source text, a source language code, and a target language code. Translate returns the text in the target language.</li>
+    <li>If the source language is unknown, set the source to <code>auto</code>. Translate identifies the language with Amazon Comprehend behind the scenes and reports it back along with the translation.</li>
+    <li>Real-time translation takes plain text in UTF-8 format.</li>
+    <li>Access uses AWS Identity and Access Management (IAM) policies, so only authorized users and roles can call the APIs.</li>
+  </ul>
+
+  <h2>1.4 The Console</h2>
+  <p>The AWS Management Console is the quickest way to try Translate. You choose a source language, which can be <code>auto</code>, enter text, and choose a target language. The console counts the bytes that you use against a limit, and it has a Text tab and a Document tab.</p>
+  <figure class="diagram">
+    <img src="data:image/webp;base64,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" alt="A screenshot of the Amazon Translate console. The Text tab is selected. The source language is English (en) and the target language is Hindi (hi). The text Congratulation on completing your AWS certification is entered on the left, and its Hindi translation appears on the right. A counter below the input reads 51 characters, 51 of 10000 bytes used, and a link below it reads Additional settings." width="1300" height="389" style="display:block;width:100%;max-width:900px;height:auto;border:1px solid var(--rule);">
+    <figcaption>Image 1b — The Amazon Translate console, Text tab. (Source: Chetan Agrawal.)</figcaption>
+  </figure>
+  <figure class="diagram">
+    <img src="data:image/webp;base64,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" alt="A screenshot of the Amazon Translate console with the source language set to Auto. The text Hi my name is Stéphane is translated into three target languages: French, Portuguese, and Hindi. A vertical watermark on the right edge reads not for distribution, Stephane Maarek." width="1400" height="355" style="display:block;width:100%;max-width:900px;height:auto;border:1px solid var(--rule);">
+    <figcaption>Image 1c — One source text translated into three target languages. (Source: Stephane Maarek.)</figcaption>
+  </figure>
+
+  <h2>1.5 Common Use Cases</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Use case</th><th scope="col">What you do</th><th scope="col">FlashCart example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Localize content</strong></td><td>Translate websites, applications, user manuals, and documents for international users.</td><td>Translate product pages and the help center into the languages of the new countries.</td></tr>
+      <tr><td><strong>Make user-authored content accessible</strong></td><td>Translate forums, support content, and reviews into other languages.</td><td>Show reviews from one country to shoppers in another.</td></tr>
+      <tr><td><strong>Extract insights from many languages</strong></td><td>Translate large volumes of text, and then analyze it.</td><td>Translate reviews to English, and send them to Amazon Comprehend.</td></tr>
+      <tr><td><strong>Support customers in any language</strong></td><td>Translate chat so that agents can answer anyone.</td><td>Let one support agent chat with customers in many languages.</td></tr>
+      <tr><td><strong>Search in the user’s language</strong></td><td>Let customers search your application in their own language.</td><td>Search the catalog in Spanish and French.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>1.6 How Good Is the Output?</h2>
+  <ul>
+    <li>Machine translation fits best when the volume is high, speed matters, and minor imperfections are acceptable. You can publish the raw output for a first draft, or for gist, such as survey responses.</li>
+    <li>With light human post-editing, you can use it for content such as specifications, FAQs, and support articles.</li>
+    <li>With more extensive post-editing, you can use it for high-value branded content, such as advertising, marketing materials, and contracts.</li>
+    <li>You do not have to credit the translation, but AWS suggests that you tell your customers that it was machine translated.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Translate does not read images or scanned pages. A scanned manual needs Amazon Textract first, and recorded speech needs Amazon Transcribe first. Also, raw machine translation is not a substitute for review on high-value content such as contracts: plan post-editing for it.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Translate turns text into another language. Comprehend tells you what the text means.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Translate website and application content for international users”<br>→ Amazon Translate</p>
+    <p><strong>Trigger 2:</strong> “The source language of incoming text is unknown”<br>→ Source language auto, which uses Amazon Comprehend to detect it</p>
+    <p><strong>Trigger 3:</strong> “Translate reviews into English, and then find the sentiment”<br>→ Amazon Translate, then Amazon Comprehend</p>
+    <p><strong>Trigger 4:</strong> “Translate a scanned document”<br>→ Amazon Textract first, then Amazon Translate</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company wants to translate its website and its help articles into several languages quickly and at low cost. It has no machine learning engineers. Which solution fits best?</p>
+    <ol type="A">
+      <li>Call Amazon Translate from the content workflow.</li>
+      <li>Train a custom translation model on Amazon SageMaker AI, and host it on an endpoint.</li>
+      <li>Use Amazon Comprehend to translate the text.</li>
+      <li>Use Amazon Rekognition to translate the text.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Translate is a fully managed neural machine translation service. The team calls an API and does not train or host a model.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. Translate is built for this need.</td></tr>
+          <tr><td>B</td><td>Wrong. It works, but it needs machine learning expertise and more operational effort.</td></tr>
+          <tr><td>C</td><td>Wrong. Comprehend analyzes text. It does not translate it.</td></tr>
+          <tr><td>D</td><td>Wrong. Rekognition analyzes images and video.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>1.7 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/translate/latest/dg/what-is.html" target="_blank" rel="noopener">What Is Amazon Translate?</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/translate/faqs/" target="_blank" rel="noopener">Amazon Translate FAQs</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/translate/details/" target="_blank" rel="noopener">Amazon Translate Features</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/translate/pricing/" target="_blank" rel="noopener">Amazon Translate Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="modes" role="tabpanel" aria-labelledby="tab-2" tabindex="0">
+  <h1>2. Translating Text and Documents</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s support chat needs an instant translation of every message. The marketing team has a folder of 3,000 product manuals as Word files, plus spreadsheets and slide decks that all need to be translated into five languages overnight.</p>
+    <p>A developer sends a long help article to the real-time API, and the call fails because the text is too big. Another developer asks whether she can send a Word document in a single call, without extracting the text first.</p>
+    <p>The architect must choose the right translation mode for each case.</p>
+    <p><strong>Your challenge:</strong> Choose the translation mode. Your answer should:</p>
+    <ul>
+      <li>Name the mode for chat messages, for a single Word file, and for thousands of files.</li>
+      <li>State the key size limits of each mode.</li>
+      <li>Say what the output looks like for a document.</li>
+      </ul>
+  </div>
+
+  <h2>2.1 Three Ways to Translate</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col"></th><th scope="col">Real-time text</th><th scope="col">Document (synchronous)</th><th scope="col">Batch (asynchronous)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Operation</strong></td><td><code>TranslateText</code></td><td><code>TranslateDocument</code></td><td><code>StartTextTranslationJob</code></td></tr>
+      <tr><td><strong>Input</strong></td><td>Plain text in UTF-8.</td><td>Text, HTML, or Word (.docx) content.</td><td>Files in an Amazon S3 folder: plain text, HTML, Word, Excel, PowerPoint, and XLIFF 1.2.</td></tr>
+      <tr><td><strong>How you get the result</strong></td><td>In the response.</td><td>In the response, in the same format as the input.</td><td>In an S3 output folder, after the job finishes.</td></tr>
+      <tr><td><strong>Best for</strong></td><td>Dynamic content, such as chat.</td><td>A single document that needs an answer now.</td><td>Large volumes, such as a folder of manuals.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>2.2 Limits to Know</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Mode</th><th scope="col">Limit</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Real-time text</strong></td><td>Up to 10,000 bytes of input text in a call.</td></tr>
+      <tr><td><strong>Document, synchronous</strong></td><td>Up to 100,000 characters, and up to 100,000 bytes, in a document.</td></tr>
+      <tr><td><strong>Batch, each document</strong></td><td>Up to 1,000,000 characters and 20 MB for each document, and up to 1 MB of translatable text.</td></tr>
+      <tr><td><strong>Batch, a job</strong></td><td>Up to 5 GB in total, up to 1,000,000 documents, up to 10 target languages, and up to 10 concurrent jobs.</td></tr>
+      </tbody>
+  </table></div>
+  <p>Limits change. Check the guidelines and quotas page before you design around them. Note that the Amazon Translate FAQ still says 5,000 bytes for a real-time call, while the console and the quotas page show 10,000 bytes. Use the quotas page, which is the Developer Guide’s current statement.</p>
+  <p>To translate a long text in real time, split it into sections and paragraphs, and call the API for each part.</p>
+
+  <h2>2.3 Batch Translation</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 260" role="img" aria-labelledby="t2a d2a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t2a">How an asynchronous batch translation job works</title>
+      <desc id="d2a">Documents are stored in an input folder in Amazon S3. Your application starts a batch translation job with StartTextTranslationJob, and gives it an IAM data access role. Translate translates each document into each target language and writes the results to an output folder in Amazon S3. Your application checks the job status with DescribeTextTranslationJob.</desc>
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="30" width="190" height="80" rx="8" class="s-box"/>
+      <text x="110" y="62" text-anchor="middle" class="s-b">Input folder</text>
+      <text x="110" y="84" text-anchor="middle" class="s-m">in Amazon S3</text>
+      <rect x="265" y="30" width="190" height="80" rx="8" class="s-hot"/>
+      <text x="360" y="62" text-anchor="middle" class="s-b">Batch translation job</text>
+      <text x="360" y="84" text-anchor="middle" class="s-m">runs asynchronously</text>
+      <rect x="515" y="30" width="190" height="80" rx="8" class="s-box"/>
+      <text x="610" y="62" text-anchor="middle" class="s-b">Output folder</text>
+      <text x="610" y="84" text-anchor="middle" class="s-m">in Amazon S3</text>
+      <rect x="265" y="170" width="190" height="70" rx="8" class="s-box"/>
+      <text x="360" y="198" text-anchor="middle" class="s-b">Your application</text>
+      <text x="360" y="220" text-anchor="middle" class="s-m">starts and checks the job</text>
+      <rect x="15" y="170" width="190" height="70" rx="8" class="s-box"/>
+      <text x="110" y="198" text-anchor="middle" class="s-b">IAM data access role</text>
+      <text x="110" y="220" text-anchor="middle" class="s-m">lets Translate use S3</text>
+      <line x1="207" y1="70" x2="263" y2="70" class="s-line" marker-end="url(#ar2)"/>
+      <line x1="457" y1="70" x2="513" y2="70" class="s-line" marker-end="url(#ar2)"/>
+      <line x1="360" y1="170" x2="360" y2="112" class="s-line" marker-end="url(#ar2)"/>
+      <text x="374" y="146" text-anchor="start" class="s-m">Start and Describe</text>
+      <line x1="110" y1="168" x2="110" y2="112" class="s-line" marker-end="url(#ar2)"/>
+    </svg>
+    <figcaption>Image 2a — An asynchronous batch translation job. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>You upload the input files to an Amazon S3 folder, and you call <code>StartTextTranslationJob</code> with the input and output locations, the source language, and the target languages.</li>
+    <li>You give the job an IAM data access role, so that Translate can read the input and write the output.</li>
+    <li>You can input documents with different source languages. Set the source language to <code>auto</code>, and Translate detects the source language of each document.</li>
+    <li>Translate translates each input document into each target language.</li>
+    <li>Check on the job with <code>DescribeTextTranslationJob</code>, list jobs with <code>ListTextTranslationJobs</code>, and stop a job with <code>StopTextTranslationJob</code>.</li>
+    <li>The output file has the same format as the input file.</li>
+  </ul>
+
+  <h2>2.4 Automatic Source Language Detection</h2>
+  <ul>
+    <li>Translate takes plain text and language codes. If the source language is unknown, it identifies the language with Amazon Comprehend and returns that language with the translation.</li>
+    <li>In a batch job, <code>auto</code> works for each input document, so one job can handle documents in several languages.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Do not send a long text to the real-time API in one call: it has a size limit. Split the text, or use a document operation or a batch job. Also, a batch job is asynchronous. It needs an IAM data access role and S3 folders, and the results arrive in the output folder, not in the response.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>A message in real time, a file in a document call, and a folder in a batch.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Translate chat messages as they arrive”<br>→ Real-time TranslateText</p>
+    <p><strong>Trigger 2:</strong> “Translate one Word document and get the result in the response”<br>→ TranslateDocument</p>
+    <p><strong>Trigger 3:</strong> “Translate thousands of documents in Amazon S3 into several languages”<br>→ A batch translation job</p>
+    <p><strong>Trigger 4:</strong> “Documents in many different source languages in one job”<br>→ Set the source language to auto</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company has 5,000 Word and PowerPoint files in Amazon S3. It must translate all of them into three languages, with no servers to manage. Which approach fits best?</p>
+    <ol type="A">
+      <li>Start an Amazon Translate batch translation job on the S3 folder, with an IAM data access role.</li>
+      <li>Call the real-time TranslateText API once for every sentence from an Amazon EC2 instance.</li>
+      <li>Use Amazon Textract to translate the files.</li>
+      <li>Train a custom translation model on Amazon SageMaker AI.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> A batch translation job reads files from Amazon S3, translates each file into each target language, and writes the results to Amazon S3.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. It is managed and built for large volumes of files.</td></tr>
+          <tr><td>B</td><td>Wrong. It uses servers, makes a huge number of calls, and loses the file formats.</td></tr>
+          <tr><td>C</td><td>Wrong. Textract extracts text. It does not translate.</td></tr>
+          <tr><td>D</td><td>Wrong. It needs expertise and effort that Translate avoids.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>2.5 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/translate/latest/dg/how-it-works.html" target="_blank" rel="noopener">How Amazon Translate Works</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/translate/latest/dg/what-is-limits.html" target="_blank" rel="noopener">Guidelines and Quotas for Amazon Translate</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/cli/v1/reference/translate/start-text-translation-job.html" target="_blank" rel="noopener">StartTextTranslationJob (AWS CLI)</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="custom" role="tabpanel" aria-labelledby="tab-3" tabindex="0">
+  <h1>3. Customizing Translations</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s first translated pages are live, and the brand team is unhappy. The product line “FlashCart Express” is sometimes translated word by word, and “Flash Deals” becomes a phrase that means something else in one language.</p>
+    <p>The marketing team also wants a formal tone on the Japanese and German pages and a friendly tone in chat. The community manager wants profanity in user reviews masked. The mobile team needs shorter translations for small buttons.</p>
+    <p>The architect knows that Translate has settings and customization features, and she must pick the right one for each request.</p>
+    <p><strong>Your challenge:</strong> Choose the right customization for each need. Your answer should:</p>
+    <ul>
+      <li>Name the feature that keeps brand and product names consistent.</li>
+      <li>Say how to adapt translations to FlashCart’s own style by using its own examples.</li>
+      <li>Name the settings for tone, profanity, and length.</li>
+      </ul>
+  </div>
+
+  <h2>3.1 Custom Terminology</h2>
+  <ul>
+    <li>Custom terminology defines how you want Translate to translate specific terms, such as brand names and product names.</li>
+    <li>You import a terminology file that lists example source terms and the desired translation of each term. Translate keeps it as a terminology resource in your account.</li>
+    <li>You name the terminology in a request: a <code>TranslateText</code> or <code>TranslateDocument</code> call, or a batch job. A request can use one terminology resource.</li>
+    <li>The response reports which terminologies Translate applied.</li>
+    <li>You manage terminologies with <code>ImportTerminology</code>, <code>GetTerminology</code>, <code>ListTerminologies</code>, and <code>DeleteTerminology</code>.</li>
+  </ul>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Quota</th><th scope="col">Limit</th></tr></thead>
+    <tbody>
+      <tr><td><strong>File size</strong></td><td>20 MB.</td></tr>
+      <tr><td><strong>Files per account in a Region</strong></td><td>100.</td></tr>
+      <tr><td><strong>Target languages in one file</strong></td><td>30.</td></tr>
+      <tr><td><strong>Length of a term</strong></td><td>200 bytes, for the source and for the target text.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>3.2 Active Custom Translation</h2>
+  <ul>
+    <li>Active Custom Translation (ACT) lets you bring your own data, called parallel data, to customize the translated output to your needs.</li>
+    <li>Parallel data is a set of examples of source text with the translation that you want. You create a parallel data resource from a file in Amazon S3.</li>
+    <li>A parallel data resource has one source language. If a job has several target languages, the file must include translations for all of them.</li>
+    <li>You add one parallel data resource to a batch translation job. That makes it an Active Custom Translation job.</li>
+    <li>ACT jobs are priced at a higher rate than jobs that do not use parallel data.</li>
+    <li>It gives an effect similar to a custom model that you train with your own examples, but you do not train a model. To change the output, you update the parallel data.</li>
+    <li>ACT is available only in some Regions, so check the documentation.</li>
+    <li>Quotas: a parallel data input file can be up to 5 GB, a single segment can be up to 1,000 bytes, and an account can hold up to 1,000 parallel data resources in a Region.</li>
+  </ul>
+
+  <h2>3.3 Formality, Profanity Masking, and Brevity</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Setting</th><th scope="col">What it does</th><th scope="col">Notes</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Formality</strong></td><td>Sets the level of formal language, also called register, to <code>FORMAL</code> or <code>INFORMAL</code>.</td><td>Only some target languages support it. A batch job ignores it for unsupported languages, and a document request fails if the target language does not support it.</td></tr>
+      <tr><td><strong>Profanity</strong></td><td>Masks profane words and phrases in the output.</td><td>Translate does not detect profanity in every language. In a batch job with several targets, all of them must support it, or none is masked.</td></tr>
+      <tr><td><strong>Brevity</strong></td><td>Shortens the translation for most translations compared with the same translation with brevity off. It is off by default.</td><td>Supported for real-time text translation. Not supported for documents or batch jobs.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>3.4 Custom Terminology or Active Custom Translation?</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col"></th><th scope="col">Custom terminology</th><th scope="col">Active Custom Translation</th></tr></thead>
+    <tbody>
+      <tr><td><strong>What you provide</strong></td><td>A list of terms and their translations.</td><td>Parallel data: examples of full source text with the translation that you want.</td></tr>
+      <tr><td><strong>Best for</strong></td><td>Exact translations of brand names, product names, and key terms.</td><td>Adapting the style and the wording of the output to your content.</td></tr>
+      <tr><td><strong>Where it applies</strong></td><td>Real-time text, documents, and batch jobs.</td><td>Batch jobs.</td></tr>
+      <tr><td><strong>Cost</strong></td><td>Standard translation pricing.</td><td>A higher rate than standard jobs.</td></tr>
+      </tbody>
+  </table></div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Custom terminology changes only the terms that you list. It does not teach Translate your style. For that, use Active Custom Translation with parallel data, which costs more and runs as a batch job. Also remember that brevity works for real-time text only, and that formality works only for some target languages.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Terminology fixes the words. Parallel data teaches the style.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Keep brand names translated the same way every time”<br>→ Custom terminology</p>
+    <p><strong>Trigger 2:</strong> “Adapt translations to the company’s own style with its own example translations”<br>→ Active Custom Translation with parallel data</p>
+    <p><strong>Trigger 3:</strong> “Choose a formal or an informal tone”<br>→ The formality setting</p>
+    <p><strong>Trigger 4:</strong> “Shorter translations for small screens”<br>→ The brevity setting for real-time text</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company must make sure that its product names are never translated, in real-time chat and in batch document jobs. Which feature meets the requirement with the least cost?</p>
+    <ol type="A">
+      <li>Custom terminology, named in each request.</li>
+      <li>Active Custom Translation with a large parallel data file.</li>
+      <li>The brevity setting.</li>
+      <li>The profanity masking setting.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Custom terminology defines exact translations for specific terms, such as product names, and it works in real-time and batch requests at standard pricing.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. It is made for exact terms.</td></tr>
+          <tr><td>B</td><td>Wrong. It adapts style, it applies to batch jobs, and it costs more.</td></tr>
+          <tr><td>C</td><td>Wrong. Brevity shortens the output.</td></tr>
+          <tr><td>D</td><td>Wrong. Masking hides profanity.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>3.5 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/translate/latest/dg/how-custom-terminology.html" target="_blank" rel="noopener">Custom Terminology</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/translate/latest/dg/customizing-translations-parallel-data.html" target="_blank" rel="noopener">Active Custom Translation</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/translate/latest/dg/what-is-limits.html" target="_blank" rel="noopener">Guidelines and Quotas for Amazon Translate</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/translate/details/" target="_blank" rel="noopener">Amazon Translate Features</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="arch" role="tabpanel" aria-labelledby="tab-4" tabindex="0">
+  <h1>4. Architecture, Security, and Cost</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart wants three things at once: translate every support chat message in real time, translate the review database so that the analytics team can read it in English, and translate a folder of manuals overnight.</p>
+    <p>The security team asks who can call Translate, what AWS does with the text, and whether the traffic can stay off the public internet. The finance team asks how Translate is billed, and whether texts that are already in the target language cost money.</p>
+    <p>The architect must draw the designs and answer both teams.</p>
+    <p><strong>Your challenge:</strong> Design the solution. Your answer should:</p>
+    <ul>
+      <li>Show how Translate combines with other AWS services for reviews and chat.</li>
+      <li>Describe access control, privacy, throttling, and network options.</li>
+      <li>Explain the billing model and two ways to control cost.</li>
+      </ul>
+  </div>
+
+  <h2>4.1 Three Ways to Use the API</h2>
+  <ul>
+    <li><strong>Inside an application:</strong> localize highly dynamic parts, such as multi-participant chat.</li>
+    <li><strong>With other services:</strong> string Translate together with other AWS services for language-independent processing. For example, a Lambda function can read user-generated reviews and forum posts from a database such as Amazon Relational Database Service (Amazon RDS) and localize them.</li>
+    <li><strong>In batches of documents:</strong> for example, financial firms translate and monitor news in any language, legal teams search materials in many languages for eDiscovery, and patent attorneys search patent repositories worldwide.</li>
+  </ul>
+
+  <h2>4.2 Translate With Comprehend and Transcribe</h2>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 310" role="img" aria-labelledby="t4a d4a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t4a">A multilingual analytics and translation pipeline</title>
+      <desc id="d4a">Customer reviews in many languages are saved to Amazon S3. An S3 event starts an AWS Lambda function, which calls Amazon Translate to produce English text. The function then calls Amazon Comprehend to analyze the English text. The function stores the original text, the translation, and the insights in Amazon DynamoDB.</desc>
+      <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="10" y="40" width="105" height="70" rx="8" class="s-box"/>
+      <text x="62" y="70" text-anchor="middle" class="s-b">Reviews</text>
+      <text x="62" y="92" text-anchor="middle" class="s-m">all languages</text>
+      <rect x="150" y="40" width="115" height="70" rx="8" class="s-box"/>
+      <text x="207" y="70" text-anchor="middle" class="s-b">Amazon S3</text>
+      <text x="207" y="92" text-anchor="middle" class="s-m">upload event</text>
+      <rect x="300" y="40" width="115" height="70" rx="8" class="s-box"/>
+      <text x="357" y="70" text-anchor="middle" class="s-b">AWS Lambda</text>
+      <text x="357" y="92" text-anchor="middle" class="s-m">function</text>
+      <rect x="450" y="40" width="260" height="70" rx="8" class="s-hot"/>
+      <text x="580" y="70" text-anchor="middle" class="s-b">Amazon Translate</text>
+      <text x="580" y="92" text-anchor="middle" class="s-m">text to English</text>
+      <rect x="450" y="200" width="260" height="70" rx="8" class="s-hot"/>
+      <text x="580" y="230" text-anchor="middle" class="s-b">Amazon Comprehend</text>
+      <text x="580" y="252" text-anchor="middle" class="s-m">sentiment and entities</text>
+      <rect x="300" y="200" width="115" height="70" rx="8" class="s-box"/>
+      <text x="357" y="228" text-anchor="middle" class="s-b">DynamoDB</text>
+      <text x="357" y="250" text-anchor="middle" class="s-m">stores results</text>
+      <line x1="117" y1="75" x2="148" y2="75" class="s-line" marker-end="url(#ar4)"/>
+      <line x1="267" y1="75" x2="298" y2="75" class="s-line" marker-end="url(#ar4)"/>
+      <line x1="417" y1="75" x2="448" y2="75" class="s-line" marker-end="url(#ar4)"/>
+      <line x1="580" y1="112" x2="580" y2="198" class="s-line" marker-end="url(#ar4)"/>
+      <text x="592" y="160" text-anchor="start" class="s-m">English text</text>
+      <line x1="448" y1="235" x2="417" y2="235" class="s-line" marker-end="url(#ar4)"/>
+    </svg>
+    <figcaption>Image 4a — Translate to English, and then analyze. (Original diagram for this course.)</figcaption>
+  </figure>
+  <ol>
+    <li>Reviews in many languages are saved to Amazon S3.</li>
+    <li>The upload event starts an AWS Lambda function.</li>
+    <li>The function calls Translate, with the source language set to <code>auto</code>, to get English text.</li>
+    <li>The function calls Amazon Comprehend to find the sentiment, entities, and key phrases in the English text.</li>
+    <li>The function stores the original text, the translation, and the insights, for example in Amazon DynamoDB.</li>
+  </ol>
+  <ul>
+    <li>Translate and Amazon Comprehend together let you analyze text such as social media and news feeds in many languages.</li>
+    <li>Translate and Amazon Transcribe together make subtitles and live captions available in many languages. Amazon Transcribe is covered later in this module.</li>
+    <li>For scanned documents, use Amazon Textract first to get the text.</li>
+  </ul>
+
+  <h2>4.3 Throttling</h2>
+  <ul>
+    <li>Translate scales to serve customer traffic. If you see sustained throttling, contact AWS Support.</li>
+    <li>The job APIs have request rate limits, for example 5 requests per second for starting a batch job and 10 for describing or listing jobs. A batch account can run up to 10 concurrent jobs and queue up to 1,000.</li>
+    <li>Add retries with exponential backoff and jitter, and use a queue to smooth bursts.</li>
+  </ul>
+
+  <h2>4.4 Security and Access Control</h2>
+  <ul>
+    <li>Use IAM policies and roles to control who can call Translate. Give a batch job a data access role with access only to its input and output folders.</li>
+    <li>Translate supports virtual private cloud (VPC) endpoints through AWS PrivateLink, so that you can call it without the public internet.</li>
+    <li>AWS says that it protects content with encryption at rest and in transit, and that only authorized employees can access it.</li>
+    <li>For information about compliance programs, see AWS Compliance and the list of services in scope.</li>
+  </ul>
+
+  <h2>4.5 Data Privacy</h2>
+  <ul>
+    <li>Translate may store and use the text that it processes to provide the service and, unless you opt out, to improve Translate and other Amazon AI technologies.</li>
+    <li>To opt out, use an AWS Organizations AI services opt-out policy.</li>
+    <li>Processed content is encrypted and stored at rest in the Region where you use Translate. A portion may be stored in another Region for improvement of the service.</li>
+    <li>You always own your content. You can ask AWS Support to delete your stored data and to stop storing future data for the account, but doing so can reduce translation quality.</li>
+  </ul>
+
+  <h2>4.6 The Cost Model</h2>
+  <ul>
+    <li>Translate is priced by the amount of text that it translates. Check the pricing page for current rates.</li>
+    <li>A request is not charged when the source language equals the target language, or when an error occurs and no translation comes back.</li>
+    <li>A request with content that cannot be translated, such as a string of symbols, is charged.</li>
+    <li>Active Custom Translation jobs cost more than standard jobs.</li>
+    <li>Translate once and store the result, instead of translating the same text again.</li>
+    <li>Use custom terminology for brand terms, and use batch jobs for large volumes.</li>
+  </ul>
+  <p>Machine translation costs a fraction of human translation, which is why teams can translate content that they could not afford to translate before.</p>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>A batch job needs an IAM data access role and S3 folders, and the results arrive in the output folder. Also remember that Translate may store and use your text to improve the service unless you opt out with an AWS Organizations policy, and that deleting stored data can lower the quality of your translations.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Translate first, then analyze. Translate once, then store.</p>
+  </div>
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Translate reviews to English and find their sentiment”<br>→ Amazon Translate, then Amazon Comprehend</p>
+    <p><strong>Trigger 2:</strong> “Subtitles in many languages for a video”<br>→ Amazon Transcribe and Amazon Translate</p>
+    <p><strong>Trigger 3:</strong> “Call Translate with no public internet access”<br>→ A VPC endpoint through AWS PrivateLink</p>
+    <p><strong>Trigger 4:</strong> “Stop AWS from using text to improve its services”<br>→ An AWS Organizations AI services opt-out policy</p>
+    </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company collects customer reviews in many languages in Amazon S3. It wants to know the sentiment of every review, with no servers to manage and no machine learning expertise. Which architecture fits best?</p>
+    <ol type="A">
+      <li>An S3 event starts an AWS Lambda function that calls Amazon Translate with the source language set to auto, and then calls Amazon Comprehend.</li>
+      <li>An Amazon EC2 instance runs an open-source translation model and a sentiment library.</li>
+      <li>Amazon Textract translates the reviews, and then Amazon Rekognition finds the sentiment.</li>
+      <li>A custom model on Amazon SageMaker AI translates and analyzes the reviews.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Translate detects the source language and translates to a common language, and Comprehend finds the sentiment. Both are managed, and Lambda runs only when a review arrives.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Correct. It is serverless and uses pre-trained services.</td></tr>
+          <tr><td>B</td><td>Wrong. It uses servers and open-source models that the team must run.</td></tr>
+          <tr><td>C</td><td>Wrong. Textract does not translate, and Rekognition does not analyze text sentiment.</td></tr>
+          <tr><td>D</td><td>Wrong. It needs expertise and effort that the managed services avoid.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="resources">
+    <h2>4.7 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/translate/faqs/" target="_blank" rel="noopener">Amazon Translate FAQs: Data Privacy and Billing</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/translate/latest/dg/what-is-limits.html" target="_blank" rel="noopener">Guidelines and Quotas for Amazon Translate</a></li>
+      <li><span class="rtype">AWS</span><a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_ai-opt-out.html" target="_blank" rel="noopener">Managing AI Services Opt-Out Policies</a></li>
+      <li><span class="rtype">AWS</span><a href="https://aws.amazon.com/translate/pricing/" target="_blank" rel="noopener">Amazon Translate Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="comparison" role="tabpanel" aria-labelledby="tab-5" tabindex="0">
+  <h1>5. Comparison and Scenarios</h1>
+
+  <h2>5.1 Choosing Between AWS AI Services</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">If you need to</th><th scope="col">Use</th><th scope="col">What it does</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Translate text into another language</strong></td><td>Amazon Translate</td><td>Neural machine translation between supported languages.</td></tr>
+      <tr><td><strong>Understand text</strong></td><td>Amazon Comprehend</td><td>Language, entities, key phrases, sentiment, and more.</td></tr>
+      <tr><td><strong>Read scanned documents</strong></td><td>Amazon Textract</td><td>Extracts text, forms, and tables from documents.</td></tr>
+      <tr><td><strong>Convert speech to text</strong></td><td>Amazon Transcribe</td><td>Audio to text, such as subtitles.</td></tr>
+      <tr><td><strong>Convert text to speech</strong></td><td>Amazon Polly</td><td>Text to lifelike speech.</td></tr>
+      <tr><td><strong>Analyze photos and video</strong></td><td>Amazon Rekognition</td><td>Objects, faces, scene text, and unsafe content.</td></tr>
+      </tbody>
+  </table></div>
+  <p>These services chain well: Textract or Transcribe produces text, Translate converts it, Comprehend analyzes it, and Polly can speak the result.</p>
+
+  <h2>5.2 Translation Options Compared</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Option</th><th scope="col">Best for</th><th scope="col">Remember</th></tr></thead>
+    <tbody>
+      <tr><td><strong>TranslateText</strong></td><td>Chat and short dynamic text.</td><td>Up to 10,000 bytes. Supports brevity.</td></tr>
+      <tr><td><strong>TranslateDocument</strong></td><td>One text, HTML, or Word document.</td><td>Up to 100,000 characters. Result in the response.</td></tr>
+      <tr><td><strong>Batch job</strong></td><td>Folders of files in Amazon S3.</td><td>IAM data access role. Results in an S3 folder.</td></tr>
+      <tr><td><strong>Custom terminology</strong></td><td>Brand and product names.</td><td>One terminology for each request.</td></tr>
+      <tr><td><strong>Active Custom Translation</strong></td><td>Your own style, from parallel data.</td><td>Batch jobs. Higher price.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">#</th><th scope="col">If the question says…</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Translate website and application content for international users</td><td>Amazon Translate</td></tr>
+      <tr><td>2</td><td>Translate chat messages as they arrive</td><td>Real-time <code>TranslateText</code></td></tr>
+      <tr><td>3</td><td>Translate one Word or HTML document and get the result in the response</td><td><code>TranslateDocument</code></td></tr>
+      <tr><td>4</td><td>Translate thousands of files in Amazon S3 into several languages</td><td>A batch translation job, with an IAM data access role</td></tr>
+      <tr><td>5</td><td>The source language of the text is unknown</td><td>Source language auto, which uses Amazon Comprehend</td></tr>
+      <tr><td>6</td><td>Keep brand and product names translated the same way</td><td>Custom terminology</td></tr>
+      <tr><td>7</td><td>Adapt translations to the company’s style with its own examples</td><td>Active Custom Translation with parallel data</td></tr>
+      <tr><td>8</td><td>Choose a formal or an informal tone</td><td>The formality setting</td></tr>
+      <tr><td>9</td><td>Mask profane words in the output</td><td>The profanity masking setting</td></tr>
+      <tr><td>10</td><td>Shorter translations for small screens</td><td>The brevity setting, for real-time text</td></tr>
+      <tr><td>11</td><td>Translate text from scanned pages</td><td>Amazon Textract first, then Amazon Translate</td></tr>
+      <tr><td>12</td><td>Subtitles in many languages for a video or a call</td><td>Amazon Transcribe and Amazon Translate</td></tr>
+      <tr><td>13</td><td>Analyze reviews in many languages</td><td>Amazon Translate, then Amazon Comprehend</td></tr>
+      <tr><td>14</td><td>Call Translate with no public internet access</td><td>A VPC endpoint through AWS PrivateLink</td></tr>
+      <tr><td>15</td><td>Stop AWS from using text to improve its AI services</td><td>An AWS Organizations AI services opt-out policy</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.4 Scenario Practice</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Scenario</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>A travel site wants its hotel reviews readable in every language.</td><td>Translate each review, with the source language set to auto.</td></tr>
+      <tr><td>A bank must keep the product name “ClearPay” untranslated in every language.</td><td>Custom terminology that maps the term to itself.</td></tr>
+      <tr><td>A publisher wants thousands of Word manuals translated into four languages overnight.</td><td>A batch translation job on the S3 folder.</td></tr>
+      <tr><td>A game wants chat between players in different languages.</td><td>Real-time <code>TranslateText</code> for each message.</td></tr>
+      <tr><td>A news firm wants to monitor articles in any language for sentiment.</td><td>Translate to English, then Comprehend.</td></tr>
+      <tr><td>A mobile app needs shorter button labels in German.</td><td>The brevity setting on real-time translation.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.5 Lesson Summary</h2>
+  <ul>
+    <li>Amazon Translate is a fully managed neural machine translation service in the AI services layer. It translates between 75 languages with no machine learning expertise.</li>
+    <li>Real-time <code>TranslateText</code> handles up to 10,000 bytes. <code>TranslateDocument</code> handles one text, HTML, or Word document. Batch jobs translate folders of files in Amazon S3, with an IAM data access role, and write the results to an output folder.</li>
+    <li>Setting the source language to <code>auto</code> makes Translate use Amazon Comprehend to detect it. Custom terminology fixes specific terms, and Active Custom Translation adapts the style with your parallel data. Formality, profanity masking, and brevity tune the output.</li>
+    <li>Raw output suits high volume and speed. Add light or extensive human post-editing for FAQs, branded content, and contracts.</li>
+    <li>Translate combines with Textract, Transcribe, and Comprehend. It may store and use your text to improve the service unless you opt out, and a VPC endpoint keeps calls off the public internet.</li>
+  </ul>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Pictures go to Rekognition. Documents go to Textract. Text goes to Comprehend. Words in another language go to Translate.</p>
+  </div>
+</section>
+
+<section class="panel" id="knowledge-check" role="tabpanel" aria-labelledby="tab-6" tabindex="0">
+  <h1>6. Knowledge Check</h1>
+  <p>Answer each question in your own words before you open the model answer.</p>
+  <ol class="kc-list">
+    <li>
+      <p class="q">Explain what Amazon Translate is, and why FlashCart can use it with no machine learning engineers.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Translate is a fully managed neural machine translation service. It uses deep learning to translate text between supported languages, taking into account the context of the source sentence and the translation so far. FlashCart calls an API with the text and the language codes, and AWS trains and runs the models, so no machine learning expertise is needed.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How many languages does Translate support, and what happens if the source language is unknown?</p>
+      <details><summary>Show the model answer</summary>
+        <p>It supports 75 languages, and the list is growing, with translation between all supported languages. If the source language is unknown, set it to auto. Translate then identifies the language with Amazon Comprehend and reports it back with the translation.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Compare real-time, document, and batch translation.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Real-time TranslateText takes up to 10,000 bytes of UTF-8 text and returns the result in the response, so it suits chat. TranslateDocument takes one text, HTML, or Word document of up to 100,000 characters and returns the result in the response. A batch job translates folders of files in Amazon S3, up to 5 GB and 20 MB per document, with an IAM data access role, and writes the results to an S3 output folder.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">A developer’s real-time call fails on a long article. What are the options?</p>
+      <details><summary>Show the model answer</summary>
+        <p>The real-time call has a size limit of 10,000 bytes. Split the text into sections and paragraphs and call the API for each part, or use TranslateDocument for a document of up to 100,000 characters, or use a batch job for large files in Amazon S3.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Describe how an asynchronous batch translation job runs.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Upload the input files to an Amazon S3 folder and call StartTextTranslationJob with the input and output locations, the source language, the target languages, and an IAM data access role. Translate translates each document into each target language and writes the results to the output folder. Check progress with DescribeTextTranslationJob. Setting the source language to auto lets one job handle documents in different languages.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What is custom terminology, and when would you use it?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Custom terminology defines how Translate should translate specific terms, such as brand and product names. You import a file with source terms and desired translations, and name one terminology in a request. Use it to keep names consistent in real-time, document, and batch translation, at standard pricing.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How does Active Custom Translation differ from custom terminology?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Active Custom Translation uses parallel data, which is a set of examples of source text and the translation that you want, to adapt the style and wording of the whole output. It applies to batch jobs and costs more. Custom terminology fixes only the specific terms that you list, and it applies to real-time, document, and batch requests.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What do formality, profanity masking, and brevity do, and what are their limits?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Formality sets a formal or informal register, for target languages that support it. Profanity masking hides profane words, in languages that support it. Brevity shortens the output for most translations, and it is supported for real-time text translation only.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">When is raw machine translation enough, and when do you need a person?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Raw output suits high-volume, time-critical content where minor imperfections are acceptable, such as gist from surveys or a first draft. Use light human post-editing for specifications, FAQs, and support content. Use more extensive post-editing for high-value branded content, such as advertising and contracts.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Draw a pipeline that analyzes the sentiment of reviews in many languages.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Reviews are saved to Amazon S3. The upload event starts an AWS Lambda function, which calls Translate with the source language set to auto to get English text. The function then calls Amazon Comprehend for sentiment, entities, and key phrases, and stores the original text, the translation, and the insights in Amazon DynamoDB.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">What does AWS do with the text that Translate processes, and how can an organization opt out?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Translate may store and use text inputs to provide the service and, unless you opt out, to improve Translate and other Amazon AI technologies. You keep ownership of your content. To opt out, use an AWS Organizations AI services opt-out policy. You can also ask AWS Support to delete stored data, but that can reduce translation quality.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How is Translate billed, and what are two ways to control cost?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Translate is priced by the amount of text translated, and Active Custom Translation jobs cost more. Requests with the same source and target language, or that fail with no translation, are not charged. Translate once and store the result, and use batch jobs and custom terminology instead of repeating work.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">How do you call Translate without the public internet, and how does it work with other AI services?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Use a VPC endpoint through AWS PrivateLink. Translate works with Amazon Comprehend to analyze text in many languages, with Amazon Transcribe to produce subtitles in many languages, and after Amazon Textract for scanned documents.</p>
+      </details>
+    </li>
+  </ol>
+</section>
+
+    <footer>
+      <p>Copyright © 2026 Per Scholas. All rights reserved.</p>
+      <p>Sources: AWS documentation and the Amazon Translate FAQs, paraphrased. Console screenshots are credited in their captions. Diagrams are original to this course.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  var panels = tabs.map(function (t) { return document.getElementById(t.getAttribute('aria-controls')); });
+  var live = document.getElementById('live');
+  var current = 0;
+
+  function label(i) { return tabs[i].textContent.trim(); }
+
+  function show(i, opts) {
+    opts = opts || {};
+    if (i < 0 || i >= tabs.length) { return; }
+    current = i;
+    tabs.forEach(function (t, k) {
+      var on = k === i;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.setAttribute('tabindex', on ? '0' : '-1');
+      panels[k].classList.toggle('active', on);
+    });
+    if (!opts.keepScroll) { window.scrollTo(0, 0); }
+    if (opts.focusTab) { tabs[i].focus(); }
+    if (opts.focusHeading) {
+      var h = panels[i].querySelector('h1');
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    }
+    if (opts.updateHash) {
+      try { history.replaceState(null, '', '#' + panels[i].id); } catch (e) {}
+    }
+    if (live) {
+      live.textContent = '';
+      setTimeout(function () { live.textContent = 'Tab ' + (i + 1) + ' of ' + tabs.length + ': ' + label(i); }, 50);
+    }
+  }
+
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { show(i, { updateHash: true }); });
+    t.addEventListener('keydown', function (e) {
+      var n = null;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { n = (i + 1) % tabs.length; }
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { n = (i - 1 + tabs.length) % tabs.length; }
+      else if (e.key === 'Home') { n = 0; }
+      else if (e.key === 'End') { n = tabs.length - 1; }
+      if (n !== null) { e.preventDefault(); show(n, { focusTab: true, updateHash: true, keepScroll: true }); }
+    });
+  });
+
+  panels.forEach(function (p, i) {
+    var nav = document.createElement('div');
+    nav.className = 'panel-nav';
+    var prev = document.createElement('button');
+    var next = document.createElement('button');
+    prev.type = 'button'; next.type = 'button';
+    if (i > 0) {
+      prev.textContent = '\u2190 Previous: ' + label(i - 1);
+      prev.addEventListener('click', function () { show(i - 1, { updateHash: true, focusHeading: true }); });
+    } else { prev.style.visibility = 'hidden'; prev.setAttribute('aria-hidden', 'true'); prev.tabIndex = -1; }
+    if (i < panels.length - 1) {
+      next.textContent = 'Next: ' + label(i + 1) + ' \u2192';
+      next.addEventListener('click', function () { show(i + 1, { updateHash: true, focusHeading: true }); });
+    } else { next.style.visibility = 'hidden'; next.setAttribute('aria-hidden', 'true'); next.tabIndex = -1; }
+    nav.appendChild(prev); nav.appendChild(next);
+    p.appendChild(nav);
+  });
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) { return; }
+    var id = a.getAttribute('href').slice(1);
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { e.preventDefault(); show(idx, { updateHash: true, focusHeading: true }); }
+  });
+
+  function fromHash() {
+    var id = window.location.hash.replace('#', '');
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { show(idx, { keepScroll: true }); }
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+</body>
+</html>
