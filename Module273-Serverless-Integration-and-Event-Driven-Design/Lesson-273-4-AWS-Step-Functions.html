@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 273.4 - AWS Step Functions</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">AWS Step Functions</h1>
+  <p>Orchestrate serverless workflows with AWS Step Functions: states, workflow types, error handling, integrations, and large-scale processing.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. Orchestration and Step Functions</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. State Machines and States</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Standard and Express Workflows</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. Error Handling and Integrations</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab5" id="b5">5. Parallel Processing at Scale</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab6" id="b6">6. Security, Monitoring, and Pricing</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab7" id="b7">7. Comparison &amp; Scenarios</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab8" id="b8">8. Knowledge Check</button></li>
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <h3>Serverless, Integration, and Event-Driven Design</h3>
+  <p>Module 273, Serverless, Integration, and Event-Driven Design, covers serverless compute, application integration, and event-driven architectures on AWS. This lesson covers orchestration with AWS Step Functions.</p>
+  <figure>
+    <div class="figwrap">
+    <svg style="min-width:750px" viewBox="0 0 656 490" role="img" aria-label="Map of AWS serverless services in seven groups: compute with AWS Lambda and AWS Fargate, API and front door with Amazon API Gateway and Lambda function URLs, messaging and events with Amazon SQS, Amazon SNS, and Amazon EventBridge, orchestration with AWS Step Functions, streaming with Kinesis Data Streams and Amazon Data Firehose, identity with Amazon Cognito, and edge with Lambda@Edge and CloudFront Functions. AWS Step Functions, the topic of this lesson, is highlighted.">
+<rect class="sv-box" x="10" y="10" width="244" height="150" rx="4"/>
+<rect class="sv-boxb" x="10" y="10" width="244" height="38" rx="4"/>
+<text class="sv-tb" x="132.0" y="35" text-anchor="middle">Compute</text>
+<rect class="sv-boxg" x="20.0" y="68" width="108" height="76" rx="6"/>
+<text class="sv-t" x="74.0" y="98.0" text-anchor="middle">AWS</text>
+<text class="sv-t" x="74.0" y="114.0" text-anchor="middle">Lambda</text>
+<rect class="sv-boxg" x="136.0" y="68" width="108" height="76" rx="6"/>
+<text class="sv-t" x="190.0" y="98.0" text-anchor="middle">AWS</text>
+<text class="sv-t" x="190.0" y="114.0" text-anchor="middle">Fargate</text>
+<rect class="sv-box" x="264" y="10" width="244" height="150" rx="4"/>
+<rect class="sv-boxb" x="264" y="10" width="244" height="38" rx="4"/>
+<text class="sv-tb" x="386.0" y="35" text-anchor="middle">API and front door</text>
+<rect class="sv-boxg" x="274.0" y="68" width="108" height="76" rx="6"/>
+<text class="sv-t" x="328.0" y="98.0" text-anchor="middle">Amazon API</text>
+<text class="sv-t" x="328.0" y="114.0" text-anchor="middle">Gateway</text>
+<rect class="sv-boxg" x="390.0" y="68" width="108" height="76" rx="6"/>
+<text class="sv-t" x="444.0" y="98.0" text-anchor="middle">Lambda</text>
+<text class="sv-t" x="444.0" y="114.0" text-anchor="middle">function URLs</text>
+<rect class="sv-box" x="518" y="10" width="128" height="150" rx="4"/>
+<rect class="sv-boxw" x="518" y="10" width="128" height="38" rx="4"/>
+<text class="sv-tb" x="582.0" y="35" text-anchor="middle">Orchestration</text>
+<rect class="sv-boxw" x="528.0" y="68" width="108" height="76" rx="6" style="stroke-width:3.5"/>
+<text class="sv-t" x="582.0" y="98.0" text-anchor="middle">AWS Step</text>
+<text class="sv-t" x="582.0" y="114.0" text-anchor="middle">Functions</text>
+<rect class="sv-box" x="10" y="170" width="360" height="150" rx="4"/>
+<rect class="sv-boxb" x="10" y="170" width="360" height="38" rx="4"/>
+<text class="sv-tb" x="190.0" y="195" text-anchor="middle">Messaging and events</text>
+<rect class="sv-boxg" x="20.0" y="228" width="108" height="76" rx="6"/>
+<text class="sv-t" x="74.0" y="258.0" text-anchor="middle">Amazon</text>
+<text class="sv-t" x="74.0" y="274.0" text-anchor="middle">SQS</text>
+<rect class="sv-boxg" x="136.0" y="228" width="108" height="76" rx="6"/>
+<text class="sv-t" x="190.0" y="258.0" text-anchor="middle">Amazon</text>
+<text class="sv-t" x="190.0" y="274.0" text-anchor="middle">SNS</text>
+<rect class="sv-boxg" x="252.0" y="228" width="108" height="76" rx="6"/>
+<text class="sv-t" x="306.0" y="258.0" text-anchor="middle">Amazon</text>
+<text class="sv-t" x="306.0" y="274.0" text-anchor="middle">EventBridge</text>
+<rect class="sv-box" x="380" y="170" width="128" height="150" rx="4"/>
+<rect class="sv-boxb" x="380" y="170" width="128" height="38" rx="4"/>
+<text class="sv-tb" x="444.0" y="195" text-anchor="middle">Identity</text>
+<rect class="sv-boxg" x="390.0" y="228" width="108" height="76" rx="6"/>
+<text class="sv-t" x="444.0" y="258.0" text-anchor="middle">Amazon</text>
+<text class="sv-t" x="444.0" y="274.0" text-anchor="middle">Cognito</text>
+<rect class="sv-box" x="10" y="330" width="244" height="150" rx="4"/>
+<rect class="sv-boxb" x="10" y="330" width="244" height="38" rx="4"/>
+<text class="sv-tb" x="132.0" y="355" text-anchor="middle">Streaming</text>
+<rect class="sv-boxg" x="20.0" y="388" width="108" height="76" rx="6"/>
+<text class="sv-t" x="74.0" y="418.0" text-anchor="middle">Kinesis Data</text>
+<text class="sv-t" x="74.0" y="434.0" text-anchor="middle">Streams</text>
+<rect class="sv-boxg" x="136.0" y="388" width="108" height="76" rx="6"/>
+<text class="sv-t" x="190.0" y="418.0" text-anchor="middle">Amazon Data</text>
+<text class="sv-t" x="190.0" y="434.0" text-anchor="middle">Firehose</text>
+<rect class="sv-box" x="264" y="330" width="244" height="150" rx="4"/>
+<rect class="sv-boxb" x="264" y="330" width="244" height="38" rx="4"/>
+<text class="sv-tb" x="386.0" y="355" text-anchor="middle">Edge</text>
+<rect class="sv-boxg" x="274.0" y="388" width="108" height="76" rx="6"/>
+<text class="sv-t" x="328.0" y="426.0" text-anchor="middle">Lambda@Edge</text>
+<rect class="sv-boxg" x="390.0" y="388" width="108" height="76" rx="6"/>
+<text class="sv-t" x="444.0" y="418.0" text-anchor="middle">CloudFront</text>
+<text class="sv-t" x="444.0" y="434.0" text-anchor="middle">Functions</text>
+</svg>
+    </div>
+    <figcaption>Image 0a — AWS serverless services by type. AWS Step Functions, the topic of this lesson, is highlighted (Original diagram for this course.)</figcaption>
+  </figure>
+  <p>Some business processes need steps in a set order, with retries, a way to undo earlier steps, and a clear status for every run. This lesson explains how AWS Step Functions orchestrates such processes as state machines, how to choose between Standard and Express workflows, how to handle errors and wait for jobs and people, and how to process large datasets in parallel. The last two tabs prepare you for the AWS Certified Solutions Architect – Associate (SAA-C03) exam.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> choreography and orchestration, what Step Functions is, and how workflows start.</li>
+    <li><strong>Tab 2:</strong> the Amazon States Language, Workflow Studio, the states, and a small example.</li>
+    <li><strong>Tab 3:</strong> Standard and Express workflows, and synchronous and asynchronous Express.</li>
+    <li><strong>Tab 4:</strong> Retry and Catch, and the request response, run a job, and wait for callback patterns.</li>
+    <li><strong>Tab 5:</strong> Parallel, inline Map, and Distributed Map.</li>
+    <li><strong>Tab 6:</strong> the execution role, monitoring, and pricing.</li>
+    <li><strong>Tab 7:</strong> Step Functions compared with other options, the FlashCart order workflow, the SAA-C03 cheat sheet, and the summary.</li>
+    <li><strong>Tab 8:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Orchestration and Step Functions</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">State Machines and States</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Standard and Express Workflows</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Error Handling and Integrations</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="5" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Parallel Processing at Scale</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="6" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Security, Monitoring, and Pricing</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="7" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="8" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Introduction</h2>
+  <p>Lesson 273.3 showed choreography: services that react to events on their own. Many processes also need a conductor that runs the steps in order and knows the status of every run. AWS Step Functions plays that role, and exam questions often ask when to use it, which workflow type to choose, and how to wait for jobs and approvals.</p>
+  <p>This lesson follows FlashCart Inc. through the Problem Statement of each tab. It assumes Lessons 273.1 (AWS Lambda), 273.2 (Amazon API Gateway), and 273.3 (Amazon SQS, Amazon SNS, and Amazon EventBridge).</p>
+  <p>Use the tab list on the left, or the Previous and Next buttons, to move through the lesson. Each topic tab opens with a Problem Statement and ends with exam traps, keyword triggers, and resource links. The Knowledge Check is the last tab.</p>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define orchestration and identify when to use AWS Step Functions instead of choreography.</li>
+    <li>Describe the Amazon States Language and the Task, Choice, Parallel, Map, Wait, Pass, Succeed, and Fail states.</li>
+    <li>Apply Retry, Catch, and the request response, run a job, and wait for callback integration patterns.</li>
+    <li>Use Parallel, Map, and Distributed Map to process items at scale.</li>
+    <li>Distinguish Standard and Express workflows, and select one by duration, volume, execution guarantee, and cost.</li>
+    <li>Design a secure, monitored, and cost-effective workflow with Step Functions, and justify the design.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>API</td><td>Application programming interface</td></tr>
+      <tr><td>ASL</td><td>Amazon States Language</td></tr>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>CSV</td><td>Comma-separated values</td></tr>
+      <tr><td>ECS</td><td>Amazon Elastic Container Service</td></tr>
+      <tr><td>IAM</td><td>AWS Identity and Access Management</td></tr>
+      <tr><td>IoT</td><td>Internet of Things</td></tr>
+      <tr><td>JSON</td><td>JavaScript Object Notation</td></tr>
+      <tr><td>KMS</td><td>AWS Key Management Service</td></tr>
+      <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SDK</td><td>Software development kit</td></tr>
+      <tr><td>SNS</td><td>Amazon Simple Notification Service</td></tr>
+      <tr><td>SQS</td><td>Amazon Simple Queue Service</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. Orchestration and Step Functions</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s order fulfillment now spans six steps: validate the order, check the stock, charge the payment, reserve the stock, run a fraud review, and start the shipping job. In Lesson 273.3, the team connected these steps with events and queues, and each service reacts to the event before it.</p>
+    <p>Three months later, nobody can answer a simple question from customer service: "Where is order 48213, and why is it stuck?" The status lives in six services and six sets of logs. When the shipping job fails after the payment, a developer must refund the customer by hand. Each Lambda function also contains its own retry loop, written in a different way by a different team.</p>
+    <p>The architects want one place that defines the order of the steps, retries failed steps the same way, runs a refund when something fails after the payment, and shows the status of every order. They also want to avoid one Lambda function that calls all the others and waits, because that function would hit the 15-minute limit and pay for all the waiting time.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Explain the difference between choreography, which FlashCart uses now, and orchestration, and decide which one fits the fulfillment process.</li>
+      <li>List what an orchestration service must provide to meet the architects’ goals.</li>
+      <li>Explain why one Lambda function that calls the other functions is the wrong orchestrator.</li>
+    </ul>
+  </div>
+
+  <h2>1.1 Orchestration</h2>
+  <ul>
+    <li>In <strong>choreography</strong> (Lesson 273.3), each service reacts to events and publishes new ones. No service is in charge, which is flexible, but the overall flow is hard to see and to change.</li>
+    <li>In <strong>orchestration</strong>, a central <strong>workflow</strong> calls each step in order, decides what happens next, retries failures, and keeps the status of each run.</li>
+    <li>Many systems use both: choreography between independent domains, and orchestration inside a business process that must run steps in a set order.</li>
+  </ul>
+
+  <h2>1.2 What AWS Step Functions Is</h2>
+  <ul>
+    <li><strong>AWS Step Functions</strong> is a serverless orchestration service. You define a workflow as a <strong>state machine</strong>, a set of <strong>states</strong> and the transitions between them.</li>
+    <li>Each run of a state machine is an <strong>execution</strong>. Step Functions keeps the state of each execution, so you can see where every run is and what happened at each step.</li>
+    <li>It has built-in sequences, branches (conditions), parallel steps, waits, timeouts, retries, and error handling, so the business code in each step stays simple.</li>
+    <li>It integrates directly with AWS services, such as Lambda, ECS and Fargate, SQS, SNS, DynamoDB, EventBridge, and API Gateway, and with more than two hundred services through AWS SDK integrations.</li>
+    <li>It can also wait for a person or an outside system, for example a human approval.</li>
+    <li>Typical uses: order fulfillment, data processing, machine learning pipelines, and any business process with several steps.</li>
+  </ul>
+  <figure>
+    <div class="figwrap" style="max-width:400px;margin:0 auto"><img src="data:image/webp;base64,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" alt="The graph view of a Step Functions execution, with each state colored by its status. The flow goes from Start to a Pass state, then a choice named Hello World example. The Yes branch waits 3 seconds, runs Hello and World in parallel, and then Hello World, before End. The No branch goes to End." style="width:100%;max-width:360px;height:auto;display:block;margin:0 auto"></div>
+    <figcaption>Image 1a — The graph view of a Step Functions execution shows each state and its status (Source: Stephane Maarek.)</figcaption>
+  </figure>
+
+  <h2>1.3 How Workflows Start</h2>
+  <ul>
+    <li>An <strong>EventBridge</strong> rule or <strong>EventBridge Scheduler</strong> starts a workflow on an event or a schedule. S3 events reach Step Functions through EventBridge.</li>
+    <li><strong>API Gateway</strong> starts a workflow from an API call, with an AWS service integration (Lesson 273.2).</li>
+    <li>Code starts a workflow with the <strong>StartExecution</strong> API, from Lambda or any application, and one state machine can start another.</li>
+  </ul>
+
+
+  <h2>1.4 Hands-On Lab</h2>
+  <div class="lab-box">
+    <p class="lab-title">Hands-On Lab</p>
+    <p class="lab-sub">Lab Overview:</p>
+    <p>This lab gives you practice with creating and running your first state machine in AWS Step Functions.</p>
+    <p class="lab-sub">You can start the following lab:</p>
+    <ul>
+      <li><a class="lab-link" href="https://business.whizlabs.com/labs/introduction-to-aws-step-functions" target="_blank" rel="noopener">GLAB 273.4.1 &mdash; Introduction to AWS Step Functions</a>.</li>
+    </ul>
+  </div>
+  <div class="lab-expectation">
+    <p><strong>Important Lab Expectation</strong></p>
+    <p>You must submit proof of completion of the lab on Canvas using the following document:</p>
+    <p><a href="https://docs.google.com/document/d/1penHgAXysO9iZhRZVx0R7Hbv_53RBeV786yE1xRrlOM/edit?usp=sharing" target="_blank" rel="noopener noreferrer"><strong>POC 273.4.1: Hands-On Labs Validation</strong></a></p>
+    <p>If you do not complete all labs during class time, you must finish them after class. Failing to complete all labs before the next session may cause you to fall behind.</p>
+  </div>
+
+  <div class="qbox">
+<h3>Exam-Style Question</h3>
+<p><strong>Scenario:</strong> An order process must run six steps in a set order, retry failed steps, run a refund when a step fails after the payment, and show the status of every order. Which approach fits best?</p>
+<ul class="opts">
+<li><strong>A.</strong> One Lambda function that calls the other functions and waits for each one.</li>
+<li><strong>B.</strong> An AWS Step Functions state machine.</li>
+<li><strong>C.</strong> An SQS queue between each pair of steps.</li>
+<li><strong>D.</strong> An SNS topic that every step subscribes to.</li>
+</ul>
+<details>
+<summary>Show Answer and Explanation</summary>
+<p><strong>Correct answer: B.</strong> Step Functions orchestrates the steps in order, with built-in retries, error handling to a refund path, and the status of each execution.</p>
+<div class="tw"><table>
+<thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+<tbody>
+
+
+
+
+<tr><td>A</td><td>Incorrect</td><td>The function pays for the waiting time and cannot run longer than 15 minutes.</td></tr><tr><td>B</td><td>Correct</td><td>This is orchestration with built-in state and error handling.</td></tr><tr><td>C</td><td>Incorrect</td><td>Queues decouple the steps but give no central status or refund logic.</td></tr><tr><td>D</td><td>Incorrect</td><td>A topic broadcasts messages; it does not run steps in order.</td></tr></tbody>
+</table></div>
+</details>
+</div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Coordinate steps in order</strong>, <strong>retries</strong>, <strong>human approval</strong>, <strong>visual workflow</strong> = <strong>Step Functions</strong>.</li>
+      <li>Do not chain Lambda functions that call each other and wait: use Step Functions instead.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Choreography is a dance with no leader. Orchestration has a conductor: Step Functions.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Orchestrate several Lambda functions in order, with error handling"<br>→ AWS Step Functions</p>
+    <p><strong>Trigger 2:</strong> "Workflow needs a human approval step"<br>→ Step Functions with a callback</p>
+    <p><strong>Trigger 3:</strong> "Start a workflow on a schedule"<br>→ EventBridge Scheduler with Step Functions</p>
+  </div>
+  <div class="res">
+    <h2>Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html" target="_blank" rel="noopener">What is Step Functions?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/step-functions/latest/dg/concepts-statemachines.html" target="_blank" rel="noopener">Learn about state machines in Step Functions</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. State Machines and States</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>The FlashCart team decides to build the fulfillment workflow in Step Functions and opens the console. Before they draw anything, they must learn how a state machine is described, which kinds of states exist, and how data moves from one state to the next.</p>
+    <p>The workflow has specific needs. Orders over 1,000 dollars must go through the fraud review, and smaller ones must skip it. The payment and the stock reservation do not depend on each other, so they should run at the same time. Customers who pay by bank transfer must wait up to two days for the money to arrive. When the stock is gone, the workflow must end with a clear failure that customer service can read.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose the state type for each need: the amount check, the payment and the reservation together, the two-day wait, and the out-of-stock ending.</li>
+      <li>Explain how a state machine is written, and what tool helps the team design it visually.</li>
+      <li>Explain how the output of one state becomes the input of the next.</li>
+    </ul>
+  </div>
+
+  <h2>2.1 State Machines and the Amazon States Language</h2>
+  <ul>
+    <li>A state machine is written in the <strong>Amazon States Language (ASL)</strong>, a JSON structure that lists the states, the start state, and the next state of each one.</li>
+    <li><strong>Workflow Studio</strong> in the console lets you design the state machine visually, with drag and drop, and it writes the ASL for you.</li>
+    <li>Each state receives a JSON input and produces a JSON output, which becomes the input of the next state. You can filter and transform the data between states, with JSONPath or, in newer workflows, JSONata expressions.</li>
+    <li>Step Functions limits the size of the data passed between states, so store large data in S3 or DynamoDB and pass a reference.</li>
+  </ul>
+
+  <h2>2.2 The States</h2>
+  <div class="tw"><table>
+    <thead><tr><th>State</th><th>What it does</th><th>FlashCart example</th></tr></thead>
+    <tbody>
+      <tr><td>Task</td><td>Does one unit of work: calls an AWS service or an activity.</td><td>Charge the payment with a Lambda function.</td></tr>
+      <tr><td>Choice</td><td>Chooses the next state with conditions on the data.</td><td>Orders over 1,000 dollars go to the fraud review.</td></tr>
+      <tr><td>Parallel</td><td>Runs several branches at the same time, and waits for all of them.</td><td>Charge the payment and reserve the stock together.</td></tr>
+      <tr><td>Map</td><td>Runs the same steps for each item of a list (tab 5).</td><td>Process each line of an order.</td></tr>
+      <tr><td>Wait</td><td>Pauses for a time, or until a date and time.</td><td>Wait two days for a bank transfer.</td></tr>
+      <tr><td>Pass</td><td>Passes its input to its output, optionally adding data. Useful for testing and shaping data.</td><td>Add default values to the order.</td></tr>
+      <tr><td>Succeed</td><td>Ends the execution successfully.</td><td>The order is complete.</td></tr>
+      <tr><td>Fail</td><td>Ends the execution with an error name and a cause.</td><td>OutOfStock, with a message for customer service.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>2.3 A Small Example</h2>
+  <pre class="flowcode"><code>{
+  "StartAt": "CheckAmount",
+  "States": {
+    "CheckAmount": {
+      "Type": "Choice",
+      "Choices": [
+        { "Variable": "$.amount", "NumericGreaterThan": 1000, "Next": "FraudReview" }
+      ],
+      "Default": "ChargePayment"
+    },
+    "FraudReview": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": { "FunctionName": "fraud-review", "Payload.$": "$" },
+      "Next": "ChargePayment"
+    },
+    "ChargePayment": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": { "FunctionName": "charge-payment", "Payload.$": "$" },
+      "End": true
+    }
+  }
+}</code></pre>
+  <p>Orders over 1,000 dollars go through the fraud review before the payment. Smaller orders go straight to the payment.</p>
+
+
+  <h2>2.4 Hands-On Lab</h2>
+  <div class="lab-box">
+    <p class="lab-title">Hands-On Lab</p>
+    <p class="lab-sub">Lab Overview:</p>
+    <p>This lab gives you practice with building a workflow that uses different state types, such as Choice, Parallel, and Wait states.</p>
+    <p class="lab-sub">You can start the following lab:</p>
+    <ul>
+      <li><a class="lab-link" href="https://business.whizlabs.com/labs/creating-a-workflow-using-different-states-with-aws-step-functions" target="_blank" rel="noopener">GLAB 273.4.2 &mdash; Creating a Workflow Using Different States With AWS Step Functions</a>.</li>
+    </ul>
+  </div>
+  <div class="lab-expectation">
+    <p><strong>Important Lab Expectation</strong></p>
+    <p>You must submit proof of completion of the lab on Canvas using the following document:</p>
+    <p><a href="https://docs.google.com/document/d/18TOD1f9TwdvI-Zs6eyMafWn6327DnX8-3U0rumHQies/edit?usp=sharing" target="_blank" rel="noopener noreferrer"><strong>POC 273.4.2: Hands-On Labs Validation</strong></a></p>
+    <p>If you do not complete all labs during class time, you must finish them after class. Failing to complete all labs before the next session may cause you to fall behind.</p>
+  </div>
+
+  <div class="qbox">
+<h3>Exam-Style Question</h3>
+<p><strong>Scenario:</strong> A workflow must wait three days after a customer cancels a subscription, then delete the account data, without paying for any compute during the three days. Which state fits the waiting step?</p>
+<ul class="opts">
+<li><strong>A.</strong> A Wait state in an Express workflow.</li>
+<li><strong>B.</strong> A Lambda function that sleeps for three days.</li>
+<li><strong>C.</strong> A Pass state.</li>
+<li><strong>D.</strong> A Wait state in a Standard workflow.</li>
+</ul>
+<details>
+<summary>Show Answer and Explanation</summary>
+<p><strong>Correct answer: D.</strong> A Wait state pauses the execution for a time with no compute running, and a Standard workflow can run for up to one year.</p>
+<div class="tw"><table>
+<thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+<tbody>
+
+
+
+
+<tr><td>A</td><td>Incorrect</td><td>An Express workflow runs for at most five minutes.</td></tr><tr><td>B</td><td>Incorrect</td><td>Lambda runs for at most 15 minutes, and you would pay for the wait.</td></tr><tr><td>C</td><td>Incorrect</td><td>A Pass state does not wait.</td></tr><tr><td>D</td><td>Correct</td><td>It waits without compute, and Standard supports long durations.</td></tr></tbody>
+</table></div>
+</details>
+</div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Choice</strong> = branch on conditions. <strong>Parallel</strong> = fixed branches at the same time. <strong>Map</strong> = the same steps for each item. <strong>Wait</strong> = pause for a time or until a date.</li>
+      <li>State machines are written in the <strong>Amazon States Language</strong> (JSON), or drawn in <strong>Workflow Studio</strong>.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Task works, Choice decides, Parallel splits, Map repeats, Wait pauses, Succeed and Fail end.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Run two independent steps at the same time"<br>→ Parallel state</p>
+    <p><strong>Trigger 2:</strong> "Branch on a value in the data"<br>→ Choice state</p>
+    <p><strong>Trigger 3:</strong> "Pause a workflow for days without compute"<br>→ Wait state in a Standard workflow</p>
+  </div>
+  <div class="res">
+    <h2>Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/step-functions/latest/dg/concepts-states.html" target="_blank" rel="noopener">Discovering workflow states to use in Step Functions</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/step-functions/latest/dg/concepts-amazon-states-language.html" target="_blank" rel="noopener">Using Amazon States Language to define Step Functions workflows</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Standard and Express Workflows</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart now has two very different workflows to build. The order fulfillment workflow runs about 40,000 times a day. It can take up to three days, because of bank transfers and fraud reviews, and it must never charge a customer twice or skip a step. Auditors also want to see the full history of every order.</p>
+    <p>The second workflow handles clickstream events from the website: about 5,000 events per second at peak. Each run validates an event, enriches it with product data, and writes it to a stream, which takes less than a second. A duplicate run now and then is harmless, but the cost must stay low.</p>
+    <p>A developer suggests using the same workflow type for both, "to keep things simple".</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose the workflow type for each workflow, and explain the deciding factors: the duration, the execution guarantee, the volume, the history, and the cost.</li>
+      <li>Explain what goes wrong if the clickstream workflow uses the type of the order workflow, and the other way around.</li>
+    </ul>
+  </div>
+
+  <h2>3.1 Two Workflow Types</h2>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>Standard workflows</th><th>Express workflows</th></tr></thead>
+    <tbody>
+      <tr><td>Maximum duration</td><td>One year.</td><td>Five minutes.</td></tr>
+      <tr><td>Execution guarantee</td><td>Exactly-once execution.</td><td>Asynchronous: at-least-once. Synchronous: at-most-once.</td></tr>
+      <tr><td>Volume</td><td>Designed for durable, long-running processes.</td><td>Designed for high event rates, up to 100,000 state transitions per second.</td></tr>
+      <tr><td>Execution history</td><td>Kept by Step Functions, with a visual view of each execution.</td><td>Not captured by Step Functions. Send it to CloudWatch Logs.</td></tr>
+      <tr><td>Integration patterns</td><td>Request response, run a job (.sync), and wait for callback.</td><td>Request response only.</td></tr>
+      <tr><td>Pricing</td><td>Per state transition.</td><td>Per execution, and by duration and memory.</td></tr>
+      <tr><td>Use it for</td><td>Order processing, payments, approvals, and other long or critical processes.</td><td>High-volume, short event processing, such as streaming data, IoT, and API backends.</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li>You choose the type when you create the state machine, and you cannot change it later.</li>
+    <li>A <strong>synchronous Express</strong> workflow (StartSyncExecution) returns its result to the caller, which suits an API backend behind API Gateway. An <strong>asynchronous Express</strong> workflow returns at once and runs in the background.</li>
+    <li>The two types work together: a Standard workflow can start Express workflows as child workflows for its short, high-volume parts.</li>
+  </ul>
+
+  <div class="qbox">
+    <h3>Exam-Style Question</h3>
+    <p><strong>Scenario:</strong> A workflow processes IoT sensor readings: 20,000 events per second, each processed in under one second, and an occasional duplicate is acceptable. The company wants the lowest cost. Which workflow type should a solutions architect choose?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> An asynchronous Express workflow.</li>
+      <li><strong>B.</strong> A Standard workflow.</li>
+      <li><strong>C.</strong> A synchronous Express workflow called by each sensor.</li>
+      <li><strong>D.</strong> A Standard workflow with a Map state.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> Express workflows are built for high-volume, short executions, priced by execution and duration, and asynchronous Express accepts at-least-once execution.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>It fits the volume, duration, and cost goal.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Standard is priced per state transition and is not designed for this volume.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>Sensors do not need to wait for each result.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>A Map state does not change the pricing or the volume limits.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Longer than five minutes</strong>, <strong>exactly-once</strong>, <strong>audit history</strong>, <strong>human approval</strong> = <strong>Standard</strong>.</li>
+      <li><strong>High volume</strong>, <strong>short</strong>, <strong>lowest cost</strong>, duplicates acceptable = <strong>Express</strong>.</li>
+      <li>Express workflows do <strong>not</strong> support <strong>.sync</strong> or <strong>wait for callback</strong>.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Standard is the long, careful marathon. Express is the short, cheap sprint.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Workflow runs for days and must not repeat steps"<br>→ Standard workflow</p>
+    <p><strong>Trigger 2:</strong> "High-volume, short event processing at low cost"<br>→ Express workflow</p>
+    <p><strong>Trigger 3:</strong> "API backend that must return the workflow result"<br>→ Synchronous Express workflow</p>
+  </div>
+  <div class="res">
+    <h2>Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html" target="_blank" rel="noopener">Choosing workflow type in Step Functions</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 4 ============ -->
+<section class="tab" id="tab4" role="tabpanel" aria-labelledby="b4">
+  <h1 class="tabh">4. Error Handling and Integrations</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>The first runs of the FlashCart order workflow show three kinds of trouble. The payment provider sometimes returns a timeout error for a few seconds during busy periods. The shipping step starts a container task on Amazon ECS that runs for about 20 minutes, and the workflow moves on before the task has finished. When the stock reservation fails after the payment has succeeded, the customer is charged for nothing.</p>
+    <p>The fraud team adds a new requirement: for orders that look risky, a person must approve or reject the order in the fraud team’s web tool, which can take up to a day. The workflow must pause until the decision arrives, and must not run anything while it waits.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Handle the short payment timeouts without failing the order.</li>
+      <li>Make the workflow wait until the 20-minute ECS task finishes.</li>
+      <li>Refund the customer when a step fails after the payment.</li>
+      <li>Pause the workflow until a person approves or rejects a risky order.</li>
+    </ul>
+  </div>
+
+  <h2>4.1 Retry and Catch</h2>
+  <ul>
+    <li>Errors are named, for example States.Timeout, States.TaskFailed, or a custom error such as PaymentDeclined. States.ALL matches any error.</li>
+    <li>A <strong>Retry</strong> rule on a Task, Parallel, or Map state retries the state when an error matches its <strong>ErrorEquals</strong> list, with <strong>IntervalSeconds</strong> before the first retry (1 second by default), <strong>MaxAttempts</strong> (3 by default), and a <strong>BackoffRate</strong> that multiplies the interval after each attempt (2.0 by default).</li>
+    <li>A <strong>Catch</strong> rule runs when the retries are used up or there are none. It sends the execution to a fallback state, for example a refund, and can keep the error information in the output.</li>
+    <li>A <strong>timeout</strong> on a Task stops a step that runs too long, and a <strong>heartbeat</strong> timeout fails a long task that stops reporting progress.</li>
+  </ul>
+  <pre class="flowcode"><code>"ChargePayment": {
+  "Type": "Task",
+  "Resource": "arn:aws:states:::lambda:invoke",
+  "Parameters": { "FunctionName": "charge-payment", "Payload.$": "$" },
+  "Retry": [
+    { "ErrorEquals": ["States.Timeout", "Lambda.ServiceException"],
+      "IntervalSeconds": 2, "MaxAttempts": 3, "BackoffRate": 2.0 }
+  ],
+  "Catch": [
+    { "ErrorEquals": ["States.ALL"], "ResultPath": "$.error", "Next": "RefundPayment" }
+  ],
+  "Next": "ReserveStock"
+}</code></pre>
+  <p>A timeout is retried after 2, 4, and 8 seconds. Any error that remains sends the order to the refund step, with the error details kept in $.error.</p>
+
+  <h2>4.2 Service Integration Patterns</h2>
+  <figure>
+    <div class="figwrap">
+    <svg style="min-width:1098px" viewBox="0 0 960 320" role="img" aria-label="Diagram of the three service integration patterns. Request response: the state machine calls the service, gets the HTTP response, and moves on. It is the default, in Standard and Express workflows. Run a job (.sync): the state machine starts a job and waits until it finishes, for ECS, Batch, Glue, and more, in Standard workflows only. Wait for callback: the state machine passes a task token and pauses until SendTaskSuccess, for human approval and external systems, in Standard workflows only."><defs><marker id="pt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxw" x="30" y="25" width="200" height="60" rx="8"/><text class="sv-t" x="130" y="51.0" text-anchor="middle">State machine</text><text class="sv-t" x="130" y="69.0" text-anchor="middle">Request response</text><rect class="sv-boxg" x="340" y="25" width="220" height="60" rx="8"/><text class="sv-t" x="450" y="51.0" text-anchor="middle">Call the service, get the</text><text class="sv-t" x="450" y="69.0" text-anchor="middle">HTTP response, move on</text><line class="sv-line" x1="232" y1="55" x2="338" y2="55" marker-end="url(#pt)"/><text class="sv-tm" x="780" y="60" text-anchor="middle">Default. Standard and Express.</text><rect class="sv-boxw" x="30" y="125" width="200" height="60" rx="8"/><text class="sv-t" x="130" y="151.0" text-anchor="middle">State machine</text><text class="sv-t" x="130" y="169.0" text-anchor="middle">Run a job (.sync)</text><rect class="sv-boxg" x="340" y="125" width="220" height="60" rx="8"/><text class="sv-t" x="450" y="151.0" text-anchor="middle">Start a job and wait</text><text class="sv-t" x="450" y="169.0" text-anchor="middle">until it finishes</text><line class="sv-line" x1="232" y1="155" x2="338" y2="155" marker-end="url(#pt)"/><text class="sv-tm" x="780" y="160" text-anchor="middle">ECS, Batch, Glue, and more. Standard only.</text><rect class="sv-boxw" x="30" y="225" width="200" height="60" rx="8"/><text class="sv-t" x="130" y="251.0" text-anchor="middle">State machine</text><text class="sv-t" x="130" y="269.0" text-anchor="middle">Wait for callback</text><rect class="sv-boxg" x="340" y="225" width="220" height="60" rx="8"/><text class="sv-t" x="450" y="251.0" text-anchor="middle">Pass a task token and pause</text><text class="sv-t" x="450" y="269.0" text-anchor="middle">until SendTaskSuccess</text><line class="sv-line" x1="232" y1="255" x2="338" y2="255" marker-end="url(#pt)"/><text class="sv-tm" x="780" y="260" text-anchor="middle">Human approval, external systems. Standard only.</text></svg>
+    </div>
+    <figcaption>Image 4a — The three ways a Task state calls a service (Original diagram for this course.)</figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th>Pattern</th><th>Resource suffix</th><th>What Step Functions does</th></tr></thead>
+    <tbody>
+      <tr><td>Request response (default)</td><td>None</td><td>Calls the service and moves to the next state as soon as it gets the HTTP response. It does not wait for a job to finish.</td></tr>
+      <tr><td>Run a job</td><td>.sync</td><td>Starts a job, such as an ECS task, an AWS Batch job, or an AWS Glue job, and waits until the job completes.</td></tr>
+      <tr><td>Wait for callback</td><td>.waitForTaskToken</td><td>Sends a <strong>task token</strong> to a service, such as SQS, SNS, or Lambda, and pauses until a system or a person calls <strong>SendTaskSuccess</strong> or <strong>SendTaskFailure</strong> with the token.</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li>Standard and Express workflows support the same services, but Express workflows support only the request response pattern.</li>
+    <li><strong>Human approval</strong> uses the callback pattern: the workflow sends the task token to the approver’s tool, for example in an email through SNS or a message in SQS, and the tool calls SendTaskSuccess or SendTaskFailure with the decision.</li>
+    <li><strong>Activities</strong> let a worker on any server, including on premises, poll Step Functions for tasks and return the results.</li>
+  </ul>
+
+  <div class="qbox">
+<h3>Exam-Style Question</h3>
+<p><strong>Scenario:</strong> A workflow must pause until a manager approves an expense in an internal web tool, which can take several days, and must not pay for compute while it waits. Which approach fits best?</p>
+<ul class="opts">
+<li><strong>A.</strong> A Lambda function that polls the tool every minute.</li>
+<li><strong>B.</strong> An Express workflow with a Wait state.</li>
+<li><strong>C.</strong> A Standard workflow with a Task that uses .waitForTaskToken and sends the task token to the tool.</li>
+<li><strong>D.</strong> A Standard workflow with a request response Task.</li>
+</ul>
+<details>
+<summary>Show Answer and Explanation</summary>
+<p><strong>Correct answer: C.</strong> The callback pattern pauses the Standard workflow until the tool returns the token with SendTaskSuccess or SendTaskFailure, with nothing running while it waits.</p>
+<div class="tw"><table>
+<thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+<tbody>
+
+
+
+
+<tr><td>A</td><td>Incorrect</td><td>Polling adds code and cost.</td></tr><tr><td>B</td><td>Incorrect</td><td>Express workflows last five minutes and do not support callbacks.</td></tr><tr><td>C</td><td>Correct</td><td>This is the human approval pattern.</td></tr><tr><td>D</td><td>Incorrect</td><td>Request response does not wait for the decision.</td></tr></tbody>
+</table></div>
+</details>
+</div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Transient errors</strong> = <strong>Retry</strong> with backoff. <strong>Compensation</strong> such as a refund = <strong>Catch</strong> to a fallback state.</li>
+      <li><strong>Wait for a job</strong> (ECS, Batch, Glue) = <strong>.sync</strong>. <strong>Wait for a person or an outside system</strong> = <strong>.waitForTaskToken</strong>. Both need <strong>Standard</strong> workflows.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Retry the hiccups, Catch the failures, .sync for jobs, and a token for people.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Retry a step on a transient error"<br>→ Retry with BackoffRate</p>
+    <p><strong>Trigger 2:</strong> "Run a refund when a later step fails"<br>→ Catch to a compensation state</p>
+    <p><strong>Trigger 3:</strong> "Wait until an ECS or Batch job finishes"<br>→ Run a job (.sync) integration</p>
+    <p><strong>Trigger 4:</strong> "Pause until a person approves"<br>→ Wait for callback with a task token</p>
+  </div>
+  <div class="res">
+    <h2>Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/step-functions/latest/dg/connect-supported-services.html" target="_blank" rel="noopener">Integrating services with Step Functions</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html" target="_blank" rel="noopener">Handling errors in Step Functions workflows</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html" target="_blank" rel="noopener">Discover service integration patterns in Step Functions</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 5 ============ -->
+<section class="tab" id="tab5" role="tabpanel" aria-labelledby="b5">
+  <h1 class="tabh">5. Parallel Processing at Scale</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart is changing the look of its website, and every product image must be resized into three new formats. There are about one million images in an S3 bucket. A developer builds a workflow with a Map state that loops over a list of the images, but the list does not fit in the workflow input, and a test with 20,000 images fails with an error about the size of the execution history.</p>
+    <p>The marketing team also needs to run three independent checks on each new product, for price, description, and images, and it wants the results as soon as the slowest check finishes.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose the right way to process one million S3 objects in parallel with Step Functions.</li>
+      <li>Explain why the first design failed, and how the fix avoids both problems.</li>
+      <li>Choose the state for the three independent product checks.</li>
+    </ul>
+  </div>
+
+  <h2>5.1 Parallel and Map</h2>
+  <ul>
+    <li>A <strong>Parallel</strong> state runs a fixed set of branches at the same time and waits for all of them. The output is a list with the result of each branch.</li>
+    <li>A <strong>Map</strong> state runs the same steps for each item of a list.</li>
+    <li>In <strong>inline</strong> mode, the Map state runs inside the parent execution, with up to 40 iterations at the same time. All iterations share the parent’s execution history, which can hold up to 25,000 events for a Standard workflow.</li>
+  </ul>
+
+  <h2>5.2 Distributed Map</h2>
+  <ul>
+    <li>In <strong>distributed</strong> mode, the Map state launches each iteration, or each batch of items, as a separate <strong>child workflow execution</strong>, with its own history.</li>
+    <li>It runs up to <strong>10,000 child executions</strong> in parallel.</li>
+    <li>It can read the items directly from <strong>Amazon S3</strong>: a list of objects, a CSV or JSON file, or an S3 inventory, so the data does not need to fit in the workflow input. It can write the results back to S3.</li>
+    <li>The child workflows can be Standard or Express. Express fits short, high-volume items, and Standard fits long items or items that use .sync or callbacks.</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg style="min-width:1098px" viewBox="0 0 960 300" role="img" aria-label="Diagram of a Distributed Map state. One million product images in Amazon S3 are read by a Distributed Map state, which runs up to 10,000 child workflows in parallel, each resizing one batch of images. The child workflows write their results to S3. Each child workflow has its own execution history, so the parent never reaches its history limit."><defs><marker id="dm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxb" x="25" y="115" width="170" height="70" rx="8"/><text class="sv-t" x="110" y="137.0" text-anchor="middle">Amazon S3</text><text class="sv-t" x="110" y="155.0" text-anchor="middle">one million</text><text class="sv-t" x="110" y="173.0" text-anchor="middle">product images</text><rect class="sv-boxw" x="270" y="115" width="200" height="70" rx="8"/><text class="sv-t" x="370" y="137.0" text-anchor="middle">Distributed Map</text><text class="sv-t" x="370" y="155.0" text-anchor="middle">reads items from S3,</text><text class="sv-t" x="370" y="173.0" text-anchor="middle">up to 10,000 in parallel</text><line class="sv-line" x1="196" y1="150" x2="268" y2="150" marker-end="url(#dm)"/><rect class="sv-boxg" x="555" y="40" width="190" height="50" rx="8"/><text class="sv-t" x="650" y="61.0" text-anchor="middle">Child workflow 1</text><text class="sv-t" x="650" y="79.0" text-anchor="middle">resize one batch</text><line class="sv-line" x1="470" y1="150" x2="553" y2="65" marker-end="url(#dm)"/><rect class="sv-boxg" x="555" y="115" width="190" height="50" rx="8"/><text class="sv-t" x="650" y="136.0" text-anchor="middle">Child workflow 2</text><text class="sv-t" x="650" y="154.0" text-anchor="middle">resize one batch</text><line class="sv-line" x1="470" y1="150" x2="553" y2="140" marker-end="url(#dm)"/><rect class="sv-boxg" x="555" y="190" width="190" height="50" rx="8"/><text class="sv-t" x="650" y="211.0" text-anchor="middle">Child workflow N</text><text class="sv-t" x="650" y="229.0" text-anchor="middle">resize one batch</text><line class="sv-line" x1="470" y1="150" x2="553" y2="215" marker-end="url(#dm)"/><rect class="sv-boxb" x="800" y="115" width="140" height="70" rx="8"/><text class="sv-t" x="870" y="146.0" text-anchor="middle">Results</text><text class="sv-t" x="870" y="164.0" text-anchor="middle">written to S3</text><line class="sv-line" x1="746" y1="65" x2="798" y2="150" marker-end="url(#dm)"/><line class="sv-line" x1="746" y1="140" x2="798" y2="150" marker-end="url(#dm)"/><line class="sv-line" x1="746" y1="215" x2="798" y2="150" marker-end="url(#dm)"/><text class="sv-tm" x="480" y="285" text-anchor="middle">Each child workflow has its own execution history, so the parent never reaches its history limit.</text></svg>
+    </div>
+    <figcaption>Image 5a — A Distributed Map processes a large S3 dataset with many child workflows (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <div class="qbox">
+<h3>Exam-Style Question</h3>
+<p><strong>Scenario:</strong> A company must process 5 million CSV records stored in S3, with up to thousands of records processed in parallel, using Step Functions. Which approach fits best?</p>
+<ul class="opts">
+<li><strong>A.</strong> One Lambda function that loops over all the records.</li>
+<li><strong>B.</strong> A Map state in inline mode with the records in the workflow input.</li>
+<li><strong>C.</strong> A Parallel state with one branch per record.</li>
+<li><strong>D.</strong> A Map state in distributed mode that reads the CSV file from S3.</li>
+</ul>
+<details>
+<summary>Show Answer and Explanation</summary>
+<p><strong>Correct answer: D.</strong> Distributed Map reads the items directly from S3 and runs up to 10,000 child executions in parallel, each with its own history.</p>
+<div class="tw"><table>
+<thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+<tbody>
+
+
+
+
+<tr><td>A</td><td>Incorrect</td><td>One function is limited to 15 minutes and does not scale out.</td></tr><tr><td>B</td><td>Incorrect</td><td>The records do not fit in the input, and inline mode runs at most 40 iterations at a time.</td></tr><tr><td>C</td><td>Incorrect</td><td>Parallel has a fixed set of branches, not one per record.</td></tr><tr><td>D</td><td>Correct</td><td>It is built for large-scale parallel processing over S3 data.</td></tr></tbody>
+</table></div>
+</details>
+</div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Millions of S3 objects</strong>, <strong>thousands in parallel</strong> = <strong>Distributed Map</strong>. A few items = inline Map.</li>
+      <li><strong>Parallel</strong> = a fixed set of different branches. <strong>Map</strong> = the same steps for each item.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Parallel does different things at once. Map does the same thing many times. Distributed Map does it at S3 scale.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Process millions of S3 objects in parallel"<br>→ Distributed Map</p>
+    <p><strong>Trigger 2:</strong> "Run three different checks at the same time"<br>→ Parallel state</p>
+    <p><strong>Trigger 3:</strong> "Run the same steps for each item of a small list"<br>→ Inline Map state</p>
+  </div>
+  <div class="res">
+    <h2>Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/step-functions/latest/dg/state-map-distributed.html" target="_blank" rel="noopener">Using Map state in Distributed mode for large-scale parallel workloads</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 6 ============ -->
+<section class="tab" id="tab6" role="tabpanel" aria-labelledby="b6">
+  <h1 class="tabh">6. Security, Monitoring, and Pricing</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>Before the order workflow goes live, three teams review it. The security team asks what the workflow is allowed to do, because it calls the payment function, the stock table, and the ECS cluster. The operations team asks how it will know that orders are failing, and how it will find the step where a slow order spends its time.</p>
+    <p>The finance team compares two designs of the clickstream workflow: a Standard workflow with eight states, and the same eight states in an Express workflow. It asks which one costs less at 5,000 events per second, and why the bill of the order workflow grew after a developer split one step into five smaller states.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Describe how the workflow gets permission to call other services, following least privilege.</li>
+      <li>Choose how operations monitors failures and finds slow steps.</li>
+      <li>Explain how each workflow type is billed, and answer the finance team’s two questions.</li>
+    </ul>
+  </div>
+
+  <h2>6.1 Security</h2>
+  <ul>
+    <li>Each state machine has an <strong>IAM execution role</strong>. Step Functions assumes this role to call the services in the workflow, so give it only the actions and resources that the workflow needs.</li>
+    <li>Callers need IAM permission to start an execution (states:StartExecution), for example the role of API Gateway or an EventBridge rule.</li>
+    <li>Step Functions encrypts data at rest, and you can use a customer managed AWS KMS key.</li>
+  </ul>
+
+  <h2>6.2 Monitoring</h2>
+  <ul>
+    <li>For Standard workflows, the console shows the history and a graph of each execution: each state, its input and output, and where it failed.</li>
+    <li><strong>CloudWatch</strong> metrics count started, succeeded, failed, and timed-out executions, and you can set alarms on them. Express workflows send their execution history to <strong>CloudWatch Logs</strong>.</li>
+    <li><strong>AWS X-Ray</strong> traces an execution across Step Functions and the services that it calls, to find the slow steps.</li>
+    <li>EventBridge receives an event when an execution changes status, so another workflow or a notification can react to failures.</li>
+  </ul>
+
+  <h2>6.3 Pricing</h2>
+  <ul>
+    <li><strong>Standard workflows</strong> are billed per <strong>state transition</strong>. More states, or more retries, mean more transitions, so splitting one step into five states raises the cost.</li>
+    <li><strong>Express workflows</strong> are billed per <strong>execution</strong> and by <strong>duration and memory</strong>, which is usually much cheaper for high-volume, short workflows.</li>
+    <li>The services that the workflow calls, such as Lambda, are billed separately.</li>
+    <li>Check the Step Functions pricing page for the current prices.</li>
+  </ul>
+
+  <div class="qbox">
+<h3>Exam-Style Question</h3>
+<p><strong>Scenario:</strong> A Standard workflow runs millions of times a day for short, simple event processing, and its cost is high. The workflow finishes in under a second, and an occasional duplicate is acceptable. How can a solutions architect lower the cost?</p>
+<ul class="opts">
+<li><strong>A.</strong> Add more states to split the work.</li>
+<li><strong>B.</strong> Recreate it as an Express workflow, billed by execution and duration.</li>
+<li><strong>C.</strong> Add retries to every state.</li>
+<li><strong>D.</strong> Give the execution role more permissions.</li>
+</ul>
+<details>
+<summary>Show Answer and Explanation</summary>
+<p><strong>Correct answer: B.</strong> Standard workflows are billed per state transition. For short, high-volume executions, Express workflows are billed by execution and duration and usually cost much less.</p>
+<div class="tw"><table>
+<thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+<tbody>
+
+
+
+
+<tr><td>A</td><td>Incorrect</td><td>More states mean more transitions and more cost.</td></tr><tr><td>B</td><td>Correct</td><td>It matches the pricing model to the workload.</td></tr><tr><td>C</td><td>Incorrect</td><td>Retries add transitions.</td></tr><tr><td>D</td><td>Incorrect</td><td>Permissions do not affect the price.</td></tr></tbody>
+</table></div>
+</details>
+</div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li>The workflow calls services with its <strong>execution role</strong>: least privilege applies.</li>
+      <li><strong>Standard</strong> = billed per <strong>state transition</strong>. <strong>Express</strong> = billed per <strong>execution and duration</strong>.</li>
+      <li>Express history goes to <strong>CloudWatch Logs</strong>, not to the Step Functions console.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>A role to act, CloudWatch and X-Ray to watch, transitions or duration to pay.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Permissions for the services that a workflow calls"<br>→ The state machine execution role</p>
+    <p><strong>Trigger 2:</strong> "Find the slow step in a workflow"<br>→ AWS X-Ray</p>
+    <p><strong>Trigger 3:</strong> "Lower the cost of a short, high-volume workflow"<br>→ Express workflow</p>
+  </div>
+  <div class="res">
+    <h2>Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/step-functions/latest/dg/procedure-create-iam-role.html" target="_blank" rel="noopener">Creating an IAM role for your state machine</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/step-functions/latest/dg/monitoring-logging.html" target="_blank" rel="noopener">Monitoring and logging in Step Functions</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/step-functions/pricing/" target="_blank" rel="noopener">AWS Step Functions pricing</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 7 ============ -->
+<section class="tab" id="tab7" role="tabpanel" aria-labelledby="b7">
+  <h1 class="tabh">7. Comparison &amp; Scenarios</h1>
+
+  <h2>7.1 Step Functions Compared With Other Options</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Need</th><th>Best choice</th><th>Why not the other</th></tr></thead>
+    <tbody>
+      <tr><td>Steps that must run in order, with retries, compensation, and status</td><td>Step Functions (orchestration)</td><td>Choreography with EventBridge or SNS has no central status or order.</td></tr>
+      <tr><td>Independent services that react to the same event</td><td>EventBridge or SNS (choreography)</td><td>An orchestrator adds a central dependency that the services do not need.</td></tr>
+      <tr><td>Buffer work for workers at their own pace</td><td>SQS</td><td>Step Functions coordinates steps; it is not a work queue.</td></tr>
+      <tr><td>Several Lambda functions in a sequence</td><td>Step Functions</td><td>A function that calls the others pays for the waiting and stops at 15 minutes.</td></tr>
+      <tr><td>Large batch computing jobs on many servers</td><td>AWS Batch, started by Step Functions with .sync if needed</td><td>Step Functions coordinates; Batch runs the compute.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>7.2 The FlashCart Order Workflow</h2>
+  <figure>
+    <div class="figwrap">
+    <svg style="min-width:1098px" viewBox="0 0 960 560" role="img" aria-label="Diagram of the FlashCart order state machine. From Start, a Validate order Task runs a Lambda function. An In stock Choice state sends out-of-stock orders to a Notify customer Task with SNS. In-stock orders go to a Parallel state that charges the payment and reserves the stock at the same time. Then a Fraud review Task waits for a callback, a Ship order Task runs an ECS job, and the order completes with a Succeed state. A Catch on any failure after the payment sends the execution to a Refund payment Task and then to an Order failed Fail state. Each Task retries with backoff."><defs><marker id="or" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><circle cx="300" cy="23" r="21" class="sv-boxg"/><text class="sv-tm" x="300" y="27" text-anchor="middle">Start</text><rect class="sv-boxw" x="200" y="50" width="200" height="46" rx="8"/><text class="sv-t" x="300" y="69.0" text-anchor="middle">Validate order</text><text class="sv-t" x="300" y="87.0" text-anchor="middle">(Task: Lambda)</text><line class="sv-line" x1="300" y1="44" x2="300" y2="48" marker-end="url(#or)"/><rect class="sv-boxb" x="200" y="120" width="200" height="46" rx="8"/><text class="sv-t" x="300" y="139.0" text-anchor="middle">In stock?</text><text class="sv-t" x="300" y="157.0" text-anchor="middle">(Choice)</text><line class="sv-line" x1="300" y1="96" x2="300" y2="118" marker-end="url(#or)"/><rect class="sv-boxg" x="500" y="120" width="200" height="46" rx="8"/><text class="sv-t" x="600" y="139.0" text-anchor="middle">Notify customer</text><text class="sv-t" x="600" y="157.0" text-anchor="middle">(Task: SNS)</text><line class="sv-line" x1="400" y1="143" x2="498" y2="143" marker-end="url(#or)"/><text class="sv-tm" x="450" y="135" text-anchor="middle">No</text><rect x="140" y="190" width="320" height="86" rx="10" class="sv-dash"/><text class="sv-tb" x="300" y="206" text-anchor="middle">Parallel</text><rect class="sv-boxw" x="150" y="220" width="140" height="44" rx="8"/><text class="sv-t" x="220" y="247.0" text-anchor="middle">Charge payment</text><rect class="sv-boxw" x="310" y="220" width="140" height="44" rx="8"/><text class="sv-t" x="380" y="247.0" text-anchor="middle">Reserve stock</text><line class="sv-line" x1="300" y1="166" x2="300" y2="188" marker-end="url(#or)"/><text class="sv-tm" x="318" y="182" text-anchor="middle">Yes</text><rect class="sv-boxb" x="200" y="300" width="200" height="46" rx="8"/><text class="sv-t" x="300" y="319.0" text-anchor="middle">Fraud review</text><text class="sv-t" x="300" y="337.0" text-anchor="middle">(wait for callback)</text><line class="sv-line" x1="300" y1="276" x2="300" y2="298" marker-end="url(#or)"/><rect class="sv-boxw" x="200" y="370" width="200" height="46" rx="8"/><text class="sv-t" x="300" y="389.0" text-anchor="middle">Ship order</text><text class="sv-t" x="300" y="407.0" text-anchor="middle">(run a job: ECS)</text><line class="sv-line" x1="300" y1="346" x2="300" y2="368" marker-end="url(#or)"/><rect class="sv-boxg" x="200" y="440" width="200" height="46" rx="8"/><text class="sv-t" x="300" y="459.0" text-anchor="middle">Order complete</text><text class="sv-t" x="300" y="477.0" text-anchor="middle">(Succeed)</text><line class="sv-line" x1="300" y1="416" x2="300" y2="438" marker-end="url(#or)"/><rect x="560" y="300" width="320" height="140" rx="10" class="sv-dash"/><text class="sv-tb" x="720" y="318" text-anchor="middle">Catch: any failure after payment</text><rect class="sv-boxw" x="620" y="330" width="200" height="46" rx="8"/><text class="sv-t" x="720" y="349.0" text-anchor="middle">Refund payment</text><text class="sv-t" x="720" y="367.0" text-anchor="middle">(Task: Lambda)</text><rect class="sv-boxg" x="620" y="392" width="200" height="40" rx="8"/><text class="sv-t" x="720" y="408.0" text-anchor="middle">Order failed</text><text class="sv-t" x="720" y="426.0" text-anchor="middle">(Fail)</text><line class="sv-line" x1="720" y1="376" x2="720" y2="390" marker-end="url(#or)"/><line class="sv-line" x1="400" y1="323" x2="618" y2="353" marker-end="url(#or)"/><line class="sv-line" x1="400" y1="393" x2="618" y2="360" marker-end="url(#or)"/><text class="sv-tm" x="300" y="515" text-anchor="middle">Retry with backoff on each Task. Catch sends failures to a refund path.</text></svg>
+    </div>
+    <figcaption>Image 7a — The FlashCart order workflow: choice, parallel steps, a callback, a .sync job, and a refund path (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>7.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Scenario keywords</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Orchestrate several Lambda functions with error handling</td><td>Step Functions</td></tr>
+      <tr><td>2</td><td>Workflow longer than 15 minutes, up to days</td><td>Step Functions Standard workflow</td></tr>
+      <tr><td>3</td><td>Exactly-once, audit history, up to one year</td><td>Standard workflow</td></tr>
+      <tr><td>4</td><td>High-volume, short, lowest cost</td><td>Express workflow</td></tr>
+      <tr><td>5</td><td>API must return the workflow result</td><td>Synchronous Express workflow</td></tr>
+      <tr><td>6</td><td>Human approval step</td><td>Wait for callback with a task token (Standard)</td></tr>
+      <tr><td>7</td><td>Wait for an ECS, Batch, or Glue job</td><td>Run a job (.sync) integration</td></tr>
+      <tr><td>8</td><td>Transient errors</td><td>Retry with backoff</td></tr>
+      <tr><td>9</td><td>Undo earlier steps after a failure</td><td>Catch to a compensation state</td></tr>
+      <tr><td>10</td><td>Branch on a value</td><td>Choice state</td></tr>
+      <tr><td>11</td><td>Different steps at the same time</td><td>Parallel state</td></tr>
+      <tr><td>12</td><td>Millions of S3 objects in parallel</td><td>Distributed Map</td></tr>
+      <tr><td>13</td><td>Pause for days without compute</td><td>Wait state in a Standard workflow</td></tr>
+      <tr><td>14</td><td>Start a workflow on a schedule or event</td><td>EventBridge Scheduler or an EventBridge rule</td></tr>
+      <tr><td>15</td><td>Call almost any AWS API from a workflow</td><td>AWS SDK integrations</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>7.4 Lesson Summary</h2>
+  <p>This lesson covered the following points:</p>
+  <ul>
+    <li>Step Functions orchestrates steps as a state machine, written in the Amazon States Language or drawn in Workflow Studio, with built-in state, retries, and error handling.</li>
+    <li>The states are Task, Choice, Parallel, Map, Wait, Pass, Succeed, and Fail.</li>
+    <li>Standard workflows run up to one year with exactly-once execution and are billed per state transition. Express workflows run up to five minutes, at high volume, and are billed per execution and duration.</li>
+    <li>Retry and Catch handle errors and compensation. The integration patterns are request response, run a job (.sync), and wait for callback with a task token. Express supports request response only.</li>
+    <li>Parallel runs different branches at once. Map repeats steps for each item, and Distributed Map runs up to 10,000 child executions over data in S3.</li>
+    <li>An IAM execution role controls what a workflow can do, and CloudWatch, CloudWatch Logs, and X-Ray monitor it.</li>
+  </ul>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Order the steps, retry the hiccups, wait for people, and pick Standard or Express.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 8 ============ -->
+<section class="tab" id="tab8" role="tabpanel" aria-labelledby="b8">
+  <h1 class="tabh">8. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer.</p>
+
+  <details>
+    <summary>Question 1: Explain the difference between choreography and orchestration, and when Step Functions is the better choice.</summary>
+    <p><em>Maps to:</em> Objective 1 (Comprehension).</p>
+    <p>In choreography, each service reacts to events and publishes new ones, with no central control, which suits independent services. In orchestration, a central workflow runs the steps in order, retries failures, runs compensation, and keeps the status of each run. Step Functions is the better choice for business processes whose steps must run in a set order with error handling and visible status, such as order fulfillment, and it avoids a Lambda function that calls the others and waits.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Describe the main state types and give an example of each.</summary>
+    <p><em>Maps to:</em> Objective 2 (Knowledge and Comprehension).</p>
+    <p>Task does one unit of work, such as invoking a Lambda function. Choice branches on the data, such as orders over 1,000 dollars. Parallel runs fixed branches at the same time, such as payment and stock reservation. Map runs the same steps for each item. Wait pauses for a time or until a date. Pass passes or shapes data. Succeed and Fail end the execution with success or a named error.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: Compare Standard and Express workflows, and explain how you choose between them.</summary>
+    <p><em>Maps to:</em> Objective 5 (Analysis).</p>
+    <p>Standard workflows run up to one year with exactly-once execution, keep the execution history, support .sync and callbacks, and are billed per state transition. Express workflows run up to five minutes, at up to 100,000 state transitions per second, with at-least-once (asynchronous) or at-most-once (synchronous) execution, history in CloudWatch Logs, only request response, and billing by execution and duration. Choose Standard for long, critical, or audited processes, and Express for short, high-volume, low-cost processing.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Explain how Retry and Catch work, and how they protect the FlashCart order workflow.</summary>
+    <p><em>Maps to:</em> Objective 3 (Application).</p>
+    <p>A Retry rule retries a state for matching errors, with an interval, a maximum number of attempts, and a backoff rate, which handles short payment timeouts. A Catch rule runs after the retries are used up and sends the execution to a fallback state, such as a refund, keeping the error details in the output. Together they handle transient errors automatically and compensate for failures after the payment.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: Describe the three service integration patterns, and when to use each.</summary>
+    <p><em>Maps to:</em> Objective 3 (Application).</p>
+    <p>Request response calls the service and moves on when the HTTP response arrives, for quick calls. Run a job (.sync) starts a job such as an ECS task or a Batch or Glue job and waits for it to complete. Wait for callback (.waitForTaskToken) sends a task token and pauses until a system or a person calls SendTaskSuccess or SendTaskFailure, for human approvals and external systems. Express workflows support only request response.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: Explain when to use Distributed Map instead of an inline Map, and why.</summary>
+    <p><em>Maps to:</em> Objective 4 (Application).</p>
+    <p>Use Distributed Map for large datasets, such as millions of objects or records in S3. It reads the items directly from S3, so they do not need to fit in the workflow input, runs up to 10,000 child executions in parallel, each with its own execution history, and can write the results to S3. An inline Map runs inside the parent execution, with up to 40 iterations at a time, and shares the parent history, which has a limit of 25,000 events for a Standard workflow.</p>
+  </details>
+
+  <details>
+    <summary>Question 7: Design the FlashCart order fulfillment with Step Functions: steps in order, a fraud review by a person, a 20-minute ECS shipping job, short payment timeouts, refunds after failures, and monitoring.</summary>
+    <p><em>Maps to:</em> Objective 6 (Synthesis).</p>
+    <p>Use a Standard workflow, because the process can take days, must run exactly once, and needs callbacks and .sync jobs. Validate the order, use a Choice state for stock and amount, and a Parallel state for payment and stock reservation. Add Retry with backoff for payment timeouts, and a Catch that sends failures after the payment to a refund Task and a Fail state. Use the callback pattern with a task token for the fraud review, and the .sync pattern for the ECS shipping task. Start the workflow from EventBridge or API Gateway, give it a least-privilege execution role, and monitor it with CloudWatch alarms, X-Ray, and status-change events.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>
