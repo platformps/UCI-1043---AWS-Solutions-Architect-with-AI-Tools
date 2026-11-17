@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 272.18 - Database Disaster Recovery</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">Database Disaster Recovery</h1>
+  <p>Choose a disaster recovery strategy for a database from its recovery point and recovery time objectives, and match each AWS database to its cross-Region option.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. Recovery Objectives and Disaster Recovery Strategies</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Database Disaster Recovery Options on AWS</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Comparison &amp; Scenarios</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. Knowledge Check</button></li>
+
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <p>This lesson explains how to plan for the loss of a whole Region for a database. It covers what the recovery point objective (RPO) and the recovery time objective (RTO) mean, the four disaster recovery (DR) strategies, and the cross-Region feature that each AWS database offers. The last two tabs prepare you for the AWS Certified Solutions Architect – Associate (SAA-C03) exam and check what you learned.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> recovery objectives and the four DR strategies: backup and restore, pilot light, warm standby, and multi-site active/active.</li>
+    <li><strong>Tab 2:</strong> database DR options on AWS: the cross-Region feature, the RTO, and the RPO of each database service.</li>
+    <li><strong>Tab 3:</strong> a comparison of failure types and protection, the SAA-C03 cheat sheet, and the lesson summary.</li>
+    <li><strong>Tab 4:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Recovery Objectives and Disaster Recovery Strategies</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Database Disaster Recovery Options on AWS</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define disaster recovery (DR), the recovery point objective (RPO), and the recovery time objective (RTO).</li>
+    <li>Describe the four DR strategies: backup and restore, pilot light, warm standby, and multi-site active/active.</li>
+    <li>Differentiate Multi-AZ deployments, read replicas, and cross-Region copies by the failure that each one protects against.</li>
+    <li>Match Amazon RDS, Amazon Aurora, Amazon DynamoDB, Amazon DocumentDB, Amazon Neptune, and Amazon ElastiCache to their cross-Region DR options.</li>
+    <li>Select a DR strategy and the database features for stated RPO and RTO requirements.</li>
+    <li>Design a database DR plan that gives each tier of data the right strategy and cost.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>DR</td><td>Disaster recovery</td></tr>
+      <tr><td>RDS</td><td>Amazon Relational Database Service</td></tr>
+      <tr><td>RPO</td><td>Recovery point objective</td></tr>
+      <tr><td>RTO</td><td>Recovery time objective</td></tr>
+      <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. Recovery Objectives and Disaster Recovery Strategies</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s order database runs in one Region. The CTO asks what happens if that whole Region fails. The business sets these rules: orders can lose only a few minutes of data, and checkout must be back within a few minutes. The sales reports can be rebuilt, and they can wait a day.</p>
+    <p>The CFO wants to pay for fast recovery only where it matters.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Explain the two recovery objectives.</li>
+      <li>Choose a strategy for the orders and a strategy for the reports.</li>
+      <li>Say what backups alone can and cannot do.</li>
+    </ul>
+  </div>
+
+  <h2>1.1 Two Recovery Objectives</h2>
+  <ul>
+    <li><strong>Disaster recovery (DR)</strong> is the recovery of a workload after a disaster. A disaster can be larger than one data center, for example the loss of a Region.</li>
+    <li>The <strong>recovery point objective (RPO)</strong> is how much data you can afford to lose, measured as time.</li>
+    <li>The <strong>recovery time objective (RTO)</strong> is how long you can afford to be down.</li>
+    <li>A smaller RPO and RTO cost more, so each database gets the objectives that its business value justifies.</li>
+  </ul>
+
+  <h2>1.2 Four DR Strategies</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Strategy</th><th>RPO</th><th>RTO</th><th>What runs in the DR Region</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>Backup and restore</td><td>Hours</td><td>Less than 24 hours</td><td>Nothing runs. You restore the database from a copied snapshot.</td><td>Low</td></tr>
+      <tr><td>Pilot light</td><td>Tens of minutes</td><td>Tens of minutes</td><td>The databases are always on and synchronized. The application stack is switched off and starts on demand.</td><td>Medium</td></tr>
+      <tr><td>Warm standby</td><td>Minutes</td><td>Minutes</td><td>A scaled-down copy of the whole application and database that accepts a smaller volume of traffic.</td><td>High</td></tr>
+      <tr><td>Multi-site active/active</td><td>Near zero</td><td>Zero or near zero</td><td>A full copy that serves traffic at the same scale. No failover task is needed.</td><td>Higher</td></tr>
+    </tbody>
+  </table></div>
+  <p>Source: AWS Prescriptive Guidance, Disaster recovery strategy for databases on AWS. The RPO and RTO values are for a full stack of application and database.</p>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 230" role="img" aria-label="The four disaster recovery strategies from left to right. Backup and restore has an RPO of hours, an RTO of less than 24 hours, and low cost. Pilot light has tens of minutes for both and medium cost. Warm standby has minutes for both and high cost. Multi-site active/active has near zero RPO, zero or near zero RTO, and the highest cost. Cost rises as RPO and RTO fall."><defs><marker id="ar18a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-box" x="10" y="10" width="210" height="130" rx="6"/><text class="sv-tb" x="115.0" y="53.0" text-anchor="middle">Backup and restore</text><text class="sv-t" x="115.0" y="71.0" text-anchor="middle">RPO: hours</text><text class="sv-t" x="115.0" y="89.0" text-anchor="middle">RTO: less than 24 hours</text><text class="sv-t" x="115.0" y="107.0" text-anchor="middle">Cost: low</text><rect class="sv-box" x="238" y="10" width="210" height="130" rx="6"/><text class="sv-tb" x="343.0" y="53.0" text-anchor="middle">Pilot light</text><text class="sv-t" x="343.0" y="71.0" text-anchor="middle">RPO: tens of minutes</text><text class="sv-t" x="343.0" y="89.0" text-anchor="middle">RTO: tens of minutes</text><text class="sv-t" x="343.0" y="107.0" text-anchor="middle">Cost: medium</text><rect class="sv-boxb" x="466" y="10" width="210" height="130" rx="6"/><text class="sv-tb" x="571.0" y="53.0" text-anchor="middle">Warm standby</text><text class="sv-t" x="571.0" y="71.0" text-anchor="middle">RPO: minutes</text><text class="sv-t" x="571.0" y="89.0" text-anchor="middle">RTO: minutes</text><text class="sv-t" x="571.0" y="107.0" text-anchor="middle">Cost: high</text><rect class="sv-boxg" x="694" y="10" width="210" height="130" rx="6"/><text class="sv-tb" x="799.0" y="53.0" text-anchor="middle">Multi-site active/active</text><text class="sv-t" x="799.0" y="71.0" text-anchor="middle">RPO: near zero</text><text class="sv-t" x="799.0" y="89.0" text-anchor="middle">RTO: zero or near zero</text><text class="sv-t" x="799.0" y="107.0" text-anchor="middle">Cost: higher</text><line class="sv-line" x1="60" y1="180" x2="860" y2="180" marker-end="url(#ar18a)"/><text class="sv-t" x="460" y="212" text-anchor="middle">Cost rises. RPO and RTO fall.</text></svg>
+    </div>
+    <figcaption>Image 1a — The four disaster recovery strategies compared by RPO, RTO, and cost. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>1.3 Backups Are the Baseline</h2>
+  <ul>
+    <li>All AWS database services provide <strong>backup and restore</strong> by default.</li>
+    <li>Backups protect against data loss and against logical errors, such as a bad delete. A restore creates a new database (lesson 272.1).</li>
+    <li>Backups stay in their Region unless you copy them. AWS Backup can copy recovery points to another Region or account (lesson 271.4), and Amazon Redshift snapshots can be copied to another Region (lesson 272.8).</li>
+  </ul>
+
+  <h2>1.4 Match the Strategy to the Data</h2>
+  <ul>
+    <li><strong>Orders:</strong> a few minutes of data loss and a few minutes of downtime need a replicated database in a second Region, with a <strong>warm standby</strong> of the application.</li>
+    <li><strong>Sales reports:</strong> they can be rebuilt and can wait a day, so <strong>backup and restore</strong> at low cost is enough.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li>A <strong>Multi-AZ</strong> deployment (lesson 272.1) protects against the loss of an Availability Zone. It does <strong>not</strong> protect against the loss of a Region.</li>
+      <li><strong>Backups in the same Region</strong> are lost together with the Region. Copy them to another Region.</li>
+      <li><strong>Replication copies mistakes</strong>, such as a bad delete, to the replica. Keep backups for logical errors (lesson 272.1).</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Cost climbs as the RPO and the RTO fall.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Lowest cost, and hours of downtime and data loss are acceptable”<br>→ Backup and restore</p>
+    <p><strong>Trigger 2:</strong> “The database is always on in another Region, and the application is switched off until needed”<br>→ Pilot light</p>
+    <p><strong>Trigger 3:</strong> “A scaled-down copy of the full stack runs in another Region”<br>→ Warm standby</p>
+    <p><strong>Trigger 4:</strong> “Near-zero data loss and zero or near-zero downtime”<br>→ Multi-site active/active</p>
+  </div>
+
+  <div class="qbox">
+    <h2>1.5 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company runs an order database in one Region. A new rule says that the company must recover within a few minutes and lose at most a few minutes of data. The company wants the lowest cost that meets the rule. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Backup and restore: copy snapshots to another Region, and restore them after a disaster.</li>
+      <li><strong>B.</strong> Pilot light: keep the databases synchronized in another Region, and start the application stack on demand.</li>
+      <li><strong>C.</strong> Warm standby: keep a scaled-down copy of the application and the database running in another Region.</li>
+      <li><strong>D.</strong> Multi-site active/active: run a full copy at the same scale in two Regions.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> Warm standby has an RPO and an RTO of minutes, and it costs less than multi-site active/active.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Its RPO is hours and its RTO is less than 24 hours, which is too slow.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Its RPO and RTO are tens of minutes, which is slower than the rule.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>It meets a few minutes for both, at a lower cost than the next option.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>It meets the rule, but it has the highest cost. A cheaper option meets the rule too.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>1.6 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html" target="_blank" rel="noopener">Disaster Recovery Options in the Cloud</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-database-disaster-recovery/defining.html" target="_blank" rel="noopener">Defining Your Disaster Recovery Strategy for Databases</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-database-disaster-recovery/welcome.html" target="_blank" rel="noopener">Disaster Recovery Strategy for Databases on AWS</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Database Disaster Recovery Options on AWS</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart chooses a warm standby for its orders. The orders are in Amazon Aurora, the carts are in Amazon DynamoDB, and the product pages keep sessions in Amazon ElastiCache.</p>
+    <p>The team must decide how each database reaches the second Region.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Match each database to its cross-Region feature.</li>
+      <li>Explain the difference between Multi-AZ and the cross-Region options.</li>
+      <li>Say which options accept writes in the second Region.</li>
+    </ul>
+  </div>
+
+  <h2>2.1 Which Feature Protects Against Which Failure</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>Protects against</th><th>Scope</th></tr></thead>
+    <tbody>
+      <tr><td>Multi-AZ deployment (lesson 272.1)</td><td>The failure of an instance or an Availability Zone</td><td>One Region</td></tr>
+      <tr><td>Read replica in the same Region</td><td>Not a DR feature. It scales reads.</td><td>One Region</td></tr>
+      <tr><td>Cross-Region read replica</td><td>The loss of a Region</td><td>Another Region. You promote it.</td></tr>
+      <tr><td>Global database, global cluster, or global table</td><td>The loss of a Region</td><td>Other Regions</td></tr>
+      <tr><td>Backups copied to another Region</td><td>The loss of data, or of a Region</td><td>Another Region. A restore creates a new database.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>2.2 Cross-Region Options by Service</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Database service</th><th>Cross-Region method</th><th>RTO</th><th>RPO</th></tr></thead>
+    <tbody>
+      <tr><td>Amazon RDS for MySQL, PostgreSQL, and MariaDB</td><td>Cross-Region read replica</td><td>Usually minutes. Automation can minimize delays.</td><td>Typically under 1 second</td></tr>
+      <tr><td>Amazon Aurora (MySQL- and PostgreSQL-compatible)</td><td>Global database (lesson 272.2)</td><td>Typically under 1 minute</td><td>Typically under 1 second</td></tr>
+      <tr><td>Amazon DocumentDB</td><td>Global cluster (lesson 272.4)</td><td>Typically under 1 minute</td><td>In seconds</td></tr>
+      <tr><td>Amazon ElastiCache (Redis OSS)</td><td>Global Datastore (lesson 272.6)</td><td>Usually minutes. Automation can minimize delays.</td><td>In seconds</td></tr>
+      <tr><td>Amazon DynamoDB</td><td>Global tables (lesson 272.3). Active/active.</td><td>Zero or near zero</td><td>Sub-second</td></tr>
+      <tr><td>Amazon Neptune</td><td>Global database (lesson 272.7)</td><td>Typically under 1 minute</td><td>Typically 1 second</td></tr>
+    </tbody>
+  </table></div>
+  <p>Source: AWS Prescriptive Guidance, Choosing the right database for your RTO and RPO requirements.</p>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 320" role="img" aria-label="Cross-Region database recovery. The primary Region holds the application, the primary database that accepts writes, and the backups. The DR Region holds a scaled-down or switched-off application, a secondary database that receives replication from the primary, and copied backups from which a restore creates a new database."><defs><marker id="ar18b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-dash" x="10" y="10" width="400" height="290" rx="8"/><text class="sv-tb" x="210" y="36" text-anchor="middle">Primary Region</text><rect class="sv-dash" x="510" y="10" width="400" height="290" rx="8"/><text class="sv-tb" x="710" y="36" text-anchor="middle">DR Region</text><rect class="sv-box" x="40" y="56" width="340" height="56" rx="6"/><text class="sv-tb" x="210.0" y="89.0" text-anchor="middle">Application</text><rect class="sv-boxb" x="40" y="130" width="340" height="56" rx="6"/><text class="sv-tb" x="210.0" y="154.0" text-anchor="middle">Primary database</text><text class="sv-t" x="210.0" y="172.0" text-anchor="middle">Accepts writes</text><rect class="sv-boxw" x="540" y="56" width="340" height="56" rx="6"/><text class="sv-tb" x="710.0" y="80.0" text-anchor="middle">Application</text><text class="sv-t" x="710.0" y="98.0" text-anchor="middle">Scaled down or switched off</text><rect class="sv-boxg" x="540" y="130" width="340" height="56" rx="6"/><text class="sv-tb" x="710.0" y="154.0" text-anchor="middle">Secondary database</text><text class="sv-t" x="710.0" y="172.0" text-anchor="middle">Replica, secondary cluster, or global table</text><line class="sv-line" x1="384" y1="158" x2="536" y2="158" marker-end="url(#ar18b)"/><text class="sv-t" x="460" y="146" text-anchor="middle">Replication</text><rect class="sv-box" x="40" y="222" width="340" height="56" rx="6"/><text class="sv-tb" x="210.0" y="246.0" text-anchor="middle">Backups</text><text class="sv-t" x="210.0" y="264.0" text-anchor="middle">Snapshots and recovery points</text><rect class="sv-box" x="540" y="222" width="340" height="56" rx="6"/><text class="sv-tb" x="710.0" y="246.0" text-anchor="middle">Copied backups</text><text class="sv-t" x="710.0" y="264.0" text-anchor="middle">Restore creates a new database</text><line class="sv-line" x1="384" y1="250" x2="536" y2="250" marker-end="url(#ar18b)"/><text class="sv-t" x="460" y="238" text-anchor="middle">Copy</text></svg>
+    </div>
+    <figcaption>Image 2a — Two ways to protect a database from the loss of a Region: replication and copied backups. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>2.3 Other Cross-Region Options in This Module</h2>
+  <ul>
+    <li><strong>Amazon Redshift</strong> snapshots can be copied to another Region (lesson 272.8).</li>
+    <li><strong>Amazon Keyspaces</strong> offers active-active multi-Region replication (lesson 272.5).</li>
+    <li><strong>Amazon MSK Replicator</strong> copies data between clusters (lesson 272.13).</li>
+  </ul>
+
+  <h2>2.4 What Happens at Failover</h2>
+  <ul>
+    <li>With a <strong>cross-Region read replica</strong> or a <strong>global database</strong>, you promote the secondary to a database that accepts writes, and then point the application at it.</li>
+    <li>With <strong>DynamoDB global tables</strong>, every replica accepts writes, so there is no promotion step.</li>
+    <li><strong>Automate</strong> the failover steps to cut the RTO.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Aurora Replicas</strong> in the same Region do not protect against the loss of a Region. Use an <strong>Aurora global database</strong>.</li>
+      <li><strong>DynamoDB global tables</strong> are the answer for active-active writes in several Regions.</li>
+      <li><strong>Multi-AZ is not cross-Region.</strong> It never answers a question about the loss of a Region.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Same Region: Multi-AZ. Other Region: global.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “An Aurora database must survive the loss of a Region with an RPO under a second”<br>→ Aurora Global Database</p>
+    <p><strong>Trigger 2:</strong> “A NoSQL table must accept writes in two Regions”<br>→ DynamoDB global tables</p>
+    <p><strong>Trigger 3:</strong> “An Amazon RDS for MySQL database needs a standby in another Region”<br>→ A cross-Region read replica, promoted at failover</p>
+    <p><strong>Trigger 4:</strong> “A cache needs a copy in another Region”<br>→ ElastiCache Global Datastore</p>
+    <p><strong>Trigger 5:</strong> “The lowest-cost DR, and hours of downtime are acceptable”<br>→ Copy backups or snapshots to another Region</p>
+  </div>
+
+  <div class="res">
+    <h2>2.5 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-database-disaster-recovery/choosing-database.html" target="_blank" rel="noopener">Choosing the Right Database for Your RTO and RPO Requirements</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/rds/aurora/global-database/" target="_blank" rel="noopener">Amazon Aurora Global Database</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/dynamodb/global-tables/" target="_blank" rel="noopener">Amazon DynamoDB Global Tables</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/documentdb/latest/developerguide/global-clusters.html" target="_blank" rel="noopener">Amazon DocumentDB Global Clusters</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Redis-Global-Datastore.html" target="_blank" rel="noopener">Amazon ElastiCache Global Datastore</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/neptune/global-database/" target="_blank" rel="noopener">Amazon Neptune Global Database</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Comparison &amp; Scenarios</h1>
+
+  <h2>3.1 Failure Types and Protection Compared</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Failure</th><th>What protects the database</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>One instance or one Availability Zone fails</td><td>Multi-AZ deployment, or an Aurora Replica with automatic failover</td><td>It stays inside one Region.</td></tr>
+      <tr><td>The load grows</td><td>Read replicas</td><td>A cross-Region read replica also serves DR.</td></tr>
+      <tr><td>A whole Region fails</td><td>A cross-Region read replica, a global database, a global table, or backups copied to another Region</td><td>The choice sets the RPO and the RTO.</td></tr>
+      <tr><td>A bad delete or a bad update</td><td>Backups and point-in-time restore (lesson 272.1)</td><td>Replication copies the mistake to the replica.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>3.2 Choosing a Strategy</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Requirement</th><th>Strategy</th><th>Database setup</th></tr></thead>
+    <tbody>
+      <tr><td>Hours of downtime and data loss are acceptable, at the lowest cost</td><td>Backup and restore</td><td>Copy snapshots to another Region, and restore after a disaster.</td></tr>
+      <tr><td>Recovery in tens of minutes with synchronized data</td><td>Pilot light</td><td>A cross-Region read replica or secondary cluster, and the application stack switched off.</td></tr>
+      <tr><td>Recovery in minutes</td><td>Warm standby</td><td>A global database or global cluster, and a scaled-down application.</td></tr>
+      <tr><td>Near-zero data loss and no failover task</td><td>Multi-site active/active</td><td>DynamoDB global tables.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>3.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Scenario keywords</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>How much data you can lose</td><td>RPO</td></tr>
+      <tr><td>2</td><td>How long you can be down</td><td>RTO</td></tr>
+      <tr><td>3</td><td>Lowest-cost DR, hours of downtime acceptable</td><td>Backup and restore</td></tr>
+      <tr><td>4</td><td>Databases always on in another Region, application off</td><td>Pilot light</td></tr>
+      <tr><td>5</td><td>Scaled-down full stack always running</td><td>Warm standby</td></tr>
+      <tr><td>6</td><td>Near-zero RPO, zero or near-zero RTO</td><td>Multi-site active/active</td></tr>
+      <tr><td>7</td><td>Aurora must survive the loss of a Region</td><td>Aurora Global Database</td></tr>
+      <tr><td>8</td><td>NoSQL writes in two Regions</td><td>DynamoDB global tables</td></tr>
+      <tr><td>9</td><td>Multi-AZ for the loss of a Region</td><td>No. Multi-AZ stays in one Region.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>3.4 Lesson Summary</h2>
+  <p>This lesson covered the following points:</p>
+  <ul>
+    <li>The RPO is how much data you can lose, and the RTO is how long you can be down.</li>
+    <li>The four strategies are backup and restore, pilot light, warm standby, and multi-site active/active. Cost rises as the RPO and the RTO fall.</li>
+    <li>All AWS database services give backup and restore. Backups protect against logical errors, and replication does not.</li>
+    <li>Multi-AZ protects against the loss of an Availability Zone. A cross-Region read replica, a global database, or a global table protects against the loss of a Region.</li>
+    <li>DynamoDB global tables are active-active.</li>
+  </ul>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Pick the cheapest strategy that still meets the RPO and the RTO.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 4 ============ -->
+
+<section class="tab" id="tab4" role="tabpanel" aria-labelledby="b4">
+  <h1 class="tabh">4. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: Explain disaster recovery, the RPO, and the RTO.</summary>
+    <p><em>Maps to:</em> Objective 1 (Comprehension).</p>
+    <p>Disaster recovery is the recovery of a workload after a disaster, such as the loss of a Region. The RPO is how much data you can afford to lose, measured as time. The RTO is how long you can afford to be down. Both set the cost of the strategy that you need.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Describe the four DR strategies in order of cost.</summary>
+    <p><em>Maps to:</em> Objective 2 (Comprehension).</p>
+    <p>Backup and restore costs least, with an RPO of hours and an RTO of less than 24 hours. Pilot light keeps the databases synchronized and the application stack off, with tens of minutes for both. Warm standby runs a scaled-down copy, with minutes for both. Multi-site active/active runs a full copy, with near-zero data loss and zero or near-zero downtime, and it costs the most.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: Differentiate Multi-AZ, read replicas, and copies in another Region by the failure that each protects against.</summary>
+    <p><em>Maps to:</em> Objective 3 (Comprehension).</p>
+    <p>Multi-AZ protects against the failure of an instance or an Availability Zone inside one Region. A read replica in the same Region scales reads. A cross-Region read replica, a global database, a global table, or a backup copied to another Region protects against the loss of a Region.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Match Aurora, DynamoDB, and ElastiCache to their cross-Region features, and compare their RTO and RPO.</summary>
+    <p><em>Maps to:</em> Objective 4 (Application).</p>
+    <p>Aurora uses a global database, with a typical RTO under 1 minute and a typical RPO under 1 second. DynamoDB uses global tables, which are active-active, with a zero or near-zero RTO and a sub-second RPO. ElastiCache uses Global Datastore, with an RTO of usually minutes and an RPO in seconds.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: The orders can lose a few minutes of data and must be back in a few minutes, and the reports can wait a day. Select a strategy for each.</summary>
+    <p><em>Maps to:</em> Objective 5 (Application).</p>
+    <p>Use warm standby for the orders, with a replicated database and a scaled-down application in a second Region. Use backup and restore for the reports, because they can be rebuilt and can wait, and it costs the least.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: Design a DR plan for an Aurora order database, a DynamoDB cart table, and a Redshift report warehouse.</summary>
+    <p><em>Maps to:</em> Objective 6 (Synthesis).</p>
+    <p>Give each tier its own strategy. For the Aurora orders, use a global database with a warm standby of the application. For the DynamoDB carts, use global tables, which accept writes in every Region. For the Redshift warehouse, copy the snapshots to another Region and restore them if the Region is lost. Keep backups of all three for logical errors, and automate the failover steps.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 272.17 - AWS Database Migration Service and Schema Conversion</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">AWS Database Migration Service and Schema Conversion</h1>
+  <p>Move a database to AWS with AWS Database Migration Service, keep it in sync until the cutover, and convert the schema and code when the engines differ.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. AWS Database Migration Service</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Schema Conversion, Security, and Pricing</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Comparison &amp; Scenarios</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. Knowledge Check</button></li>
+
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <p>This lesson explains how to move a database to AWS with AWS Database Migration Service (AWS DMS), how the service keeps the target in sync until the cutover, and how to convert the schema and code when the source and target engines differ. AWS DMS is an in-scope service for the AWS Certified Solutions Architect – Associate (SAA-C03) exam.</p>
+  <p>The last two tabs prepare you for the exam and check what you learned.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> AWS DMS: homogeneous and heterogeneous migrations, how a migration runs, and the three deployment options.</li>
+    <li><strong>Tab 2:</strong> DMS Schema Conversion and the AWS Schema Conversion Tool (AWS SCT), reliability and security, and pricing.</li>
+    <li><strong>Tab 3:</strong> a comparison with other migration services, the SAA-C03 cheat sheet, and the lesson summary.</li>
+    <li><strong>Tab 4:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">AWS Database Migration Service</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Schema Conversion, Security, and Pricing</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define AWS DMS, and identify its endpoints, its replication instance, and its tasks.</li>
+    <li>Differentiate homogeneous from heterogeneous migrations, and describe the stages of a migration: full load, change data capture, and cutover.</li>
+    <li>Describe the three AWS DMS deployment options: replication instances, DMS Serverless, and homogeneous data migrations.</li>
+    <li>Explain what DMS Schema Conversion and the AWS SCT do, and when a migration needs them.</li>
+    <li>Choose the right AWS service to move a database, files, or servers for a stated requirement.</li>
+    <li>Design a low-downtime migration of an on-premises database to Amazon Aurora.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>CDC</td><td>Change data capture</td></tr>
+      <tr><td>DMS</td><td>AWS Database Migration Service</td></tr>
+      <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+      <tr><td>NFS</td><td>Network File System</td></tr>
+      <tr><td>PL/SQL</td><td>Procedural Language/Structured Query Language, the Oracle dialect</td></tr>
+      <tr><td>PL/pgSQL</td><td>Procedural Language/PostgreSQL, the PostgreSQL dialect</td></tr>
+      <tr><td>RDS</td><td>Amazon Relational Database Service</td></tr>
+      <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
+      <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SCT</td><td>AWS Schema Conversion Tool</td></tr>
+      <tr><td>SMB</td><td>Server Message Block</td></tr>
+      <tr><td>SQL</td><td>Structured Query Language</td></tr>
+      <tr><td>T-SQL</td><td>Transact-SQL, the Microsoft SQL Server dialect</td></tr>
+      <tr><td>TLS</td><td>Transport Layer Security</td></tr>
+      <tr><td>VPC</td><td>Amazon Virtual Private Cloud</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. AWS Database Migration Service</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart buys a small marketplace company. The seller and inventory data of the marketplace sits in an Oracle database in an office data center. FlashCart wants this data in Amazon Aurora (lesson 272.2), which its engineers already run, and the marketplace cannot stop taking orders for hours.</p>
+    <p>The team needs a way to copy the data and keep it up to date until the day that the marketplace switches over.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose a service to move the database with minimal downtime.</li>
+      <li>Explain how the service copies the existing data and the new changes.</li>
+      <li>Choose between the deployment options of the service.</li>
+    </ul>
+  </div>
+
+  <h2>1.1 Introduction to AWS DMS</h2>
+  <ul>
+    <li><strong>AWS Database Migration Service (AWS DMS)</strong> is a managed migration and replication service. It moves databases and analytics workloads to AWS.</li>
+    <li>The source database <strong>stays fully operational</strong> during the migration, so the applications that use it have minimal downtime.</li>
+    <li>AWS DMS can also <strong>replicate data continuously</strong> with low latency, for example from several sources into an Amazon S3 data lake, or into Amazon Redshift (lesson 272.8).</li>
+  </ul>
+
+  <h2>1.2 Homogeneous and Heterogeneous Migrations</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Type</th><th>Meaning</th><th>Examples</th><th>Before the data moves</th></tr></thead>
+    <tbody>
+      <tr><td>Homogeneous</td><td>The source and target engines are the same or compatible.</td><td>Oracle to Oracle; MySQL to Amazon Aurora</td><td>Copy the schema with the tools of the engine, or with the AWS SCT.</td></tr>
+      <tr><td>Heterogeneous</td><td>The source and target engines are different.</td><td>Oracle or Microsoft SQL Server to Amazon Aurora</td><td>Convert the schema and the code first (tab 2).</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>1.3 How a Migration Runs</h2>
+  <p>A typical migration has five steps:</p>
+  <ol>
+    <li>Create the <strong>target database</strong>.</li>
+    <li>Migrate the <strong>schema</strong> (tab 2).</li>
+    <li>Create a <strong>task</strong>. Specify the source endpoint and the target endpoint, choose a replication instance, and accept the default schema mapping rules or define your own.</li>
+    <li>Run the task. AWS DMS does a <strong>full load</strong> of the existing data, and then applies the changes with <strong>change data capture (CDC)</strong>.</li>
+    <li>Perform the <strong>cutover</strong>: switch the application to the new database when the target has caught up with the source.</li>
+  </ol>
+  <p>For continuous replication, the only difference is that there is no cutover. The task runs until you change or stop it.</p>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 295" role="img" aria-label="Flow of a database migration with AWS Database Migration Service. The source database feeds an AWS DMS task that first runs a full load and then applies ongoing changes with change data capture, and the target database receives both. When the target has caught up, the application is switched over to it."><defs><marker id="ar17a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-box" x="10" y="50" width="210" height="110" rx="6"/><text class="sv-tb" x="115.0" y="92.0" text-anchor="middle">Source database</text><text class="sv-t" x="115.0" y="110.0" text-anchor="middle">For example Oracle,</text><text class="sv-t" x="115.0" y="128.0" text-anchor="middle">on premises or in AWS</text><rect class="sv-boxb" x="300" y="10" width="330" height="200" rx="6"/><text class="sv-tb" x="465" y="38" text-anchor="middle">AWS DMS task</text><rect class="sv-box" x="325" y="55" width="280" height="60" rx="6"/><text class="sv-tb" x="465.0" y="81.0" text-anchor="middle">1. Full load</text><text class="sv-t" x="465.0" y="99.0" text-anchor="middle">Copies the existing data</text><rect class="sv-box" x="325" y="135" width="280" height="60" rx="6"/><text class="sv-tb" x="465.0" y="161.0" text-anchor="middle">2. Ongoing changes</text><text class="sv-t" x="465.0" y="179.0" text-anchor="middle">Change data capture (CDC)</text><line class="sv-line" x1="225" y1="105" x2="295" y2="105" marker-end="url(#ar17a)"/><line class="sv-line" x1="635" y1="105" x2="705" y2="105" marker-end="url(#ar17a)"/><rect class="sv-boxg" x="710" y="50" width="200" height="110" rx="6"/><text class="sv-tb" x="810.0" y="101.0" text-anchor="middle">Target database</text><text class="sv-t" x="810.0" y="119.0" text-anchor="middle">For example Amazon Aurora</text><rect class="sv-boxw" x="190" y="235" width="540" height="42" rx="6"/><text class="sv-t" x="460.0" y="261.0" text-anchor="middle">3. Cutover: switch the application when the target has caught up</text></svg>
+    </div>
+    <figcaption>Image 1a — How a migration with AWS Database Migration Service runs, from the source database to the cutover. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>1.4 Deployment Options</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Option</th><th>How it runs</th><th>Best for</th></tr></thead>
+    <tbody>
+      <tr><td>Replication instance</td><td>You choose the size of the instance. A Multi-AZ option adds a redundant instance.</td><td>Predictable, stable data transfers that you can size for performance and cost.</td></tr>
+      <tr><td>AWS DMS Serverless</td><td>It provisions, monitors, and scales the resources automatically. It supports Single-AZ and Multi-AZ.</td><td>Heterogeneous migrations, and continuous replication where the amount of data changes.</td></tr>
+      <tr><td>Homogeneous data migrations</td><td>Built-in native tooling that is serverless and does not use a replication instance.</td><td>Homogeneous migrations between supported engines.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>1.5 Limits to Know</h2>
+  <ul>
+    <li>Either the source or the target, or both, must be in <strong>Amazon RDS</strong> or on <strong>Amazon EC2</strong>.</li>
+    <li>Replication from an <strong>on-premises database to another on-premises database</strong> is not supported.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>AWS DMS</strong> is the answer for moving a <strong>database</strong> with minimal downtime. It is not the answer for files or servers.</li>
+      <li>A <strong>heterogeneous</strong> migration needs the <strong>schema and code converted</strong> first. AWS DMS moves the data.</li>
+      <li><strong>On-premises to on-premises</strong> replication is not supported. One side must be in RDS or on EC2.</li>
+      <li>Use <strong>full load plus CDC</strong> to keep the source online. A full load alone does not copy the changes that happen during the copy.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Full load first, then the changes, then the cutover.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Migrate a database to AWS with minimal downtime while the source stays online”<br>→ AWS DMS with a full load and CDC</p>
+    <p><strong>Trigger 2:</strong> “Keep the target database in sync until the cutover day”<br>→ AWS DMS change data capture</p>
+    <p><strong>Trigger 3:</strong> “Replicate database changes continuously into an Amazon S3 data lake”<br>→ AWS DMS continuous replication</p>
+    <p><strong>Trigger 4:</strong> “A migration workload that changes in size, and nothing to size or monitor”<br>→ AWS DMS Serverless</p>
+    <p><strong>Trigger 5:</strong> “Same engine, supported source and target, no replication instance”<br>→ AWS DMS homogeneous data migrations</p>
+  </div>
+
+  <div class="qbox">
+    <h2>1.6 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company must move a 2 TB MySQL database from its data center to Amazon RDS for MySQL. The application can stop for only a few minutes at the cutover. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Use AWS DMS with a full load and change data capture, and switch the application to the target when the target has caught up.</li>
+      <li><strong>B.</strong> Use AWS DataSync (lesson 271.3) to copy the database files to Amazon S3, and restore them in Amazon RDS.</li>
+      <li><strong>C.</strong> Stop the database, take a backup, and restore the backup in Amazon RDS.</li>
+      <li><strong>D.</strong> Use AWS Storage Gateway (lesson 271.3) to present the database files to Amazon RDS.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> AWS DMS keeps the source database online, copies the existing data, and applies the changes until the cutover, so the downtime is only the switch.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>The full load and CDC keep the source online, and the cutover is short.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>DataSync copies files. It does not apply the changes that happen after the copy, so the database would stop or lose changes.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>The application is stopped for the whole backup and restore, which is much longer than a few minutes for 2 TB.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Storage Gateway gives file, volume, or tape access. It does not migrate or replicate a database.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>1.7 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">FAQ</span> <a href="https://aws.amazon.com/dms/faqs/" target="_blank" rel="noopener">AWS Database Migration Service FAQs</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/dms/features/" target="_blank" rel="noopener">AWS Database Migration Service Features</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/dms/latest/userguide/CHAP_GettingStarted.html" target="_blank" rel="noopener">Getting Started With AWS DMS</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Introduction.Sources.html" target="_blank" rel="noopener">Supported AWS DMS Sources</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Introduction.Targets.html" target="_blank" rel="noopener">Supported AWS DMS Targets</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Serverless.html" target="_blank" rel="noopener">AWS DMS Serverless</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Schema Conversion, Security, and Pricing</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>The marketplace database holds more than tables. It also holds stored procedures that are written in Oracle PL/SQL, and the target, Amazon Aurora PostgreSQL-Compatible Edition, uses a different procedural language called PL/pgSQL.</p>
+    <p>The security team asks how the migration traffic is protected, and the CFO asks what the migration costs.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose how to convert the schema and the stored procedures.</li>
+      <li>Explain what the conversion tools do and do not do.</li>
+      <li>Explain how a migration is made reliable and secure, and what you pay for.</li>
+    </ul>
+  </div>
+
+  <h2>2.1 Why Schema Conversion Matters</h2>
+  <ul>
+    <li>A database holds <strong>code</strong>, such as stored procedures, in the dialect of one engine.</li>
+    <li>When the engines differ, the schema and the code must be converted before the new engine can use them. A heterogeneous migration is therefore a <strong>two-step process</strong>.</li>
+    <li>Two tools convert them: <strong>DMS Schema Conversion</strong>, which is part of AWS DMS, and the downloadable <strong>AWS Schema Conversion Tool (AWS SCT)</strong>.</li>
+  </ul>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 190" role="img" aria-label="A heterogeneous migration in two steps. Step 1 converts the schema and code of the Oracle source with DMS Schema Conversion or the AWS Schema Conversion Tool. Step 2 moves the data with AWS DMS, using a full load and change data capture, into Amazon Aurora PostgreSQL."><defs><marker id="ar17b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-box" x="10" y="40" width="190" height="110" rx="6"/><text class="sv-tb" x="105.0" y="82.0" text-anchor="middle">Source: Oracle</text><text class="sv-t" x="105.0" y="100.0" text-anchor="middle">Tables, PL/SQL code,</text><text class="sv-t" x="105.0" y="118.0" text-anchor="middle">and data</text><rect class="sv-boxb" x="250" y="40" width="200" height="110" rx="6"/><text class="sv-tb" x="350.0" y="73.0" text-anchor="middle">Step 1: Convert</text><text class="sv-t" x="350.0" y="91.0" text-anchor="middle">Schema and code with</text><text class="sv-t" x="350.0" y="109.0" text-anchor="middle">DMS Schema Conversion</text><text class="sv-t" x="350.0" y="127.0" text-anchor="middle">or AWS SCT</text><rect class="sv-boxb" x="500" y="40" width="200" height="110" rx="6"/><text class="sv-tb" x="600.0" y="82.0" text-anchor="middle">Step 2: Move the data</text><text class="sv-t" x="600.0" y="100.0" text-anchor="middle">AWS DMS</text><text class="sv-t" x="600.0" y="118.0" text-anchor="middle">Full load and CDC</text><rect class="sv-boxg" x="750" y="40" width="160" height="110" rx="6"/><text class="sv-tb" x="830.0" y="82.0" text-anchor="middle">Target: Aurora</text><text class="sv-t" x="830.0" y="100.0" text-anchor="middle">PostgreSQL</text><text class="sv-t" x="830.0" y="118.0" text-anchor="middle">Tables and PL/pgSQL</text><line class="sv-line" x1="205" y1="95" x2="245" y2="95" marker-end="url(#ar17b)"/><line class="sv-line" x1="455" y1="95" x2="495" y2="95" marker-end="url(#ar17b)"/><line class="sv-line" x1="705" y1="95" x2="745" y2="95" marker-end="url(#ar17b)"/></svg>
+    </div>
+    <figcaption>Image 2a — A heterogeneous migration is a two-step process: convert the schema and code, then move the data. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>2.2 DMS Schema Conversion and the AWS SCT</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>DMS Schema Conversion</th><th>AWS SCT</th></tr></thead>
+    <tbody>
+      <tr><td>What it is</td><td>A feature of AWS DMS.</td><td>A downloadable application.</td></tr>
+      <tr><td>What it converts</td><td>Oracle PL/SQL and SQL Server T-SQL code to the Amazon RDS for MySQL dialect, or to PL/pgSQL in PostgreSQL.</td><td>Database conversions, such as Oracle to PostgreSQL, and data warehouse conversions, such as Netezza to Amazon Redshift.</td></tr>
+      <tr><td>Ongoing replication</td><td>Not its job. AWS DMS does the replication.</td><td>Not supported.</td></tr>
+      <tr><td>Typical workload</td><td>Relational databases.</td><td>AWS SCT is primarily used for large data warehouse workloads.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>2.3 What the Conversion Does Not Do</h2>
+  <ul>
+    <li>Some code cannot be converted automatically. DMS Schema Conversion <strong>documents the locations</strong> that need manual input from the application developer.</li>
+    <li>Neither tool replaces the data migration. <strong>AWS DMS moves the data</strong> and keeps the target in sync.</li>
+  </ul>
+
+  <h2>2.4 Reliability and Security</h2>
+  <ul>
+    <li>A <strong>Multi-AZ</strong> option uses redundant replication instances for high availability of the migration.</li>
+    <li>AWS DMS secures the connections to the endpoints with <strong>SSL/TLS</strong>.</li>
+    <li>It creates the replication instances in an <strong>Amazon VPC</strong>, which isolates them and gives you control of the networking.</li>
+    <li><strong>Data validation</strong> compares the source and the target data to find differences.</li>
+    <li>AWS DMS integrates with <strong>AWS CloudTrail</strong> and <strong>Amazon CloudWatch Logs</strong>.</li>
+  </ul>
+
+  <h2>2.5 Pricing</h2>
+  <ul>
+    <li>You pay for the <strong>replication instances</strong> and for any additional <strong>log storage</strong>. The AWS DMS FAQ states that data transfer is free.</li>
+    <li>DMS Schema Conversion is <strong>free</strong>. You pay only for the storage that it uses.</li>
+    <li>A Database Savings Plan can reduce the AWS DMS cost by up to 20 percent with a one-year commitment.</li>
+    <li>Check the AWS DMS pricing page for current prices.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Schema conversion is not data migration.</strong> Converting the code does not copy the data.</li>
+      <li>The <strong>AWS SCT does not support ongoing replication</strong>. AWS DMS does.</li>
+      <li>Use <strong>DMS Schema Conversion or the AWS SCT</strong> when the engines differ, for example Oracle to Aurora PostgreSQL.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Convert first, then move.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Convert Oracle PL/SQL or SQL Server T-SQL code to PostgreSQL”<br>→ DMS Schema Conversion or the AWS SCT</p>
+    <p><strong>Trigger 2:</strong> “Convert the schema of a data warehouse such as Netezza to Amazon Redshift”<br>→ AWS SCT</p>
+    <p><strong>Trigger 3:</strong> “High availability for the migration itself”<br>→ A Multi-AZ replication instance or AWS DMS Serverless with Multi-AZ</p>
+    <p><strong>Trigger 4:</strong> “Check that the source and the target data match”<br>→ AWS DMS data validation</p>
+  </div>
+
+  <div class="res">
+    <h2>2.6 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/dms/latest/userguide/CHAP_SchemaConversion.html" target="_blank" rel="noopener">AWS DMS Schema Conversion</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/dms/schema-conversion-tool/" target="_blank" rel="noopener">AWS Schema Conversion Tool</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/CHAP_Welcome.html" target="_blank" rel="noopener">What Is the AWS Schema Conversion Tool?</a></li>
+      <li><span class="lbl">Pricing</span> <a href="https://aws.amazon.com/dms/pricing/" target="_blank" rel="noopener">AWS Database Migration Service Pricing</a></li>
+      <li><span class="lbl">FAQ</span> <a href="https://aws.amazon.com/dms/faqs/" target="_blank" rel="noopener">AWS Database Migration Service FAQs</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Comparison &amp; Scenarios</h1>
+
+  <h2>3.1 Migration Services Compared</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Requirement</th><th>Best fit</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Move a database with minimal downtime</td><td>AWS DMS</td><td>The source stays online, and AWS DMS copies the data and the changes.</td></tr>
+      <tr><td>Convert Oracle PL/SQL code to PL/pgSQL</td><td>DMS Schema Conversion or the AWS SCT</td><td>They convert the schema and the code, and mark what needs manual work.</td></tr>
+      <tr><td>Copy files from NFS or SMB to Amazon S3, Amazon EFS, or Amazon FSx</td><td>AWS DataSync (lesson 271.3)</td><td>It copies on a schedule and verifies the data.</td></tr>
+      <tr><td>Accept SFTP uploads from partners</td><td>AWS Transfer Family (lesson 271.3)</td><td>It gives a managed SFTP endpoint that stores the files in S3 or EFS.</td></tr>
+      <tr><td>Move large data that sits on your own drives at a slow site</td><td>AWS Data Transfer Terminal (lesson 271.3)</td><td>You bring the drives to a location with a fast connection.</td></tr>
+      <tr><td>Move servers, such as virtual machines</td><td>AWS Application Migration Service</td><td>It is a server migration service, and it is not covered in this course.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>3.2 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Scenario keywords</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Migrate a database with minimal downtime</td><td>AWS DMS</td></tr>
+      <tr><td>2</td><td>Keep the target in sync until the cutover</td><td>AWS DMS full load plus CDC</td></tr>
+      <tr><td>3</td><td>Oracle or SQL Server to Amazon Aurora</td><td>Convert with DMS Schema Conversion or the AWS SCT, then move the data with AWS DMS</td></tr>
+      <tr><td>4</td><td>Same engine, supported source and target, nothing to provision</td><td>AWS DMS homogeneous data migrations</td></tr>
+      <tr><td>5</td><td>Migration whose data volume changes, nothing to size</td><td>AWS DMS Serverless</td></tr>
+      <tr><td>6</td><td>High availability for the migration</td><td>Multi-AZ replication instance</td></tr>
+      <tr><td>7</td><td>Compare the source and the target data</td><td>AWS DMS data validation</td></tr>
+      <tr><td>8</td><td>Convert a data warehouse schema to Amazon Redshift</td><td>AWS SCT</td></tr>
+      <tr><td>9</td><td>Copy files from NFS or SMB</td><td>AWS DataSync</td></tr>
+      <tr><td>10</td><td>On-premises database to on-premises database</td><td>Not supported by AWS DMS</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>3.3 Lesson Summary</h2>
+  <p>This lesson covered the following points:</p>
+  <ul>
+    <li>AWS DMS is a managed service that migrates and replicates databases. The source stays online during the migration.</li>
+    <li>A migration runs as a full load, then CDC, then a cutover. A continuous replication task has no cutover.</li>
+    <li>Homogeneous migrations use the same or compatible engines. Heterogeneous migrations need the schema and code converted first.</li>
+    <li>AWS DMS runs on a replication instance or as DMS Serverless, and homogeneous data migrations use serverless native tooling.</li>
+    <li>DMS Schema Conversion and the AWS SCT convert schemas and code. The AWS SCT does not replicate, and AWS DMS does.</li>
+  </ul>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Convert the shape with SCT, move the data with DMS.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 4 ============ -->
+
+<section class="tab" id="tab4" role="tabpanel" aria-labelledby="b4">
+  <h1 class="tabh">4. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: Explain what AWS DMS is, and describe the stages of a migration with minimal downtime.</summary>
+    <p><em>Maps to:</em> Objectives 1 and 2 (Comprehension).</p>
+    <p>AWS DMS is a managed migration and replication service. You create endpoints and a task. The task does a full load of the existing data, and then applies the changes with change data capture while the source stays online. When the target has caught up, you switch the application to it. That switch is the cutover, and it is the only downtime.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Differentiate homogeneous from heterogeneous migrations, and say what each needs before the data moves.</summary>
+    <p><em>Maps to:</em> Objective 2 (Comprehension).</p>
+    <p>A homogeneous migration moves between the same or compatible engines, such as MySQL to Amazon Aurora. The schema can be copied with the tools of the engine or with the AWS SCT. A heterogeneous migration moves between different engines, such as Oracle to Amazon Aurora. The schema and the code must be converted first, so it is a two-step process.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: Compare the three AWS DMS deployment options.</summary>
+    <p><em>Maps to:</em> Objective 3 (Comprehension).</p>
+    <p>A replication instance is sized by you, and it fits predictable, stable transfers. AWS DMS Serverless provisions, monitors, and scales the resources automatically, and it fits heterogeneous migrations and continuous replication where the data volume changes. Homogeneous data migrations use built-in serverless native tooling with no replication instance, for supported engines.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Explain what DMS Schema Conversion and the AWS SCT do, and what they cannot do.</summary>
+    <p><em>Maps to:</em> Objective 4 (Comprehension).</p>
+    <p>They convert the schema and the code of the source to the dialect of the target, for example Oracle PL/SQL to PL/pgSQL. They mark the code that cannot be converted automatically so that a developer can finish it. They do not move the data, and the AWS SCT does not support ongoing replication.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: A team must move an NFS file share, a database, and a group of servers to AWS. Choose a service for each, and say why.</summary>
+    <p><em>Maps to:</em> Objective 5 (Application).</p>
+    <p>Use AWS DataSync for the NFS files, because it copies on a schedule and verifies the data. Use AWS DMS for the database, because it migrates the data with minimal downtime. Use AWS Application Migration Service for the servers, because it is the server migration service.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: Design a low-downtime migration of an on-premises SQL Server database to Amazon Aurora PostgreSQL.</summary>
+    <p><em>Maps to:</em> Objective 6 (Synthesis).</p>
+    <p>Create the Aurora PostgreSQL cluster. Convert the schema and the T-SQL code with DMS Schema Conversion or the AWS SCT, and finish the code that is marked for manual work. Create the endpoints and a task in AWS DMS, with a replication instance or DMS Serverless, and run a full load followed by CDC. Use data validation to compare the data, and switch the application at the cutover. The target is in AWS, which meets the rule that one side must be in RDS or on EC2.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>
