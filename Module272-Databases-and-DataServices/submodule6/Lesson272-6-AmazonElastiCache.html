@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 272.6 - Amazon ElastiCache</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">Amazon ElastiCache</h1>
+  <p>Speed up applications with Amazon ElastiCache: engines, deployment options, caching strategies, availability, security, and cost.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. Caching and ElastiCache Basics</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Engines and Deployment Options</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Caching Strategies</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. High Availability and Backups</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab5" id="b5">5. Security</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab6" id="b6">6. ElastiCache Pricing</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab7" id="b7">7. Comparison &amp; Scenarios</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab8" id="b8">8. Knowledge Check</button></li>
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <h3>AWS Database Services</h3>
+  <p>AWS offers a purpose-built database service for each kind of data. This lesson covers Amazon ElastiCache, the managed in-memory cache.</p>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 340" role="img" aria-label="Map of AWS database services in six groups: relational, key-value and document, wide-column, in-memory, graph, and analytics and search. Amazon ElastiCache is highlighted in orange."><rect class="sv-box" x="10" y="10" width="290" height="150" rx="4"/><rect class="sv-boxb" x="10" y="10" width="290" height="38" rx="4"/><text class="sv-tb" x="155.0" y="35" text-anchor="middle">Relational</text><rect class="sv-boxg" x="30.0" y="68" width="118" height="76" rx="6"/><text class="sv-t" x="89.0" y="98.0" text-anchor="middle">Amazon</text><text class="sv-t" x="89.0" y="114.0" text-anchor="middle">RDS</text><rect class="sv-boxg" x="162.0" y="68" width="118" height="76" rx="6"/><text class="sv-t" x="221.0" y="98.0" text-anchor="middle">Amazon</text><text class="sv-t" x="221.0" y="114.0" text-anchor="middle">Aurora</text><rect class="sv-box" x="315" y="10" width="290" height="150" rx="4"/><rect class="sv-boxb" x="315" y="10" width="290" height="38" rx="4"/><text class="sv-tb" x="460.0" y="35" text-anchor="middle">Key-value and document</text><rect class="sv-boxg" x="335.0" y="68" width="118" height="76" rx="6"/><text class="sv-t" x="394.0" y="98.0" text-anchor="middle">Amazon</text><text class="sv-t" x="394.0" y="114.0" text-anchor="middle">DynamoDB</text><rect class="sv-boxg" x="467.0" y="68" width="118" height="76" rx="6"/><text class="sv-t" x="526.0" y="98.0" text-anchor="middle">Amazon</text><text class="sv-t" x="526.0" y="114.0" text-anchor="middle">DocumentDB</text><rect class="sv-box" x="620" y="10" width="290" height="150" rx="4"/><rect class="sv-boxb" x="620" y="10" width="290" height="38" rx="4"/><text class="sv-tb" x="765.0" y="35" text-anchor="middle">Wide-column</text><rect class="sv-boxg" x="706.0" y="68" width="118" height="76" rx="6"/><text class="sv-t" x="765.0" y="98.0" text-anchor="middle">Amazon</text><text class="sv-t" x="765.0" y="114.0" text-anchor="middle">Keyspaces</text><rect class="sv-box" x="10" y="180" width="290" height="150" rx="4"/><rect class="sv-boxw" x="10" y="180" width="290" height="38" rx="4"/><text class="sv-tb" x="155.0" y="205" text-anchor="middle">In-memory</text><rect class="sv-boxw" x="96.0" y="238" width="118" height="76" rx="6" style="stroke-width:3.5"/><text class="sv-t" x="155.0" y="268.0" text-anchor="middle">Amazon</text><text class="sv-t" x="155.0" y="284.0" text-anchor="middle">ElastiCache</text><rect class="sv-box" x="315" y="180" width="290" height="150" rx="4"/><rect class="sv-boxb" x="315" y="180" width="290" height="38" rx="4"/><text class="sv-tb" x="460.0" y="205" text-anchor="middle">Graph</text><rect class="sv-boxg" x="401.0" y="238" width="118" height="76" rx="6"/><text class="sv-t" x="460.0" y="268.0" text-anchor="middle">Amazon</text><text class="sv-t" x="460.0" y="284.0" text-anchor="middle">Neptune</text><rect class="sv-box" x="620" y="180" width="290" height="150" rx="4"/><rect class="sv-boxb" x="620" y="180" width="290" height="38" rx="4"/><text class="sv-tb" x="765.0" y="205" text-anchor="middle">Analytics and search</text><rect class="sv-boxg" x="640.0" y="238" width="118" height="76" rx="6"/><text class="sv-t" x="699.0" y="268.0" text-anchor="middle">Amazon</text><text class="sv-t" x="699.0" y="284.0" text-anchor="middle">Redshift</text><rect class="sv-boxg" x="772.0" y="238" width="118" height="76" rx="6"/><text class="sv-t" x="831.0" y="260.0" text-anchor="middle">Amazon</text><text class="sv-t" x="831.0" y="276.0" text-anchor="middle">OpenSearch</text><text class="sv-t" x="831.0" y="292.0" text-anchor="middle">Service</text><rect x="6" y="176" width="298" height="158" rx="6" style="fill:none;stroke:var(--warn-bd);stroke-width:4"/></svg>
+    </div>
+    <figcaption>Image 0a — AWS database services by type. Amazon ElastiCache, the topic of this lesson, is highlighted (Original diagram for this course.)</figcaption>
+  </figure>
+  <p>Amazon ElastiCache puts a managed in-memory layer between an application and its database. This lesson shows what a cache does, how to choose an engine and a deployment option, how lazy loading, write-through, and TTL keep the data fresh, how Multi-AZ, Global Datastore, and backups keep a cache available, how a cache is secured, and what it costs. It ends with a comparison of the options. The last two tabs prepare you for the AWS Certified Solutions Architect – Associate (SAA-C03) exam.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> what a cache is, what ElastiCache is, and its common uses.</li>
+    <li><strong>Tab 2:</strong> Valkey, Redis OSS, Memcached, Serverless, node-based clusters, and cluster mode.</li>
+    <li><strong>Tab 3:</strong> lazy loading, write-through, TTL, session stores, and leaderboards.</li>
+    <li><strong>Tab 4:</strong> Multi-AZ failover, Global Datastore, and backups.</li>
+    <li><strong>Tab 5:</strong> network access, authentication, and encryption.</li>
+    <li><strong>Tab 6:</strong> what you pay for, and how to lower the cost.</li>
+    <li><strong>Tab 7:</strong> comparison tables and the SAA-C03 cheat sheet with decision rules.</li>
+    <li><strong>Tab 8:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Caching and ElastiCache Basics</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Engines and Deployment Options</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Caching Strategies</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">High Availability and Backups</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="5" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Security</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="6" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">ElastiCache Pricing</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="7" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="8" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Introduction</h2>
+  <p>A database answers a query in milliseconds, but a popular query repeated thousands of times a minute still uses CPU, I/O, and connections. A cache answers the repeated request from memory, in under a millisecond. The cost is that the application must manage the cache: what to store, how long to keep it, and when to refresh it. An architect has to know the engines, the strategies, and which cache fits which source database.</p>
+  <p>This lesson assumes that you know the databases from Lessons 272.1 to 272.3, in particular RDS, Aurora, and DynamoDB with DAX. It follows FlashCart Inc. through the Problem Statement of each tab.</p>
+  <p>Use the tab list on the left, or the Previous and Next buttons, to move through the lesson. Each topic tab opens with a Problem Statement and ends with exam traps, keyword triggers, and resource links. The Knowledge Check is the last tab.</p>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define a cache and Amazon ElastiCache, and describe its common uses.</li>
+    <li>Compare Valkey, Redis OSS, and Memcached.</li>
+    <li>Choose between ElastiCache Serverless and node-based clusters, and between cluster mode enabled and disabled.</li>
+    <li>Apply lazy loading, write-through, and TTL.</li>
+    <li>Explain Multi-AZ, Global Datastore, backups, and the security controls of ElastiCache.</li>
+    <li>Design a caching solution, and choose between DAX and ElastiCache.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>API</td><td>Application programming interface</td></tr>
+      <tr><td>AUTH</td><td>Authentication command of Redis</td></tr>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>DAX</td><td>DynamoDB Accelerator</td></tr>
+      <tr><td>IAM</td><td>AWS Identity and Access Management</td></tr>
+      <tr><td>KMS</td><td>AWS Key Management Service</td></tr>
+      <tr><td>OSS</td><td>Open-source software</td></tr>
+      <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SASL</td><td>Simple Authentication and Security Layer</td></tr>
+      <tr><td>SSL</td><td>Secure Sockets Layer</td></tr>
+      <tr><td>TLS</td><td>Transport Layer Security</td></tr>
+      <tr><td>TTL</td><td>Time to Live</td></tr>
+      <tr><td>VPC</td><td>Amazon Virtual Private Cloud</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. Caching and ElastiCache Basics</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>The FlashCart product pages read the same popular products from the database thousands of times a minute. During the sale the database CPU is high and the page time grows. The engineers want to take the repeated reads off the database, and also keep the user sessions outside the web servers, so that any server can serve any user.</p>
+  </div>
+
+  <h2>1.1 What a Cache Is</h2>
+  <ul>
+    <li>A <strong>cache</strong> keeps copies of frequently used data in fast storage, so that the next request is served faster and the source system has less work.</li>
+    <li>Applications use <strong>several cache layers</strong>: the browser, a content delivery network such as Amazon CloudFront, the application itself, a distributed in-memory cache, and the database buffer.</li>
+    <li>A database cache is an <strong>in-memory database</strong> with very high performance and very low latency. It relieves the database of read-heavy traffic.</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 900 150" role="img" aria-label="Chain of cache layers from left to right: the browser cache, a content delivery network such as CloudFront, an application cache, ElastiCache as a distributed cache, and the database."><defs><marker id="el1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxb" x="28" y="35" width="140" height="80" rx="8"/><text class="sv-tb" x="98" y="71.0" text-anchor="middle">Browser</text><text class="sv-tb" x="98" y="89.0" text-anchor="middle">cache</text><line class="sv-line" x1="170" y1="75" x2="202" y2="75" marker-end="url(#el1)"/><rect class="sv-boxb" x="204" y="35" width="140" height="80" rx="8"/><text class="sv-tb" x="274" y="71.0" text-anchor="middle">Content delivery</text><text class="sv-tb" x="274" y="89.0" text-anchor="middle">(CloudFront)</text><line class="sv-line" x1="346" y1="75" x2="378" y2="75" marker-end="url(#el1)"/><rect class="sv-boxb" x="380" y="35" width="140" height="80" rx="8"/><text class="sv-tb" x="450" y="71.0" text-anchor="middle">Application</text><text class="sv-tb" x="450" y="89.0" text-anchor="middle">cache</text><line class="sv-line" x1="522" y1="75" x2="554" y2="75" marker-end="url(#el1)"/><rect class="sv-boxw" x="556" y="35" width="140" height="80" rx="8"/><text class="sv-tb" x="626" y="71.0" text-anchor="middle">ElastiCache</text><text class="sv-tb" x="626" y="89.0" text-anchor="middle">(distributed cache)</text><line class="sv-line" x1="698" y1="75" x2="730" y2="75" marker-end="url(#el1)"/><rect class="sv-boxg" x="732" y="35" width="140" height="80" rx="8"/><text class="sv-tb" x="802" y="62.0" text-anchor="middle">Database</text><text class="sv-tb" x="802" y="80.0" text-anchor="middle">(RDS, Aurora,</text><text class="sv-tb" x="802" y="98.0" text-anchor="middle">DynamoDB)</text></svg>
+    </div>
+    <figcaption>Image 1a — An application can use several cache layers; ElastiCache is the distributed in-memory layer (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>1.2 What Amazon ElastiCache Is</h2>
+  <ul>
+    <li><strong>Amazon ElastiCache</strong> is a fully managed in-memory data store and cache. It is to caches what RDS is to relational databases.</li>
+    <li>AWS handles the operating system, patching, setup, configuration, monitoring, failure recovery, and backups.</li>
+    <li>It gives <strong>sub-millisecond</strong> latency, so it speeds up read-heavy applications and helps make an application <strong>stateless</strong>.</li>
+    <li>It supports three engines: <strong>Valkey</strong>, <strong>Redis OSS</strong>, and <strong>Memcached</strong>.</li>
+  </ul>
+
+  <h2>1.3 Common Uses</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Use</th><th>How ElastiCache helps</th></tr></thead>
+    <tbody>
+      <tr><td>Database cache</td><td>The application reads the cache first, and goes to the database only on a miss.</td></tr>
+      <tr><td>User session store</td><td>Any application instance reads the session from the cache, so a user stays logged in on any server.</td></tr>
+      <tr><td>Leaderboards</td><td>Redis-style sorted sets rank players in real time.</td></tr>
+      <tr><td>Counters, queues, and messaging</td><td>Fast atomic counters and publish/subscribe.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="qbox">
+    <h2>1.4 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company runs a read-heavy web application on Amazon RDS. The same query results are requested many times, and database CPU is high. The company wants to reduce the load and get sub-millisecond reads. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Put an Amazon ElastiCache cache in front of the database.</li>
+      <li><strong>B.</strong> Increase the RDS storage.</li>
+      <li><strong>C.</strong> Create a new RDS database for each user.</li>
+      <li><strong>D.</strong> Use Amazon Glacier for the query results.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> A cache keeps the repeated results in memory, so most reads skip the database and return in under a millisecond.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>ElastiCache is the managed in-memory cache for a database.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>More storage does not reduce the CPU or the latency of reads.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>A database per user is costly and complex.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Glacier is for archives, with slow retrieval.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li>A cache needs an <strong>invalidation strategy</strong>, or the data can become stale. Use a TTL or write-through.</li>
+      <li>The application must contain the <strong>cache logic</strong>. ElastiCache does not read the database for you.</li>
+      <li>For a <strong>DynamoDB</strong> source, the answer is usually <strong>DAX</strong>. For <strong>RDS or Aurora</strong>, it is ElastiCache.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Cache = fast copy in memory. Hit = fast. Miss = go to the database.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Reduce the load of a read-heavy database with sub-millisecond reads"<br>→ Amazon ElastiCache</p>
+    <p><strong>Trigger 2:</strong> "Share user session data between web servers"<br>→ ElastiCache as a session store</p>
+    <p><strong>Trigger 3:</strong> "Real-time leaderboard"<br>→ ElastiCache for Valkey or Redis OSS with sorted sets</p>
+  </div>
+  <div class="res">
+    <h2>1.5 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/elasticache/" target="_blank" rel="noopener">Amazon ElastiCache</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html" target="_blank" rel="noopener">What is Amazon ElastiCache</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Engines and Deployment Options</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>The FlashCart team must now choose an engine, and decide between a cache that AWS sizes and a cache that the team sizes. Some data needs a failover and a backup, and some is only a throwaway cache.</p>
+  </div>
+
+  <h2>2.1 Choosing an Engine</h2>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>Valkey and Redis OSS</th><th>Memcached</th></tr></thead>
+    <tbody>
+      <tr><td>Data structures</td><td>Rich: strings, lists, sets, sorted sets, hashes, streams, geospatial, and more.</td><td>Simple key-value objects.</td></tr>
+      <tr><td>High availability</td><td>Replication, read replicas, and Multi-AZ with automatic failover.</td><td>No replication and no automatic failover.</td></tr>
+      <tr><td>Persistence and backup</td><td>Backups and snapshots.</td><td>Not persistent. Backups apply to serverless caches only.</td></tr>
+      <tr><td>Scaling</td><td>Shards for partitioning, and replicas for reads.</td><td>Multiple nodes that partition the data, with a multi-threaded design.</td></tr>
+      <tr><td>Extra features</td><td>Global Datastore, pub/sub, and sorted sets.</td><td>Simple and fast.</td></tr>
+      <tr><td>Authentication</td><td>AUTH, role-based access control, and IAM authentication.</td><td>SASL-based authentication.</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><strong>Valkey</strong> is an open-source, Redis-compatible engine, and migrating from Redis OSS to Valkey is straightforward.</li>
+  </ul>
+
+  <h2>2.2 Serverless or Node-Based</h2>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>ElastiCache Serverless</th><th>Node-based cluster</th></tr></thead>
+    <tbody>
+      <tr><td>Capacity</td><td>No nodes to choose. The cache scales automatically.</td><td>You choose the node type, the number of nodes, and their placement.</td></tr>
+      <tr><td>Cluster mode</td><td>Valkey and Redis OSS run in cluster mode enabled only.</td><td>Cluster mode enabled or disabled.</td></tr>
+      <tr><td>Availability</td><td>Multi-AZ, with data replicated across zones.</td><td>Multi-AZ with automatic failover, if you configure replicas.</td></tr>
+      <tr><td>Best for</td><td>Simple setup and variable workloads.</td><td>Fine-grained control and predictable workloads.</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li>Backups from node-based Valkey or Redis OSS clusters can be restored into a serverless cache, and the other way round.</li>
+  </ul>
+
+  <h2>2.3 Cluster Mode</h2>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 900 320" role="img" aria-label="Two panels. With cluster mode disabled there is one shard: a primary node for writes and replicas in other Availability Zones, with a primary endpoint for writes and a reader endpoint for reads. With cluster mode enabled the data is partitioned across several shards, each with a primary and a replica, behind one configuration endpoint."><defs><marker id="et1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-box" x="4" y="4" width="440" height="312" rx="10"/><text class="sv-tb" x="224" y="28" text-anchor="middle">Cluster mode disabled</text><text class="sv-tm" x="224" y="46" text-anchor="middle">one shard: a primary and up to 5 replicas</text><rect class="sv-boxw" x="124" y="66" width="200" height="46" rx="8"/><text class="sv-t" x="224" y="94.0" text-anchor="middle">Primary node (writes)</text><rect class="sv-boxg" x="29" y="170" width="170" height="46" rx="8"/><text class="sv-t" x="114" y="198.0" text-anchor="middle">Replica (AZ B)</text><rect class="sv-boxg" x="249" y="170" width="170" height="46" rx="8"/><text class="sv-t" x="334" y="198.0" text-anchor="middle">Replica (AZ C)</text><line class="sv-line" x1="180" y1="112" x2="130" y2="168" marker-end="url(#et1)"/><line class="sv-line" x1="268" y1="112" x2="318" y2="168" marker-end="url(#et1)"/><rect class="sv-box" x="24" y="250" width="400" height="44" rx="8"/><text class="sv-t" x="224" y="277.0" text-anchor="middle">Primary endpoint for writes, reader endpoint for reads</text><rect class="sv-box" x="456" y="4" width="440" height="312" rx="10"/><text class="sv-tb" x="676" y="28" text-anchor="middle">Cluster mode enabled</text><text class="sv-tm" x="676" y="46" text-anchor="middle">data is partitioned across several shards</text><rect class="sv-boxb" x="508" y="66" width="104" height="150" rx="8"/><text class="sv-tb" x="560" y="88" text-anchor="middle">Shard 1</text><rect class="sv-boxw" x="518" y="100" width="84" height="40" rx="8"/><text class="sv-t" x="560" y="125.0" text-anchor="middle">Primary</text><rect class="sv-boxg" x="518" y="154" width="84" height="40" rx="8"/><text class="sv-t" x="560" y="179.0" text-anchor="middle">Replica</text><rect class="sv-boxb" x="624" y="66" width="104" height="150" rx="8"/><text class="sv-tb" x="676" y="88" text-anchor="middle">Shard 2</text><rect class="sv-boxw" x="634" y="100" width="84" height="40" rx="8"/><text class="sv-t" x="676" y="125.0" text-anchor="middle">Primary</text><rect class="sv-boxg" x="634" y="154" width="84" height="40" rx="8"/><text class="sv-t" x="676" y="179.0" text-anchor="middle">Replica</text><rect class="sv-boxb" x="740" y="66" width="104" height="150" rx="8"/><text class="sv-tb" x="792" y="88" text-anchor="middle">Shard 3</text><rect class="sv-boxw" x="750" y="100" width="84" height="40" rx="8"/><text class="sv-t" x="792" y="125.0" text-anchor="middle">Primary</text><rect class="sv-boxg" x="750" y="154" width="84" height="40" rx="8"/><text class="sv-t" x="792" y="179.0" text-anchor="middle">Replica</text><rect class="sv-box" x="476" y="250" width="400" height="44" rx="8"/><text class="sv-t" x="676" y="277.0" text-anchor="middle">One configuration endpoint for the whole cluster</text></svg>
+    </div>
+    <figcaption>Image 2a — Cluster mode disabled has one shard, and cluster mode enabled partitions the data across several shards (Original diagram for this course.)</figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>Memcached</th><th>Valkey or Redis OSS (cluster mode disabled)</th><th>Valkey or Redis OSS (cluster mode enabled)</th></tr></thead>
+    <tbody>
+      <tr><td>Automatic failover</td><td>No.</td><td>Optional.</td><td>Required.</td></tr>
+      <tr><td>Backup and restore</td><td>Serverless caches only.</td><td>Yes.</td><td>Yes.</td></tr>
+      <tr><td>Data partitioning</td><td>Across nodes.</td><td>No. One shard.</td><td>Yes, across shards.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="qbox">
+    <h2>2.4 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company needs an in-memory cache with automatic failover, backups, and sorted sets for a real-time leaderboard. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> ElastiCache for Valkey or Redis OSS with Multi-AZ and automatic failover.</li>
+      <li><strong>B.</strong> ElastiCache for Memcached.</li>
+      <li><strong>C.</strong> Amazon S3 with a lifecycle rule.</li>
+      <li><strong>D.</strong> An EC2 instance with a local file.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> Valkey and Redis OSS provide sorted sets, replication, Multi-AZ automatic failover, and backups. Memcached provides none of the failover or backup features.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>It matches the data structure and the availability needs.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Memcached has no replication, no failover, and no sorted sets.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>S3 is not an in-memory cache.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>A local file is not shared, fast, or highly available.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Memcached</strong> has no replication, no automatic failover, and no persistence. Choose <strong>Valkey or Redis OSS</strong> for those.</li>
+      <li>With <strong>cluster mode enabled</strong>, automatic failover is <strong>required</strong>.</li>
+      <li><strong>Serverless</strong> caches run Valkey and Redis OSS in cluster mode enabled only.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Need HA, backup, rich structures = Valkey or Redis OSS. Plain and fast = Memcached.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Cache with sorted sets, pub/sub, and replication"<br>→ ElastiCache for Valkey or Redis OSS</p>
+    <p><strong>Trigger 2:</strong> "Simple, multi-threaded cache with no persistence"<br>→ ElastiCache for Memcached</p>
+    <p><strong>Trigger 3:</strong> "Cache with no capacity planning"<br>→ ElastiCache Serverless</p>
+  </div>
+  <div class="res">
+    <h2>2.5 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/elasticache/" target="_blank" rel="noopener">Amazon ElastiCache</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/SelectEngine.html" target="_blank" rel="noopener">Comparing node-based Valkey, Memcached, and Redis OSS clusters</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Caching Strategies</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>The FlashCart engineers add the cache to the product service, and they must decide when the application puts data in the cache and when it removes it. A stale price on a product page is not acceptable, but a stale review count is fine.</p>
+  </div>
+
+  <h2>3.1 Lazy Loading and Write-Through</h2>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 900 340" role="img" aria-label="Two panels. In lazy loading the application reads the cache first. On a hit it returns the value, and on a miss it reads the database and then writes the value to the cache. In write-through the application writes to the cache and to the database on every write."><defs><marker id="ep1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-box" x="4" y="4" width="440" height="332" rx="10"/><text class="sv-tb" x="224" y="28" text-anchor="middle">Lazy loading</text><rect class="sv-boxw" x="25" y="130" width="130" height="60" rx="8"/><text class="sv-t" x="90" y="165.0" text-anchor="middle">Application</text><rect class="sv-boxb" x="255" y="60" width="150" height="46" rx="8"/><text class="sv-t" x="330" y="88.0" text-anchor="middle">ElastiCache</text><rect class="sv-boxg" x="255" y="200" width="150" height="60" rx="8"/><text class="sv-t" x="330" y="226.0" text-anchor="middle">Database</text><text class="sv-t" x="330" y="244.0" text-anchor="middle">(RDS or Aurora)</text><line class="sv-line" x1="150" y1="128" x2="258" y2="90" marker-end="url(#ep1)"/><text class="sv-tm" x="160" y="96" text-anchor="start">1 read</text><line class="sv-line" x1="150" y1="160" x2="256" y2="214" marker-end="url(#ep1)"/><text class="sv-tm" x="120" y="228" text-anchor="start">2 on a miss, read</text><text class="sv-tm" x="120" y="244" text-anchor="start">the database</text><line class="sv-line" x1="330" y1="198" x2="330" y2="108" marker-end="url(#ep1)"/><text class="sv-tm" x="342" y="160" text-anchor="start">3 write to</text><text class="sv-tm" x="342" y="176" text-anchor="start">the cache</text><text class="sv-tm" x="224" y="300" text-anchor="middle">Only requested data is cached.</text><text class="sv-tm" x="224" y="318" text-anchor="middle">Cached data can become stale.</text><rect class="sv-box" x="456" y="4" width="440" height="332" rx="10"/><text class="sv-tb" x="676" y="28" text-anchor="middle">Write-through</text><rect class="sv-boxw" x="477" y="130" width="130" height="60" rx="8"/><text class="sv-t" x="542" y="165.0" text-anchor="middle">Application</text><rect class="sv-boxb" x="707" y="60" width="150" height="46" rx="8"/><text class="sv-t" x="782" y="88.0" text-anchor="middle">ElastiCache</text><rect class="sv-boxg" x="707" y="200" width="150" height="60" rx="8"/><text class="sv-t" x="782" y="226.0" text-anchor="middle">Database</text><text class="sv-t" x="782" y="244.0" text-anchor="middle">(RDS or Aurora)</text><line class="sv-line" x1="602" y1="128" x2="708" y2="90" marker-end="url(#ep1)"/><text class="sv-tm" x="612" y="96" text-anchor="start">1 write</text><line class="sv-line" x1="602" y1="160" x2="708" y2="214" marker-end="url(#ep1)"/><text class="sv-tm" x="572" y="228" text-anchor="start">2 write</text><text class="sv-tm" x="676" y="300" text-anchor="middle">Every write updates the cache, so written data is not stale.</text><text class="sv-tm" x="676" y="318" text-anchor="middle">Data that is never read also fills the cache.</text></svg>
+    </div>
+    <figcaption>Image 3a — Lazy loading fills the cache on a miss, and write-through updates the cache on every write (Original diagram for this course.)</figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>Lazy loading (cache-aside)</th><th>Write-through</th></tr></thead>
+    <tbody>
+      <tr><td>How it works</td><td>Read the cache. On a miss, read the database and write the result to the cache.</td><td>Write to the cache and to the database together on every write.</td></tr>
+      <tr><td>Stale data</td><td>Possible, until the item expires or is invalidated.</td><td>No stale data for the written items.</td></tr>
+      <tr><td>Cache size</td><td>Only requested data is cached.</td><td>Data that is never read also fills the cache.</td></tr>
+      <tr><td>Cost</td><td>A miss costs three trips.</td><td>Every write costs an extra trip.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>3.2 Time to Live (TTL)</h2>
+  <ul>
+    <li>Set a <strong>TTL</strong> on a cache key, so that it expires by itself. It limits how stale lazy-loaded data can become.</li>
+    <li>Combine lazy loading with a TTL, or lazy loading with write-through, for a balance of freshness and cost.</li>
+  </ul>
+
+  <h2>3.3 Session Store and Leaderboards</h2>
+  <ul>
+    <li><strong>Session store:</strong> the application writes the session to the cache with a TTL. When the user hits another server, that server finds the session, so the user stays logged in.</li>
+    <li><strong>Leaderboard:</strong> a Valkey or Redis OSS sorted set keeps each element unique and ordered, and ranks it in real time when it changes.</li>
+  </ul>
+
+  <div class="qbox">
+    <h2>3.4 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> An application caches product data from a database. A price must never be stale, but reading unused products into the cache should be avoided as much as possible. Which approach meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Write-through for the price, and lazy loading with a TTL for the rest.</li>
+      <li><strong>B.</strong> Lazy loading with no TTL for everything.</li>
+      <li><strong>C.</strong> Cache nothing.</li>
+      <li><strong>D.</strong> Write-through for everything and never read the database.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> Write-through keeps the price in the cache current, and lazy loading with a TTL keeps the cache small for the rest of the data.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>It matches freshness to the data that needs it.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Lazy loading with no TTL can serve a stale price for a long time.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>No cache gives no relief to the database.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>The database must remain the source of truth.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Lazy loading</strong> can serve <strong>stale</strong> data. <strong>Write-through</strong> avoids it, but caches unread data.</li>
+      <li>A <strong>TTL</strong> bounds the age of cached data.</li>
+      <li>The strategy is in the <strong>application code</strong>.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Lazy = fill on a miss. Write-through = fill on every write. TTL = expiry.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Fill the cache only when the data is requested"<br>→ Lazy loading</p>
+    <p><strong>Trigger 2:</strong> "The cache must always match the database for written items"<br>→ Write-through</p>
+    <p><strong>Trigger 3:</strong> "Expire cached data automatically"<br>→ TTL on the cache key</p>
+  </div>
+  <div class="res">
+    <h2>3.5 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/elasticache/" target="_blank" rel="noopener">Amazon ElastiCache</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Strategies.html" target="_blank" rel="noopener">Caching strategies for ElastiCache</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 4 ============ -->
+<section class="tab" id="tab4" role="tabpanel" aria-labelledby="b4">
+  <h1 class="tabh">4. High Availability and Backups</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>The FlashCart cache now holds sessions that customers cannot lose. If a cache node fails, or a whole zone or Region fails, the shop must keep working. The team also needs a way to restore the cache after an error.</p>
+  </div>
+
+  <h2>4.1 High Availability</h2>
+  <ul>
+    <li>Valkey and Redis OSS use <strong>replication groups</strong>: a primary node and replica nodes.</li>
+    <li><strong>Multi-AZ with automatic failover</strong> promotes a replica when the primary fails, or when its zone has a problem. For a sharded workload, use at least three shards and three zones.</li>
+    <li>For cluster mode enabled, Multi-AZ is automatic.</li>
+    <li>The application must handle the reconnection, and a cluster-aware client library detects changes in the topology.</li>
+    <li>Memcached has no replication or failover. If a node fails, the data on it is lost, and the application reads the database again.</li>
+  </ul>
+
+  <h2>4.2 Global Datastore</h2>
+  <ul>
+    <li><strong>Global Datastore</strong> replicates a Valkey or Redis OSS cache across Regions, for low-latency global reads and for disaster recovery from a Regional failure.</li>
+    <li>Test the cross-Region failover before you need it in production.</li>
+  </ul>
+
+  <h2>4.3 Backups</h2>
+  <ul>
+    <li>Valkey and Redis OSS support <strong>automatic and manual backups</strong> (snapshots), and a restore creates a new cache.</li>
+    <li>Schedule the automatic backups for a period of low use, and review the retention period.</li>
+    <li>Memcached node-based clusters are not persistent and have no backups.</li>
+  </ul>
+
+  <h2>4.4 Hands-On Lab</h2>
+  <div class="lab-box">
+    <p class="lab-title">Hands-On Lab</p>
+    <p class="lab-sub">Lab Overview:</p>
+    <p>This lab gives you hands-on practice with creating a node-based ElastiCache cluster.</p>
+    <p class="lab-sub">You can start the following lab:</p>
+    <ul>
+      <li><a class="lab-link" href="https://business.whizlabs.com/labs/create-redis-cluster-using-elasticache" target="_blank" rel="noopener">GLAB 272.6.1 &mdash; Create Redis Cluster Using ElastiCache</a>.</li>
+    </ul>
+  </div>
+  <div class="lab-expectation">
+    <p><strong>Important Lab Expectation</strong></p>
+    <p>You must submit proof of completion of the lab on Canvas using the following document:</p>
+    <p><a href="https://docs.google.com/document/d/1NHRTpg2i1mKCqE5FcY9gKgyOaBSnr84eOe5ZUejfLng/edit?usp=sharing" target="_blank" rel="noopener">POC 272.6.1: Hands-On Labs Validation</a></p>
+    <p>If you do not complete all labs during class time, you must finish them after class. Failing to complete all labs before the next session may cause you to fall behind.</p>
+  </div>
+
+  <div class="qbox">
+    <h2>4.5 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company stores user sessions in ElastiCache. It needs the cache to survive the loss of a node or an Availability Zone, with an automatic switch to a replica. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> ElastiCache for Valkey or Redis OSS with replicas in other Availability Zones and Multi-AZ automatic failover.</li>
+      <li><strong>B.</strong> ElastiCache for Memcached with more nodes.</li>
+      <li><strong>C.</strong> A single large Redis node.</li>
+      <li><strong>D.</strong> A script that copies the cache to S3 every day.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> A replication group with Multi-AZ automatic failover promotes a replica when the primary or its zone fails.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>Replicas in other zones plus automatic failover meet the requirement.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Memcached does not replicate or fail over.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>One node is a single point of failure.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>A daily copy gives a recovery point of a day and no automatic failover.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Memcached</strong> = no Multi-AZ failover and no backups on node-based clusters.</li>
+      <li><strong>Global Datastore</strong> is for <strong>Valkey and Redis OSS</strong> across Regions.</li>
+      <li>A cache restore creates a <strong>new cache</strong>.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Replicas + Multi-AZ = survive a zone. Global Datastore = survive a Region.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Cross-Region replication of an in-memory cache"<br>→ ElastiCache Global Datastore</p>
+    <p><strong>Trigger 2:</strong> "Automatic failover of a cache to a replica in another zone"<br>→ Multi-AZ with automatic failover (Valkey or Redis OSS)</p>
+  </div>
+  <div class="res">
+    <h2>4.6 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/elasticache/" target="_blank" rel="noopener">Amazon ElastiCache</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/ReliabilityPillar.html" target="_blank" rel="noopener">Reliability pillar for Amazon ElastiCache</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 5 ============ -->
+<section class="tab" id="tab5" role="tabpanel" aria-labelledby="b5">
+  <h1 class="tabh">5. Security</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>The FlashCart security team asks who can reach the cache and how the data in it is protected, because the cache holds session data.</p>
+  </div>
+
+  <h2>5.1 Network and Access</h2>
+  <ul>
+    <li>An ElastiCache cache runs in your <strong>VPC</strong>, in private subnets. A <strong>security group</strong> controls which clients can connect.</li>
+    <li><strong>IAM policies</strong> apply to the ElastiCache <strong>API</strong>, which creates, modifies, and deletes caches. They do not control the data commands inside the cache.</li>
+    <li>Valkey and Redis OSS support <strong>Redis AUTH</strong> (a password or token) as an extra layer on top of the security group, and IAM authentication for the data connection.</li>
+    <li>Memcached supports <strong>SASL</strong>-based authentication.</li>
+  </ul>
+
+  <h2>5.2 Encryption</h2>
+  <ul>
+    <li><strong>Encryption in transit</strong> uses TLS (SSL) for Valkey and Redis OSS.</li>
+    <li><strong>Encryption at rest</strong> uses AWS KMS for Valkey and Redis OSS.</li>
+  </ul>
+
+  <div class="qbox">
+    <h2>5.3 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company wants clients to connect to its ElastiCache for Redis OSS cache only from application servers, with a password required and TLS encryption in transit. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Use a security group that allows only the application security group, turn on Redis AUTH, and turn on in-transit encryption.</li>
+      <li><strong>B.</strong> Make the cache publicly accessible and rely on the password.</li>
+      <li><strong>C.</strong> Use an IAM policy to block the commands inside the cache.</li>
+      <li><strong>D.</strong> Turn off encryption to lower the latency.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> The security group limits the network sources, AUTH requires a password, and TLS encrypts the connection.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>It combines network, authentication, and encryption controls.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>A public cache with only a password is too exposed.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>IAM policies control the ElastiCache API, not the commands inside the cache.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>The requirement asks for encryption in transit.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+    <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 534" role="img" aria-label="Layers of protection for Amazon ElastiCache, from Client application to ElastiCache cache: Network: The cache runs in private subnets of your VPC; Security group: Controls which clients can connect to the cache; Authentication: Redis AUTH for Valkey and Redis OSS, or SASL for Memcached, on top of the security group; Encryption in transit: TLS (SSL) for Valkey and Redis OSS; Encryption at rest: AWS KMS for Valkey and Redis OSS."><defs><marker id="ar2726" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxb" x="310" y="10" width="300" height="40" rx="6"/><text class="sv-tb" x="460" y="35" text-anchor="middle">Client application</text><line class="sv-line" x1="460" y1="50" x2="460" y2="70" marker-end="url(#ar2726)"/><rect class="sv-box" x="60" y="74" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="98">Network</text><text class="sv-t" x="76" y="118">The cache runs in private subnets of your VPC</text><line class="sv-line" x1="460" y1="132" x2="460" y2="152" marker-end="url(#ar2726)"/><rect class="sv-box" x="60" y="156" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="180">Security group</text><text class="sv-t" x="76" y="200">Controls which clients can connect to the cache</text><line class="sv-line" x1="460" y1="214" x2="460" y2="234" marker-end="url(#ar2726)"/><rect class="sv-box" x="60" y="238" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="262">Authentication</text><text class="sv-t" x="76" y="282">Redis AUTH for Valkey and Redis OSS, or SASL for Memcached, on top of the security group</text><line class="sv-line" x1="460" y1="296" x2="460" y2="316" marker-end="url(#ar2726)"/><rect class="sv-box" x="60" y="320" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="344">Encryption in transit</text><text class="sv-t" x="76" y="364">TLS (SSL) for Valkey and Redis OSS</text><line class="sv-line" x1="460" y1="378" x2="460" y2="398" marker-end="url(#ar2726)"/><rect class="sv-box" x="60" y="402" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="426">Encryption at rest</text><text class="sv-t" x="76" y="446">AWS KMS for Valkey and Redis OSS</text><line class="sv-line" x1="460" y1="460" x2="460" y2="480" marker-end="url(#ar2726)"/><rect class="sv-boxg" x="310" y="484" width="300" height="40" rx="6"/><text class="sv-tb" x="460" y="509" text-anchor="middle">ElastiCache cache</text></svg>
+    </div>
+    <figcaption>Image 5a &mdash; Layers of protection for Amazon ElastiCache. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>IAM policies</strong> on ElastiCache are for <strong>API-level</strong> actions.</li>
+      <li><strong>Redis AUTH</strong> adds a password on top of the security group.</li>
+      <li><strong>Memcached</strong> uses <strong>SASL</strong>, not AUTH.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Security group for the network, AUTH for the password, TLS and KMS for the data.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> "Require a password for a Redis OSS cache"<br>→ Redis AUTH</p>
+    <p><strong>Trigger 2:</strong> "Limit which servers can reach the cache"<br>→ A security group</p>
+  </div>
+  <div class="res">
+    <h2>5.4 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/elasticache/" target="_blank" rel="noopener">Amazon ElastiCache</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/elasticache-security.html" target="_blank" rel="noopener">Security in Amazon ElastiCache</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 6 ============ -->
+<section class="tab" id="tab6" role="tabpanel" aria-labelledby="b6">
+  <h1 class="tabh">6. ElastiCache Pricing</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>The FlashCart finance team asks what ElastiCache costs, and whether serverless or nodes is cheaper.</p>
+  </div>
+
+  <h2>6.1 What You Pay For</h2>
+  <p><strong>Prices change often and differ by Region.</strong> Check the current rates on the <a href="https://aws.amazon.com/elasticache/pricing/" target="_blank" rel="noopener">Amazon ElastiCache pricing</a> page, and estimate your own cost with the <a href="https://calculator.aws/" target="_blank" rel="noopener">AWS Pricing Calculator</a>.</p>
+  <ul>
+    <li><strong>Node-based clusters:</strong> node hours for each node, by node type. Each replica is a node with its own cost, and reserved nodes lower the price of steady use.</li>
+    <li><strong>Serverless:</strong> you pay for the data that you store and for the compute that your requests use.</li>
+    <li><strong>Backups:</strong> backup storage beyond the included amount.</li>
+    <li><strong>Data transfer:</strong> traffic between Availability Zones and Regions, including Global Datastore replication.</li>
+  </ul>
+
+  <h2>6.2 Lowering the Cost</h2>
+  <ul>
+    <li>Use <strong>Serverless</strong> for variable workloads, and reserved nodes for steady node-based ones.</li>
+    <li>Size the cache for the <strong>working set</strong>, not for the whole database.</li>
+    <li>Use a <strong>TTL</strong> so that unused data leaves the cache.</li>
+    <li>Keep the cache in the same Availability Zone as the application where possible, to lower the data transfer cost.</li>
+  </ul>
+
+    <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 282" role="img" aria-label="Two columns for Amazon ElastiCache. What you pay for: Node-based: node hours, by node type; Serverless: stored data and the compute used; Backup storage beyond the included amount; Data transfer between zones and Regions. How to lower the cost: Serverless for variable workloads; Reserved nodes for steady node-based clusters; Size the cache for the working set; A TTL so that unused data leaves the cache; The cache in the same zone as the application."><defs><marker id="ar2726" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxb" x="10" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="220.0" y="35" text-anchor="middle">What you pay for</text><rect class="sv-boxg" x="490" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="700.0" y="35" text-anchor="middle">How to lower the cost</text><rect class="sv-box" x="10" y="58" width="420" height="34" rx="6"/><text class="sv-t" x="220.0" y="80.0" text-anchor="middle">Node-based: node hours, by node type</text><rect class="sv-boxg" x="490" y="58" width="420" height="34" rx="6"/><text class="sv-t" x="700.0" y="80.0" text-anchor="middle">Serverless for variable workloads</text><rect class="sv-box" x="10" y="102" width="420" height="34" rx="6"/><text class="sv-t" x="220.0" y="124.0" text-anchor="middle">Serverless: stored data and the compute used</text><rect class="sv-boxg" x="490" y="102" width="420" height="34" rx="6"/><text class="sv-t" x="700.0" y="124.0" text-anchor="middle">Reserved nodes for steady node-based clusters</text><rect class="sv-box" x="10" y="146" width="420" height="34" rx="6"/><text class="sv-t" x="220.0" y="168.0" text-anchor="middle">Backup storage beyond the included amount</text><rect class="sv-boxg" x="490" y="146" width="420" height="34" rx="6"/><text class="sv-t" x="700.0" y="168.0" text-anchor="middle">Size the cache for the working set</text><rect class="sv-box" x="10" y="190" width="420" height="34" rx="6"/><text class="sv-t" x="220.0" y="212.0" text-anchor="middle">Data transfer between zones and Regions</text><rect class="sv-boxg" x="490" y="190" width="420" height="34" rx="6"/><text class="sv-t" x="700.0" y="212.0" text-anchor="middle">A TTL so that unused data leaves the cache</text><rect class="sv-boxg" x="490" y="234" width="420" height="34" rx="6"/><text class="sv-t" x="700.0" y="256.0" text-anchor="middle">The cache in the same zone as the application</text><line class="sv-line" x1="436" y1="141" x2="482" y2="141" marker-end="url(#ar2726)"/></svg>
+    </div>
+    <figcaption>Image 6a &mdash; What you pay for with Amazon ElastiCache, and how to lower the cost. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li>Each <strong>replica node</strong> adds a node cost.</li>
+      <li>A cache that is too small has a low <strong>hit rate</strong>, so the database still takes the load.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Cache the working set. Reserved nodes for steady use. Serverless for variable use.</p>
+  </div>
+    <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> &ldquo;Variable cache workload with no nodes to choose&rdquo;<br>&rarr; ElastiCache Serverless</p>
+    <p><strong>Trigger 2:</strong> &ldquo;Steady cache workload at the lowest cost&rdquo;<br>&rarr; Node-based cluster with reserved nodes</p>
+    <p><strong>Trigger 3:</strong> &ldquo;Remove unused data from the cache automatically&rdquo;<br>&rarr; Time to Live (TTL)</p>
+  </div>
+<div class="res">
+    <h2>6.3 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Pricing</span> <a href="https://aws.amazon.com/elasticache/pricing/" target="_blank" rel="noopener">Amazon ElastiCache pricing</a></li>
+      <li><span class="lbl">Pricing</span> <a href="https://calculator.aws/" target="_blank" rel="noopener">AWS Pricing Calculator</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 7 ============ -->
+<section class="tab" id="tab7" role="tabpanel" aria-labelledby="b7">
+  <h1 class="tabh">7. Comparison &amp; Scenarios</h1>
+
+  <h2>7.1 Valkey, Redis OSS, and Memcached Compared</h2>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>Valkey / Redis OSS</th><th>Memcached</th></tr></thead>
+    <tbody>
+      <tr><td>Data structures</td><td>Rich.</td><td>Simple.</td></tr>
+      <tr><td>Multi-AZ failover</td><td>Yes.</td><td>No.</td></tr>
+      <tr><td>Backups</td><td>Yes.</td><td>Serverless only.</td></tr>
+      <tr><td>Global Datastore</td><td>Yes.</td><td>No.</td></tr>
+      <tr><td>Use for</td><td>Sessions, leaderboards, queues, and caches that must be highly available.</td><td>A simple, large, multi-threaded cache.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>7.2 DAX Compared With ElastiCache</h2>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>DAX</th><th>ElastiCache</th></tr></thead>
+    <tbody>
+      <tr><td>Source</td><td>Only DynamoDB.</td><td>Any database, API, or computation.</td></tr>
+      <tr><td>Code change</td><td>Small: the client and the endpoint.</td><td>Your code reads, writes, and invalidates the cache.</td></tr>
+      <tr><td>Features</td><td>Item and query cache.</td><td>Sorted sets, pub/sub, streams, counters, and TTL for each key.</td></tr>
+      <tr><td>Choose it when</td><td>The source is DynamoDB and the reads repeat.</td><td>The source is RDS or Aurora, you need advanced features, or one cache serves many systems.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>7.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>If the question says...</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Reduce the load of RDS or Aurora, with sub-millisecond reads</td><td>Amazon ElastiCache</td></tr>
+      <tr><td>2</td><td>Reduce the load of DynamoDB reads with microsecond latency</td><td>DAX</td></tr>
+      <tr><td>3</td><td>Share session data between servers</td><td>ElastiCache as a session store</td></tr>
+      <tr><td>4</td><td>Real-time leaderboard</td><td>ElastiCache for Valkey or Redis OSS (sorted sets)</td></tr>
+      <tr><td>5</td><td>Cache with replication, Multi-AZ failover, and backups</td><td>Valkey or Redis OSS</td></tr>
+      <tr><td>6</td><td>Simple, multi-threaded cache with no persistence</td><td>Memcached</td></tr>
+      <tr><td>7</td><td>No capacity planning for a cache</td><td>ElastiCache Serverless</td></tr>
+      <tr><td>8</td><td>Cross-Region replication of a cache</td><td>Global Datastore</td></tr>
+      <tr><td>9</td><td>Cache fills only when data is requested</td><td>Lazy loading</td></tr>
+      <tr><td>10</td><td>Cache always matches the database for written items</td><td>Write-through</td></tr>
+      <tr><td>11</td><td>Password on top of the security group</td><td>Redis AUTH</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>7.4 Lesson Summary</h2>
+  <p>This lesson covered the following points:</p>
+  <ul>
+    <li>ElastiCache is a managed in-memory cache with sub-millisecond latency. It supports Valkey, Redis OSS, and Memcached, and it comes as Serverless or as node-based clusters.</li>
+    <li>Valkey and Redis OSS add rich data structures, replication, Multi-AZ automatic failover, backups, and Global Datastore. Memcached is simple and has none of those.</li>
+    <li>Lazy loading fills the cache on a miss and can serve stale data. Write-through updates the cache on every write. A TTL bounds the age of the data.</li>
+    <li>Security groups, Redis AUTH, IAM authentication, TLS, and KMS protect the cache. IAM policies cover the API.</li>
+    <li>DAX is for DynamoDB. ElastiCache is the general answer for RDS and Aurora, and for advanced features.</li>
+  </ul>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Hit is fast, miss goes to the database. Lazy fills on a miss, write-through fills on a write, TTL expires. DAX for DynamoDB, ElastiCache for the rest.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 8 ============ -->
+<section class="tab" id="tab8" role="tabpanel" aria-labelledby="b8">
+  <h1 class="tabh">8. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: Explain why an application uses a cache, and what ElastiCache provides.</summary>
+    <p><em>Maps to:</em> Objectives 1 and 2 (Comprehension).</p>
+    <p>A cache keeps frequently used data in fast memory, so repeated reads skip the database. This lowers the database load and the latency, and it helps make an application stateless by sharing session data. ElastiCache is a managed in-memory data store with sub-millisecond latency. AWS handles the patching, configuration, monitoring, failure recovery, and backups, and it supports Valkey, Redis OSS, and Memcached.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Compare Valkey or Redis OSS with Memcached, and ElastiCache Serverless with a node-based cluster.</summary>
+    <p><em>Maps to:</em> Objective 3 (Analysis).</p>
+    <p>Valkey and Redis OSS offer rich data structures, replication, Multi-AZ automatic failover, backups, and Global Datastore. Memcached is simple and multi-threaded, with no replication, no failover, and no persistence on node-based clusters. Serverless needs no node choices and scales automatically, with Valkey and Redis OSS in cluster mode enabled only. A node-based cluster gives control over the node type, the count, and the cluster mode.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: Describe lazy loading, write-through, and TTL, and when to combine them.</summary>
+    <p><em>Maps to:</em> Objective 4 (Application).</p>
+    <p>Lazy loading reads the cache first, and on a miss reads the database and fills the cache, so only requested data is cached but it can be stale. Write-through updates the cache on every write, so there is no stale data for written items, but unread data fills the cache. A TTL expires keys automatically. A common design uses write-through for data that must be fresh and lazy loading with a TTL for the rest.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Explain how to keep an ElastiCache cache available and protected across zones and Regions.</summary>
+    <p><em>Maps to:</em> Objective 5 (Application).</p>
+    <p>Use Valkey or Redis OSS with a primary and replicas in several Availability Zones and Multi-AZ automatic failover. Add Global Datastore for cross-Region replication and disaster recovery. Use backups and snapshots for recovery. Put the cache in private subnets, limit access with security groups, add Redis AUTH or IAM authentication, and turn on TLS and KMS encryption.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: Choose between DAX and ElastiCache for two different scenarios.</summary>
+    <p><em>Maps to:</em> Objective 6 (Evaluation).</p>
+    <p>Choose DAX when the source database is DynamoDB and the reads repeat, because it needs few code changes. Choose ElastiCache when the source is RDS or Aurora, or when the application needs advanced structures such as sorted sets, or one cache must serve many systems.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>

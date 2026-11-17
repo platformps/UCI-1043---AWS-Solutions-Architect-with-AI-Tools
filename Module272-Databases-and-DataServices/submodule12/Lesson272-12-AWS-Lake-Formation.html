@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 272.12 - AWS Lake Formation</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">AWS Lake Formation</h1>
+  <p>Govern, secure, and share the data in an Amazon S3 data lake: how AWS Lake Formation sets up a data lake, controls access to tables, columns, and rows, and shares data across accounts.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. Introduction to AWS Lake Formation</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Setting Up a Data Lake</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Permissions and Access Control</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. Sharing, Auditing, and Pricing</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab5" id="b5">5. Comparison &amp; Scenarios</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab6" id="b6">6. Knowledge Check</button></li>
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <h3>AWS Analytics Services</h3>
+  <p>A data lake in Amazon S3 can hold data from every team in a company. The more data it holds, the more important it becomes to control who can see which table, column, and row. This lesson covers the AWS service that centralizes that control: AWS Lake Formation.</p>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 880 440" role="img" aria-label="Map of AWS analytics services in six groups: ingest and stream, store, catalog and process, govern and orchestrate, query and search, and visualize and share. AWS Lake Formation, the topic of this lesson, is highlighted in orange."><rect class="sv-box" x="10" y="10" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="35" text-anchor="middle">Ingest and Stream</text><rect class="sv-boxg" x="30" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="90" y="107" text-anchor="middle">Kinesis</text><rect class="sv-boxg" x="160" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="107" text-anchor="middle">MSK</text><rect class="sv-box" x="450" y="10" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="35" text-anchor="middle">Store</text><rect class="sv-boxg" x="470" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="530" y="107" text-anchor="middle">S3</text><rect class="sv-box" x="10" y="150" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="150" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="175" text-anchor="middle">Catalog and Process</text><rect class="sv-boxg" x="30" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="231" text-anchor="middle">AWS</text><text class="sv-t" x="90" y="247" text-anchor="middle">Glue</text><rect class="sv-boxg" x="160" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="231" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="247" text-anchor="middle">EMR</text><rect class="sv-box" x="450" y="150" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="150" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="175" text-anchor="middle">Govern and Orchestrate</text><rect class="sv-boxw" x="470" y="200" width="120" height="68" rx="6" style="stroke-width:3.5"/><text class="sv-t" x="530" y="231" text-anchor="middle">AWS Lake</text><text class="sv-t" x="530" y="247" text-anchor="middle">Formation</text><rect class="sv-boxg" x="600" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="660" y="231" text-anchor="middle">AWS Data</text><text class="sv-t" x="660" y="247" text-anchor="middle">Pipeline</text><rect class="sv-box" x="10" y="290" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="290" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="315" text-anchor="middle">Query and Search</text><rect class="sv-boxg" x="30" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="90" y="387" text-anchor="middle">Athena</text><rect class="sv-boxg" x="160" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="387" text-anchor="middle">Redshift</text><rect class="sv-boxg" x="290" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="350" y="363" text-anchor="middle">Amazon</text><text class="sv-t" x="350" y="379" text-anchor="middle">OpenSearch</text><text class="sv-t" x="350" y="395" text-anchor="middle">Service</text><rect class="sv-box" x="450" y="290" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="290" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="315" text-anchor="middle">Visualize and Share</text><rect class="sv-boxg" x="470" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="530" y="387" text-anchor="middle">Quick</text><rect class="sv-boxg" x="600" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="660" y="371" text-anchor="middle">AWS Data</text><text class="sv-t" x="660" y="387" text-anchor="middle">Exchange</text><rect x="450" y="150" width="420" height="130" rx="6" style="fill:none;stroke:var(--warn-bd);stroke-width:4"/></svg>
+    </div>
+    <figcaption>Image 0a — AWS analytics services by stage. AWS Lake Formation, the topic of this lesson, is highlighted (Original diagram for this course.)</figcaption>
+  </figure>
+  <p>AWS Lake Formation helps you centrally govern, secure, and share the data in a data lake. It builds on the AWS Glue Data Catalog, and it adds fine-grained permissions that engines such as Amazon Athena, Amazon EMR, and Amazon Redshift Spectrum enforce. This lesson explains what Lake Formation is, how to set up a data lake with it, how its permissions work, and how it handles sharing, auditing, and pricing. The last two tabs prepare you for the AWS Certified Solutions Architect – Associate (SAA-C03) exam and check what you learned.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> an introduction to AWS Lake Formation, why IAM alone is not enough, its components, and the services that use it.</li>
+    <li><strong>Tab 2:</strong> setting up a data lake: data lake locations, importing and cataloging data, and workflows.</li>
+    <li><strong>Tab 3:</strong> the permissions model, named and tag-based permissions, row, column, and cell-level security, and how a query is authorized.</li>
+    <li><strong>Tab 4:</strong> cross-account sharing, hybrid access mode, audit logging, and pricing.</li>
+    <li><strong>Tab 5:</strong> comparison tables, the SAA-C03 cheat sheet with decision rules, and the lesson summary.</li>
+    <li><strong>Tab 6:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Introduction to AWS Lake Formation</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Setting Up a Data Lake</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Permissions and Access Control</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Sharing, Auditing, and Pricing</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="5" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="6" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Introduction</h2>
+  <p>FlashCart Inc. now keeps orders, customer profiles, and finance reports in one Amazon S3 data lake. The analysts, the marketing team, and the finance team all query it. That is the point of a data lake, but it also raises a question that S3 permissions alone answer badly: who can see the customer email column, and who can see the finance rows of another Region? AWS Lake Formation answers that question in one place.</p>
+  <p>This lesson follows FlashCart through the Problem Statement of each tab. It assumes that you know Amazon S3, that you know the AWS Glue Data Catalog and crawlers from Lesson 272.10, and that you know Amazon Athena from Lesson 272.11.</p>
+  <p>Use the tab list on the left, or the Previous and Next buttons, to move through the lesson. Each topic tab opens with a Problem Statement and ends with exam traps, keyword triggers, and resource links. The Knowledge Check is the last tab.</p>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define AWS Lake Formation, and explain why a data lake needs more than object-level permissions.</li>
+    <li>Describe the main components of Lake Formation: the Data Catalog, data lake locations, and the permissions model.</li>
+    <li>Explain how Lake Formation ingests, catalogs, and secures data in an Amazon S3 data lake.</li>
+    <li>Use Lake Formation permissions, LF-Tags, and data filters to control access at the table, column, row, and cell level.</li>
+    <li>Describe how an analytics engine gets access to data that Lake Formation governs.</li>
+    <li>Explain cross-account sharing, hybrid access mode, audit logging, and the pricing of Lake Formation.</li>
+    <li>Differentiate Lake Formation from IAM policies, S3 bucket policies, and the AWS Glue Data Catalog.</li>
+    <li>Select Lake Formation for a stated governance requirement.</li>
+    <li>Design a governed data lake for several teams with different access needs.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>ABAC</td><td>Attribute-based access control</td></tr>
+      <tr><td>API</td><td>Application Programming Interface</td></tr>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>CSV</td><td>Comma-separated values</td></tr>
+      <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+      <tr><td>EMR</td><td>Amazon EMR, formerly Elastic MapReduce</td></tr>
+      <tr><td>ETL</td><td>Extract, transform, and load</td></tr>
+      <tr><td>EU</td><td>European Union</td></tr>
+      <tr><td>IAM</td><td>AWS Identity and Access Management</td></tr>
+      <tr><td>JDBC</td><td>Java Database Connectivity</td></tr>
+      <tr><td>LF</td><td>Lake Formation, as in LF-Tag</td></tr>
+      <tr><td>PII</td><td>Personally identifiable information</td></tr>
+      <tr><td>RDS</td><td>Amazon Relational Database Service</td></tr>
+      <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
+      <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SQL</td><td>Structured Query Language</td></tr>
+      </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. Introduction to AWS Lake Formation</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s data lake in Amazon S3 now holds orders, customer profiles with names and email addresses, and finance reports. Analysts, the marketing team, and the finance team all query it with Amazon Athena. Today the company controls access with IAM policies and S3 bucket policies, one prefix at a time.</p>
+    <p>The security team cannot answer a simple question: who can see the customer email column? A new company rule also says that the marketing team must never see email addresses.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Explain why object-level S3 permissions are not enough.</li>
+      <li>Name the service that manages permissions on tables, columns, and rows.</li>
+      <li>Describe where that service keeps the metadata.</li>
+    </ul>
+  </div>
+
+  <h2>1.1 Introduction to AWS Lake Formation</h2>
+  <ul>
+    <li><strong>AWS Lake Formation</strong> helps you centrally govern, secure, and share data for analytics and machine learning.</li>
+    <li>It manages fine-grained access control for the data in your data lake in Amazon S3, and for its metadata in the AWS Glue Data Catalog.</li>
+    <li>It gives you one place to define who can see which database, table, column, row, and cell.</li>
+    <li>It also helps you build the data lake: it can import data from databases, crawl and catalog the data, and prepare it for analytics (tab 2).</li>
+    <li>The permissions that you define are enforced by the analytics services that read the data, such as Amazon Athena, AWS Quick (lesson 272.15), Amazon Redshift Spectrum, Amazon EMR, and AWS Glue.</li>
+  </ul>
+
+  <h2>1.2 Why IAM Alone Is Not Enough</h2>
+  <ul>
+    <li>An IAM policy or an S3 bucket policy controls access to Amazon S3 <strong>objects</strong> and prefixes. It cannot say “this user may read the Region and Spend columns but not the Email column.”</li>
+    <li>Without Lake Formation, a user who queries a table with Athena needs three kinds of permissions: read access to the S3 objects, permission to run Athena queries, and permission to read the table definitions in the Glue Data Catalog. All of them are IAM permissions, and they are set per object.</li>
+    <li>With Lake Formation, the user needs Lake Formation permissions on the database, table, column, or row. Direct access to the S3 objects is not needed to query the data.</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 860 330" role="img" aria-label="Two ways to give a data user access to data in Amazon S3. Without Lake Formation, an IAM policy gives the user permissions on Amazon S3 objects, Athena, and the Glue Data Catalog, at the object level. With Lake Formation, the user queries through Athena or another engine, Lake Formation checks permissions on databases, tables, columns, and rows, and gives the engine temporary credentials to read the data."><text class="sv-tb" x="20" y="26" text-anchor="start">Without Lake Formation</text><rect class="sv-box" x="20" y="40" width="130" height="64" rx="6"/><text class="sv-t" x="85" y="70" text-anchor="middle">Data user</text><rect class="sv-boxb" x="200" y="40" width="300" height="64" rx="6"/><text class="sv-t" x="350" y="66" text-anchor="middle">IAM policy</text><text class="sv-t" x="350" y="82" text-anchor="middle">S3, Athena, and Glue permissions</text><rect class="sv-boxg" x="560" y="40" width="200" height="64" rx="6"/><text class="sv-t" x="660" y="70" text-anchor="middle">Amazon S3 objects</text><line class="sv-line" x1="150" y1="72" x2="191" y2="72"/><polygon class="sv-arrow" points="200,72 190,67 190,77"/><line class="sv-line" x1="500" y1="72" x2="551" y2="72"/><polygon class="sv-arrow" points="560,72 550,67 550,77"/><text class="sv-tm" x="20" y="128" text-anchor="start">Permissions are set per object and per prefix. There is no view of columns or rows.</text><text class="sv-tb" x="20" y="186" text-anchor="start">With Lake Formation</text><rect class="sv-box" x="20" y="200" width="110" height="64" rx="6"/><text class="sv-t" x="75" y="230" text-anchor="middle">Data user</text><rect class="sv-boxb" x="170" y="200" width="150" height="64" rx="6"/><text class="sv-t" x="245" y="226" text-anchor="middle">Athena or</text><text class="sv-t" x="245" y="242" text-anchor="middle">another engine</text><rect class="sv-boxw" x="360" y="200" width="250" height="64" rx="6" style="stroke-width:3.5"/><text class="sv-t" x="485" y="224" text-anchor="middle">Lake Formation checks</text><text class="sv-t" x="485" y="240" text-anchor="middle">database, table, column, row</text><rect class="sv-boxg" x="650" y="200" width="190" height="64" rx="6"/><text class="sv-t" x="745" y="230" text-anchor="middle">Amazon S3 data</text><line class="sv-line" x1="130" y1="232" x2="161" y2="232"/><polygon class="sv-arrow" points="170,232 160,227 160,237"/><line class="sv-line" x1="320" y1="232" x2="351" y2="232"/><polygon class="sv-arrow" points="360,232 350,227 350,237"/><line class="sv-line" x1="610" y1="232" x2="641" y2="232"/><polygon class="sv-arrow" points="650,232 640,227 640,237"/><text class="sv-tm" x="20" y="288" text-anchor="start">The engine gets temporary credentials. The user needs no direct access to Amazon S3.</text></svg>
+    </div>
+    <figcaption>Image 1a — Access to data in Amazon S3 without Lake Formation and with Lake Formation (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>1.3 Lake Formation Components</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Component</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Data lake location</td><td>An Amazon S3 path that you register with Lake Formation. Lake Formation then governs the data under that path.</td></tr>
+      <tr><td>AWS Glue Data Catalog</td><td>The central metadata repository. Lake Formation uses it to store the databases and tables, and it enforces permissions on them.</td></tr>
+      <tr><td>Lake Formation permissions</td><td>A permissions model that is similar to a relational database. You grant or revoke access to databases, tables, columns, and rows.</td></tr>
+      <tr><td>Data lake administrator</td><td>A user or role that manages the data lake and its permissions.</td></tr>
+      <tr><td>Workflows and blueprints</td><td>Templates that automate the steps to ingest data into the data lake (2.3).</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>The Lake Formation permissions model <strong>augments</strong> the IAM permissions model. IAM still decides who can call the AWS APIs, and Lake Formation decides who can see which data.</li>
+  </ul>
+
+  <h2>1.4 Services That Use Lake Formation</h2>
+  <ul>
+    <li>Lake Formation permissions are enforced across Amazon Athena, AWS Quick, Amazon Redshift Spectrum, Amazon EMR, and AWS Glue.</li>
+    <li>The engine asks Lake Formation whether the user may read the data. If the user may, Lake Formation gives the engine temporary credentials and the list of allowed columns, and the engine applies the row and cell filters (3.5).</li>
+    <li>You define the permissions once, and every integrated engine follows them.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Lake Formation</strong> is the answer for <strong>fine-grained access control</strong> at table, column, row, and cell level on an Amazon S3 data lake.</li>
+      <li>IAM policies and S3 bucket policies control access to <strong>objects</strong>. They cannot hide a column or filter rows.</li>
+      <li>Lake Formation <strong>builds on the AWS Glue Data Catalog</strong>. It does not replace it, and it does not store the data.</li>
+      <li>Lake Formation permissions <strong>augment</strong> IAM. They do not replace it.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>IAM guards the door. Lake Formation guards the table.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Central, fine-grained access control for a data lake”<br>→ AWS Lake Formation</p>
+    <p><strong>Trigger 2:</strong> “Column-level or row-level permissions on Amazon S3 data”<br>→ AWS Lake Formation</p>
+    <p><strong>Trigger 3:</strong> “Metadata store that Lake Formation builds on”<br>→ AWS Glue Data Catalog</p>
+    <p><strong>Trigger 4:</strong> “Different teams must see different columns of the same table”<br>→ Lake Formation permissions</p>
+    </div>
+
+  <div class="qbox">
+    <h2>1.5 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company has a data lake in Amazon S3 that analysts query with Amazon Athena. The company must let one team read only some columns of a table and only some of its rows, and it wants one central place to manage these permissions. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Amazon S3 bucket policies that give each team a different prefix.</li>
+      <li><strong>B.</strong> IAM policies that list the S3 objects each team may read.</li>
+      <li><strong>C.</strong> AWS Lake Formation permissions with data filters on the table.</li>
+      <li><strong>D.</strong> A separate copy of the table for each team in its own bucket.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> Lake Formation provides fine-grained access control at the column, row, and cell level for data in Amazon S3, and it manages the permissions in one place. Athena enforces them when it queries the table.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>A bucket policy works on prefixes and objects. It cannot hide columns or filter rows inside a file.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>IAM policies control access to objects. They cannot limit the columns and rows that a query returns.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>Lake Formation data filters limit columns and rows, and the permissions are managed in one central place.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Copies multiply the data and the cost, and each copy must be kept in sync. They are not central permission management.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>1.6 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/what-is-lake-formation.html" target="_blank" rel="noopener">What Is AWS Lake Formation?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/how-it-works.html" target="_blank" rel="noopener">AWS Lake Formation: How It Works</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/service-integrations.html" target="_blank" rel="noopener">AWS Service Integrations With Lake Formation</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Setting Up a Data Lake</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart wants to bring its order database in Amazon RDS and its log files in Amazon S3 into the data lake. It wants to catalog the data and secure it with one set of tools. The data team is small, and it wants to avoid writing a custom script for each data source.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Decide how to bring the Amazon S3 data under Lake Formation control.</li>
+      <li>Choose how to import and catalog the database and the log files.</li>
+      <li>Decide who is allowed to manage the data lake.</li>
+    </ul>
+  </div>
+
+  <h2>2.1 Introduction to Data Lake Setup</h2>
+  <ul>
+    <li>Lake Formation helps you break down data silos. You combine structured and unstructured data from several sources in one central repository.</li>
+    <li>The steps are: identify the data sources, move the data into the data lake, crawl and catalog the data, and give users secure access through their choice of analytics services.</li>
+    <li>The data stays in Amazon S3. The metadata goes to the AWS Glue Data Catalog.</li>
+  </ul>
+
+  <h2>2.2 Registering a Data Lake Location</h2>
+  <ul>
+    <li>A <strong>data lake location</strong> is an Amazon S3 bucket or path that you register with Lake Formation.</li>
+    <li>After you register a location, Lake Formation can govern the data under that path and give analytics engines temporary access to it.</li>
+    <li>When you register a location, you also give Lake Formation an IAM role that it can assume to read the data. The role needs access to the Amazon S3 location and to any AWS KMS keys that encrypt it.</li>
+    <li>A <strong>data lake administrator</strong> manages the data lake. This person registers the locations and grants the permissions.</li>
+  </ul>
+
+  <h2>2.3 Importing and Cataloging Data</h2>
+  <ul>
+    <li><strong>Databases in AWS:</strong> Lake Formation can import data from MySQL, PostgreSQL, SQL Server, MariaDB, and Oracle databases that run in Amazon RDS or on Amazon EC2. It reads the data and its schema, imports the data into the data lake, and records the metadata in the catalog. Both bulk and incremental loading are supported.</li>
+    <li><strong>On-premises databases:</strong> use a JDBC connection. For other databases, create custom ETL jobs with AWS Glue.</li>
+    <li><strong>Files in Amazon S3:</strong> use AWS Glue crawlers to read the files, find the database and table schemas, and store them in the Data Catalog (Lesson 272.10).</li>
+    <li>After the tables are in the catalog, label them and set permissions (tab 3).</li>
+  </ul>
+
+  <h2>2.4 Workflows and Blueprints</h2>
+  <ul>
+    <li>A <strong>workflow</strong> encapsulates a complex ETL activity that has several steps. It generates AWS Glue crawlers, jobs, and triggers that orchestrate the loading and updating of data.</li>
+    <li>Lake Formation runs and tracks a workflow as a single unit. You can run it on demand or on a schedule.</li>
+    <li>A <strong>blueprint</strong> is a template that you use to create a workflow. You give it the import source, the import target (a database, an Amazon S3 location, and a data format), and an import frequency.</li>
+    <li>When a workflow finishes, the user who ran it gets the Lake Formation SELECT permission on the tables that it created.</li>
+    <li>Workflows that you create in Lake Formation are visible in the AWS Glue console as a graph of jobs, crawlers, and triggers.</li>
+  </ul>
+  <div class="tw"><table>
+    <thead><tr><th>Blueprint type</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Database snapshot</td><td>Loads or reloads the data of all tables from a JDBC source. You can exclude some data with an exclude pattern.</td></tr>
+      <tr><td>Incremental database</td><td>Loads only new data from a JDBC source, based on bookmarks that it sets. You choose the tables to include.</td></tr>
+      <tr><td>Log file</td><td>Bulk loads data from log files, including AWS CloudTrail (lesson 274.3) logs, Elastic Load Balancing logs, and Application Load Balancer logs.</td></tr>
+      </tbody>
+  </table></div>
+  <figure>
+    <div class="figwrap" style="max-width:640px;margin:0 auto"><img src="data:image/webp;base64,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" alt="Data from Amazon S3, a relational database instance, and a NoSQL database instance flows into AWS Lake Formation. Lake Formation runs source crawlers, ETL and data preparation, the data catalog, security settings, and access control, and it stores the data in an Amazon S3 data lake. Amazon Athena, Amazon Redshift, and Amazon EMR read the governed data." style="width:100%;max-width:640px;height:auto;display:block;margin:0 auto"></div>
+    <figcaption>Image 2a — Lake Formation brings data from several sources into an Amazon S3 data lake, catalogs and secures it, and makes it available to Amazon Athena, Amazon Redshift, and Amazon EMR. The blueprint types are listed in 2.4. (Source: awswithchetan.com.)</figcaption>
+  </figure>
+
+  <h2>2.5 Bringing Other Data Into the Catalog</h2>
+  <ul>
+    <li>Lake Formation can also manage permissions on data that stays in other sources. You create a <strong>federated catalog</strong> in the Data Catalog, and you do not copy the data.</li>
+    <li>Examples include data in Amazon Redshift data warehouses, in Amazon DynamoDB, and in third-party sources such as Google BigQuery and MySQL.</li>
+    <li>Lake Formation also supports licensing access to data through AWS Data Exchange (a later lesson).</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li>To put data under Lake Formation control, <strong>register the Amazon S3 location</strong> and catalog the data in the <strong>AWS Glue Data Catalog</strong>.</li>
+      <li>A <strong>Glue crawler</strong> discovers the schema of files in Amazon S3. Lake Formation can also import data from databases in Amazon RDS and on Amazon EC2.</li>
+      <li>A <strong>blueprint</strong> configures a <strong>workflow</strong> that automates data ingestion.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Register the lake, crawl the files, import the databases.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Build a secure data lake quickly: ingest, catalog, and secure”<br>→ AWS Lake Formation</p>
+    <p><strong>Trigger 2:</strong> “Automate the ingestion of a database into the data lake”<br>→ Lake Formation workflow with a blueprint</p>
+    <p><strong>Trigger 3:</strong> “Discover the schema of files in Amazon S3”<br>→ AWS Glue crawler</p>
+    <p><strong>Trigger 4:</strong> “Manage permissions on data that stays in Amazon Redshift”<br>→ Lake Formation federated catalog</p>
+    </div>
+
+  <div class="qbox">
+    <h2>2.6 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company wants to build a data lake on Amazon S3 quickly. It must ingest data from a MySQL database on Amazon RDS and from log files in S3, catalog the data, and manage access to it in one place. Which service meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> AWS Lake Formation, with the Amazon S3 location registered.</li>
+      <li><strong>B.</strong> Amazon Athena, with a table for each data source.</li>
+      <li><strong>C.</strong> The AWS Glue Data Catalog alone, with a crawler.</li>
+      <li><strong>D.</strong> AWS DataSync, with a task for each data source.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> Lake Formation helps you ingest data from databases and files, catalog it in the Glue Data Catalog, and manage access to it in one place.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>Lake Formation imports the database, uses crawlers for the files, and manages the permissions centrally.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Athena queries data. It does not ingest data from a database, and it does not manage permissions centrally.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>A crawler and the catalog describe the data. They do not import the database, and they do not provide fine-grained permissions.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>DataSync copies files between storage systems. It does not catalog the data or manage fine-grained access to it.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>2.7 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/what-is-lake-formation.html" target="_blank" rel="noopener">What Is AWS Lake Formation?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/workflows-about.html" target="_blank" rel="noopener">Blueprints and Workflows in Lake Formation</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/getting-started-tutorials.html" target="_blank" rel="noopener">AWS Lake Formation Tutorials</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/how-it-works.html" target="_blank" rel="noopener">AWS Lake Formation: How It Works</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Permissions and Access Control</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart now has 300 tables in the Data Catalog. The marketing, finance, and analytics teams each need different tables, and different columns of the customer table. Writing one grant for each table for each team does not scale.</p>
+    <p>The marketing team must not see the email column, and each finance analyst must see only the rows of their own Region.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Manage permissions for hundreds of tables without one grant for each table.</li>
+      <li>Hide the email column from the marketing team.</li>
+      <li>Limit the rows that each finance analyst can see.</li>
+    </ul>
+  </div>
+
+  <h2>3.1 The Lake Formation Permissions Model</h2>
+  <ul>
+    <li>Lake Formation uses its own permissions model, which <strong>augments</strong> the IAM permissions model.</li>
+    <li>You <strong>grant</strong> and <strong>revoke</strong> permissions much as you do in a relational database. A user or role can get SELECT on a table, for example.</li>
+    <li>The permissions apply to IAM users and roles, and to users and groups that sign in through an external identity provider.</li>
+    <li>The data lake administrator manages the permissions in one place.</li>
+  </ul>
+
+  <h2>3.2 Named Resource Permissions</h2>
+  <ul>
+    <li>A <strong>named resource</strong> grant gives a permission on a specific database or table by name. An example is a grant of SELECT on the table <code>company.finance</code>.</li>
+    <li>You can limit a grant to specific columns of the table.</li>
+    <li>Named grants are simple and clear, but with hundreds of tables they become hard to manage.</li>
+  </ul>
+
+  <h2>3.3 Tag-Based Access Control With LF-Tags</h2>
+  <ul>
+    <li>An <strong>LF-Tag</strong> is a custom label, a key and a value, such as <code>department=finance</code>.</li>
+    <li>You attach LF-Tags to databases, tables, or columns, and you grant users permissions on the tags. A user who has a permission on <code>department=finance</code> can then read every resource that carries that tag.</li>
+    <li>LF-Tags replace the policy definitions of thousands of resources with a few logical tags, so governance scales.</li>
+    <li>Lake Formation also supports <strong>attribute-based access control (ABAC)</strong>, which grants access by matching tags on the IAM principal with tags on the resource.</li>
+  </ul>
+
+  <h2>3.4 Row, Column, and Cell-Level Security</h2>
+  <ul>
+    <li><strong>Column-level</strong> permissions let a user see some columns of a table and not others.</li>
+    <li><strong>Data filters</strong> restrict access to a combination of rows and columns. A filter that limits rows is <strong>row-level</strong> security. A filter that limits both rows and columns is <strong>cell-level</strong> security.</li>
+    <li>Use row-level and cell-level security to protect sensitive data, such as personally identifiable information.</li>
+    <li>FlashCart uses a filter for the marketing team: it hides the Email column. For a finance analyst, it keeps only the rows of one Region.</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 860 300" role="img" aria-label="A Lake Formation data filter. The original customer table has four columns: customer, region, email, and spend, and four rows. The filter keeps only rows where the region is EU and hides the email column. A user with this filter sees two rows and three columns."><text class="sv-tb" x="200" y="24" text-anchor="middle">Original table</text><rect class="sv-boxb" x="20" y="38" width="95" height="34"/><text class="sv-tb" x="67" y="60" text-anchor="middle">Customer</text><rect class="sv-boxb" x="115" y="38" width="95" height="34"/><text class="sv-tb" x="162" y="60" text-anchor="middle">Region</text><rect class="sv-boxb" x="210" y="38" width="95" height="34"/><text class="sv-tb" x="257" y="60" text-anchor="middle">Email</text><rect class="sv-boxb" x="305" y="38" width="95" height="34"/><text class="sv-tb" x="352" y="60" text-anchor="middle">Spend</text><rect class="sv-box" x="20" y="72" width="95" height="34"/><text class="sv-t" x="67" y="94" text-anchor="middle">Ana</text><rect class="sv-box" x="115" y="72" width="95" height="34"/><text class="sv-t" x="162" y="94" text-anchor="middle">EU</text><rect class="sv-box" x="210" y="72" width="95" height="34"/><text class="sv-t" x="257" y="94" text-anchor="middle">a@fc.com</text><rect class="sv-box" x="305" y="72" width="95" height="34"/><text class="sv-t" x="352" y="94" text-anchor="middle">25.00</text><rect class="sv-box" x="20" y="106" width="95" height="34"/><text class="sv-t" x="67" y="128" text-anchor="middle">Ben</text><rect class="sv-box" x="115" y="106" width="95" height="34"/><text class="sv-t" x="162" y="128" text-anchor="middle">US</text><rect class="sv-box" x="210" y="106" width="95" height="34"/><text class="sv-t" x="257" y="128" text-anchor="middle">b@fc.com</text><rect class="sv-box" x="305" y="106" width="95" height="34"/><text class="sv-t" x="352" y="128" text-anchor="middle">40.00</text><rect class="sv-box" x="20" y="140" width="95" height="34"/><text class="sv-t" x="67" y="162" text-anchor="middle">Cai</text><rect class="sv-box" x="115" y="140" width="95" height="34"/><text class="sv-t" x="162" y="162" text-anchor="middle">EU</text><rect class="sv-box" x="210" y="140" width="95" height="34"/><text class="sv-t" x="257" y="162" text-anchor="middle">c@fc.com</text><rect class="sv-box" x="305" y="140" width="95" height="34"/><text class="sv-t" x="352" y="162" text-anchor="middle">15.50</text><rect class="sv-box" x="20" y="174" width="95" height="34"/><text class="sv-t" x="67" y="196" text-anchor="middle">Dee</text><rect class="sv-box" x="115" y="174" width="95" height="34"/><text class="sv-t" x="162" y="196" text-anchor="middle">US</text><rect class="sv-box" x="210" y="174" width="95" height="34"/><text class="sv-t" x="257" y="196" text-anchor="middle">d@fc.com</text><rect class="sv-box" x="305" y="174" width="95" height="34"/><text class="sv-t" x="352" y="196" text-anchor="middle">60.25</text><line class="sv-line" x1="405" y1="140" x2="466" y2="140"/><polygon class="sv-arrow" points="475,140 465,135 465,145"/><text class="sv-tm" x="440" y="128" text-anchor="middle">Data filter</text><text class="sv-tb" x="680" y="24" text-anchor="middle">What a user with this filter sees</text><rect class="sv-boxb" x="490" y="38" width="95" height="34"/><text class="sv-tb" x="537" y="60" text-anchor="middle">Customer</text><rect class="sv-boxb" x="585" y="38" width="95" height="34"/><text class="sv-tb" x="632" y="60" text-anchor="middle">Region</text><rect class="sv-boxb" x="680" y="38" width="95" height="34"/><text class="sv-tb" x="727" y="60" text-anchor="middle">Spend</text><rect class="sv-boxw" x="490" y="72" width="95" height="34"/><text class="sv-t" x="537" y="94" text-anchor="middle">Ana</text><rect class="sv-boxw" x="585" y="72" width="95" height="34"/><text class="sv-t" x="632" y="94" text-anchor="middle">EU</text><rect class="sv-boxw" x="680" y="72" width="95" height="34"/><text class="sv-t" x="727" y="94" text-anchor="middle">25.00</text><rect class="sv-boxw" x="490" y="106" width="95" height="34"/><text class="sv-t" x="537" y="128" text-anchor="middle">Cai</text><rect class="sv-boxw" x="585" y="106" width="95" height="34"/><text class="sv-t" x="632" y="128" text-anchor="middle">EU</text><rect class="sv-boxw" x="680" y="106" width="95" height="34"/><text class="sv-t" x="727" y="128" text-anchor="middle">15.50</text><text class="sv-t" x="20" y="236" text-anchor="start">Row filter: keep only rows where Region = EU.</text><text class="sv-t" x="20" y="260" text-anchor="start">Column filter: hide the Email column.</text><text class="sv-tm" x="20" y="284" text-anchor="start">Rows for US customers and the Email column are not returned to the user.</text></svg>
+    </div>
+    <figcaption>Image 3a — A Lake Formation data filter keeps only the rows for the EU Region and hides the Email column (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>3.5 How a Query Is Authorized</h2>
+  <p>This sequence follows the course slides. An analyst runs a query in Amazon Athena, or in another engine, on a table that Lake Formation governs:</p>
+  <ol>
+    <li>The data user submits the query to Athena, or to another engine.</li>
+    <li>The engine gets the table metadata from the AWS Glue Data Catalog.</li>
+    <li>Lake Formation checks the permissions of the user.</li>
+    <li>If the user is allowed, Lake Formation gives the engine temporary credentials.</li>
+    <li>The engine uses the credentials to read the data in Amazon S3, applies the column, row, or cell filtering, and returns only the data that the user may see.</li>
+  </ol>
+  <figure>
+    <div class="figwrap" style="max-width:520px;margin:0 auto"><img src="data:image/webp;base64,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" alt="A data user submits a query in Amazon Athena or another engine. Athena gets metadata from the AWS Glue Data Catalog and checks permissions with AWS Lake Formation, which a data lake administrator manages. Lake Formation gives Athena credentials, and Athena accesses the data in Amazon S3." style="width:100%;max-width:520px;height:auto;display:block;margin:0 auto"></div>
+    <figcaption>Image 3b — Lake Formation checks permissions and gives the engine credentials before the engine reads Amazon S3. (Source: awswithchetan.com.)</figcaption>
+  </figure>
+  <ul>
+    <li>Because Lake Formation gives the credentials, the data user does not need direct access to Amazon S3, and you do not need to change the S3 bucket policies or IAM policies when you grant permissions.</li>
+    <li>If the user is not authorized, Lake Formation denies access and the query fails.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li>Use <strong>LF-Tags</strong> to manage permissions for <strong>many tables</strong> with a few tag grants. A grant for each table does not scale.</li>
+      <li><strong>Column-level</strong> permissions hide columns. <strong>Data filters</strong> limit rows, and rows and columns together give <strong>cell-level</strong> security.</li>
+      <li>With Lake Formation, users need <strong>Lake Formation permissions</strong>, and direct Amazon S3 access is not needed for querying.</li>
+      <li>The data lake administrator, not the data user, manages the permissions.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Tags for scale, filters for rows, columns for secrets.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Manage permissions for hundreds of tables with labels”<br>→ LF-Tags (tag-based access control)</p>
+    <p><strong>Trigger 2:</strong> “Hide PII columns from a team”<br>→ Column-level permissions in Lake Formation</p>
+    <p><strong>Trigger 3:</strong> “Each analyst sees only the rows of their Region”<br>→ Lake Formation data filter (row-level security)</p>
+    <p><strong>Trigger 4:</strong> “Rows and columns restricted together”<br>→ Cell-level security with a data filter</p>
+    </div>
+
+  <div class="qbox">
+    <h2>3.6 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company has hundreds of tables in its AWS Glue Data Catalog. Access to a table depends on the department that owns it. The administrators want to manage the permissions without writing a separate grant for each table and each team. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> One grant on each table for each team, repeated when a table is added.</li>
+      <li><strong>B.</strong> A separate Amazon S3 bucket for each department, with a bucket policy.</li>
+      <li><strong>C.</strong> An IAM policy for each team that lists every table in the Data Catalog.</li>
+      <li><strong>D.</strong> Lake Formation LF-Tags on the tables, with grants to the matching tags.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: D.</strong> LF-Tags let the administrators label databases, tables, and columns, and grant permissions on the tags. A new table that carries the right tag is covered without a new grant.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Grants for each table and team do not scale, and each new table needs new grants.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Separate buckets split the data physically, and they do not manage column and table permissions in the catalog.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>IAM policies that list every table are long, they must change with each new table, and they cannot hide columns.</td></tr>
+      <tr><td>D</td><td>Correct</td><td>Tag-based access control replaces thousands of table-level grants with a few tag grants.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>3.7 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/tag-based-access-control.html" target="_blank" rel="noopener">Lake Formation Tag-Based Access Control</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/data-filtering.html" target="_blank" rel="noopener">Data Filtering and Cell-Level Security in Lake Formation</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/what-is-lake-formation.html" target="_blank" rel="noopener">What Is AWS Lake Formation?</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 4 ============ -->
+<section class="tab" id="tab4" role="tabpanel" aria-labelledby="b4">
+  <h1 class="tabh">4. Sharing, Auditing, and Pricing</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>A FlashCart partner runs its analytics in a different AWS account. The partner needs the product sales tables, but FlashCart does not want to copy the data. FlashCart already uses IAM-based access for several teams, and it cannot switch them all to Lake Formation at once.</p>
+    <p>The auditors also ask who accessed the customer data last quarter, and the finance team wants to know what Lake Formation costs.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Share the tables with another account without copying the data.</li>
+      <li>Adopt Lake Formation step by step, without breaking existing access.</li>
+      <li>Show the access history, and estimate the cost.</li>
+    </ul>
+  </div>
+
+  <h2>4.1 Cross-Account Sharing</h2>
+  <ul>
+    <li>Lake Formation can share data with other AWS accounts, with an entire AWS organization, or directly with an IAM principal in another account.</li>
+    <li>You share the Data Catalog metadata and the underlying data, with the same fine-grained permissions. The data is not copied.</li>
+    <li>The administration stays central, in the account that owns the data.</li>
+  </ul>
+
+  <h2>4.2 Hybrid Access Mode</h2>
+  <ul>
+    <li><strong>Hybrid access mode</strong> lets you secure the same cataloged data with both Lake Formation permissions and IAM policies.</li>
+    <li>You can enable Lake Formation permissions for selected databases and tables and for a selected set of users, without interrupting the policies of other users and workloads.</li>
+    <li>This gives an incremental path: onboard one data lake use case at a time.</li>
+  </ul>
+
+  <h2>4.3 Audit Logging</h2>
+  <ul>
+    <li>Lake Formation records audit logs in <strong>AWS CloudTrail</strong>.</li>
+    <li>The logs show which users or roles tried to access what data, with which services, and when. They cover the analytics and machine learning services that read the data through Lake Formation.</li>
+    <li>You read the logs in the same way as other CloudTrail logs. You can also query them with Athena (Lesson 272.11).</li>
+  </ul>
+
+  <h2>4.4 Lake Formation Pricing</h2>
+  <p><strong>Prices change often and differ by Region.</strong> Check the current details on the <a href="https://aws.amazon.com/lake-formation/pricing/" target="_blank" rel="noopener">AWS Lake Formation pricing</a> page.</p>
+  <ul>
+    <li>According to the AWS pricing page, the Lake Formation permissions (database, table, column, row, and cell level, by tag or by name) and cross-account sharing have no additional charge.</li>
+    <li>Standard rates for the integrated services still apply, such as Amazon S3 and the AWS Glue Data Catalog.</li>
+    <li>Some separate Lake Formation features are charged, such as the Storage API, Governed Tables, and the storage optimizer. Check the pricing page before you use them.</li>
+    <li>Services that you use with Lake Formation, such as Athena, EMR, and Glue jobs, are billed by their own pricing models.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Cross-account sharing</strong> with Lake Formation shares the catalog tables and the data <strong>without copying</strong> them.</li>
+      <li><strong>Hybrid access mode</strong> allows Lake Formation permissions and IAM policies together, so teams can move step by step.</li>
+      <li><strong>Audit logs</strong> for Lake Formation are in <strong>AWS CloudTrail</strong>.</li>
+      <li>The Lake Formation permissions have no extra charge. You pay for the integrated services.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Share without copying, move step by step, and read the trail.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Share data lake tables with another AWS account without copying”<br>→ Lake Formation cross-account sharing</p>
+    <p><strong>Trigger 2:</strong> “Adopt Lake Formation without breaking existing IAM access”<br>→ Hybrid access mode</p>
+    <p><strong>Trigger 3:</strong> “Audit who accessed which data in the data lake”<br>→ Lake Formation audit logs in AWS CloudTrail</p>
+    <p><strong>Trigger 4:</strong> “Cost of Lake Formation permissions”<br>→ No additional charge. Pay for the integrated services.</p>
+    </div>
+
+  <div class="qbox">
+    <h2>4.5 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company must share product tables from its Amazon S3 data lake with another AWS account. The tables need column-level restrictions, and the company does not want to copy the data. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Copy the Amazon S3 objects to a bucket in the other account every night.</li>
+      <li><strong>B.</strong> Share the Data Catalog tables with the other account by using Lake Formation permissions.</li>
+      <li><strong>C.</strong> Make the Amazon S3 bucket public, and give the partner the bucket name.</li>
+      <li><strong>D.</strong> Export the tables to CSV files, and send the files to the partner.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> Lake Formation can share catalog tables and their data across accounts with fine-grained permissions, including column restrictions, and it does not copy the data.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>A copy is a second set of data to store and keep in sync, and it carries no column-level controls.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>Lake Formation shares the tables across accounts with column-level permissions and without a copy.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>A public bucket exposes all of the data to everyone, which breaks the column restrictions.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>An export is a copy that becomes outdated, and the company loses control of it.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>4.6 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/cross-account-permissions.html" target="_blank" rel="noopener">Cross-Account Data Sharing in Lake Formation</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/hybrid-access-mode.html" target="_blank" rel="noopener">Hybrid Access Mode</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/logging-using-cloudtrail.html" target="_blank" rel="noopener">Logging AWS Lake Formation API Calls Using AWS CloudTrail</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/lake-formation/pricing/" target="_blank" rel="noopener">AWS Lake Formation Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 5 ============ -->
+<section class="tab" id="tab5" role="tabpanel" aria-labelledby="b5">
+  <h1 class="tabh">5. Comparison &amp; Scenarios</h1>
+
+  <h2>5.1 Lake Formation Compared With Other Controls</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>IAM and S3 bucket policies</th><th>AWS Glue Data Catalog</th><th>AWS Lake Formation</th></tr></thead>
+    <tbody>
+      <tr><td>What it controls</td><td>Access to Amazon S3 objects and to AWS API calls.</td><td>It stores the metadata of the data: databases, tables, and schemas.</td><td>Access to databases, tables, columns, rows, and cells in the data lake.</td></tr>
+      <tr><td>Granularity</td><td>Object and prefix.</td><td>Not a permissions service on its own.</td><td>Table, column, row, and cell.</td></tr>
+      <tr><td>Where you manage it</td><td>Many policies, for each user, role, and bucket.</td><td>In the catalog.</td><td>One central place, with grants and revokes.</td></tr>
+      <tr><td>Scale</td><td>Policies grow with every resource.</td><td>Not applicable.</td><td>LF-Tags replace many table-level grants.</td></tr>
+      <tr><td>Relationship</td><td>Still needed for API access.</td><td>The metadata layer that Lake Formation builds on.</td><td>Augments IAM and uses the Data Catalog.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.2 When to Use Lake Formation</h2>
+  <h3>5.2.1 Use AWS Lake Formation When</h3>
+  <ul>
+    <li>Different teams need different tables, columns, or rows of the same data lake.</li>
+    <li>You need one central place to define and audit access.</li>
+    <li>You want to share data lake tables with other accounts without copying the data.</li>
+    <li>You want to set up a data lake quickly, with ingestion, cataloging, and security together.</li>
+  </ul>
+  <h3>5.2.2 Use Another Control When</h3>
+  <ul>
+    <li><strong>IAM and bucket policies:</strong> you only need to allow or deny access to whole buckets, prefixes, or API calls.</li>
+    <li><strong>AWS Glue:</strong> you need to transform the data, or to catalog files with a crawler.</li>
+    <li><strong>Amazon Athena:</strong> you need to run SQL queries. Lake Formation decides what the query may see.</li>
+  </ul>
+
+  <h2>5.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Scenario keywords</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Central, fine-grained access control for a data lake</td><td>AWS Lake Formation</td></tr>
+      <tr><td>2</td><td>Column-level or row-level permissions on Amazon S3 data</td><td>AWS Lake Formation</td></tr>
+      <tr><td>3</td><td>Hide a PII column from one team</td><td>Column-level permissions in Lake Formation</td></tr>
+      <tr><td>4</td><td>Each analyst sees only the rows of their Region</td><td>Lake Formation data filter</td></tr>
+      <tr><td>5</td><td>Manage permissions for hundreds of tables with labels</td><td>LF-Tags (tag-based access control)</td></tr>
+      <tr><td>6</td><td>Build a secure data lake quickly: ingest, catalog, and secure</td><td>AWS Lake Formation</td></tr>
+      <tr><td>7</td><td>Metadata store that Lake Formation builds on</td><td>AWS Glue Data Catalog</td></tr>
+      <tr><td>8</td><td>Share data lake tables with another account without copying</td><td>Lake Formation cross-account sharing</td></tr>
+      <tr><td>9</td><td>Adopt Lake Formation without breaking existing IAM access</td><td>Hybrid access mode</td></tr>
+      <tr><td>10</td><td>Audit who accessed the data lake</td><td>Lake Formation audit logs in AWS CloudTrail</td></tr>
+      <tr><td>11</td><td>Which services enforce Lake Formation permissions</td><td>Athena, AWS Quick, Redshift Spectrum, EMR, and AWS Glue</td></tr>
+      <tr><td>12</td><td>Cost of Lake Formation permissions</td><td>No additional charge. Pay for the integrated services.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.4 Lesson Summary</h2>
+  <p>This lesson covered the following points:</p>
+  <ul>
+    <li>AWS Lake Formation helps you centrally govern, secure, and share data in an Amazon S3 data lake, and it manages the metadata in the AWS Glue Data Catalog.</li>
+    <li>IAM and S3 bucket policies work at the object level. Lake Formation adds permissions at the database, table, column, row, and cell level, and its permissions augment IAM.</li>
+    <li>You register an Amazon S3 location, import and catalog the data, and optionally automate ingestion with workflows and blueprints.</li>
+    <li>You manage permissions with named grants, LF-Tags, column-level permissions, and data filters. Athena, AWS Quick, Redshift Spectrum, EMR, and AWS Glue enforce them.</li>
+    <li>In a query, the engine gets the metadata, Lake Formation checks the permissions and gives temporary credentials, and the engine reads Amazon S3.</li>
+    <li>Lake Formation shares data across accounts without copying it, supports hybrid access mode, logs access in AWS CloudTrail, and has no additional charge for its permissions.</li>
+  </ul>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Lake Formation sets the rules for the lake.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 6 ============ -->
+<section class="tab" id="tab6" role="tabpanel" aria-labelledby="b6">
+  <h1 class="tabh">6. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: Explain what AWS Lake Formation is, and why IAM and S3 bucket policies are not enough to govern a data lake.</summary>
+    <p><em>Maps to:</em> Objective 1 (Comprehension).</p>
+    <p>AWS Lake Formation helps you centrally govern, secure, and share the data in an Amazon S3 data lake, and it manages the metadata in the AWS Glue Data Catalog. IAM policies and S3 bucket policies control access to objects and prefixes. They cannot hide a column or filter rows, and each policy must be maintained separately. Lake Formation adds permissions at the database, table, column, row, and cell level in one central place, and the analytics engines enforce them.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Describe the main components of Lake Formation and how they relate to the AWS Glue Data Catalog.</summary>
+    <p><em>Maps to:</em> Objective 2 (Comprehension).</p>
+    <p>A data lake location is an Amazon S3 path that you register with Lake Formation. The AWS Glue Data Catalog is the central metadata repository, and Lake Formation builds on it to store the databases and tables and to enforce permissions. The Lake Formation permissions model is similar to a relational database, with grants and revokes, and it augments IAM. The data lake administrator manages the lake and its permissions. Workflows and blueprints automate ingestion.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: FlashCart wants to bring an Amazon RDS database and log files in Amazon S3 into a governed data lake. Explain the steps.</summary>
+    <p><em>Maps to:</em> Objective 3 (Application).</p>
+    <p>Register the Amazon S3 location as a data lake location, and let a data lake administrator manage it. Import the RDS database with Lake Formation, which reads the data and its schema, loads the data into the data lake, and records the metadata in the catalog. Use an AWS Glue crawler to read the log files and add their tables to the Data Catalog. An ingestion workflow built from a blueprint can automate these steps on a schedule. Then label the tables and set permissions.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: The marketing team must not see the email column, and each finance analyst must see only the rows of their Region. Explain how you would configure Lake Formation, and how you would manage 300 tables.</summary>
+    <p><em>Maps to:</em> Objective 4 (Application).</p>
+    <p>Use column-level permissions, or a data filter that excludes the Email column, for the marketing team. Use a data filter with a row condition on the Region for each finance analyst, which gives row-level security, and combine rows and columns for cell-level security. To manage 300 tables, attach LF-Tags such as department=finance to databases, tables, and columns, and grant the teams permissions on the tags. A new table that carries the tag is covered without a new grant.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: Describe what happens when an analyst runs an Athena query on a table that Lake Formation governs.</summary>
+    <p><em>Maps to:</em> Objective 5 (Comprehension).</p>
+    <p>Athena gets the table metadata from the AWS Glue Data Catalog. Lake Formation checks the permissions of the user. If the user is allowed, Lake Formation gives Athena temporary credentials. Athena reads the data in Amazon S3 with those credentials, and it returns only the columns and rows that the user may see. The user needs Lake Formation permissions, and no direct Amazon S3 access.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: Explain cross-account sharing, hybrid access mode, and audit logging in Lake Formation, and say how Lake Formation is priced.</summary>
+    <p><em>Maps to:</em> Objective 6 (Comprehension).</p>
+    <p>Cross-account sharing lets you share catalog tables and their data with other accounts, an organization, or an IAM principal in another account, with fine-grained permissions and without copying the data. Hybrid access mode lets Lake Formation permissions and IAM policies secure the same data, so you can adopt Lake Formation for one use case at a time. Audit logs go to AWS CloudTrail and show who tried to access which data, with which service, and when. According to the AWS pricing page, the Lake Formation permissions and cross-account sharing have no additional charge, and you pay for the integrated services, such as Amazon S3 and the Glue Data Catalog.</p>
+  </details>
+
+  <details>
+    <summary>Question 7: Differentiate Lake Formation from IAM policies and the AWS Glue Data Catalog, and name one requirement that points to Lake Formation.</summary>
+    <p><em>Maps to:</em> Objectives 7 and 8 (Analysis).</p>
+    <p>IAM and S3 bucket policies control access to objects and API calls. The Glue Data Catalog stores metadata and is not a permissions service on its own. Lake Formation uses the catalog and adds central, fine-grained permissions at the table, column, row, and cell level, and it augments IAM. A requirement that different teams see different columns and rows of the same S3 data lake, managed in one place, points to Lake Formation.</p>
+  </details>
+
+  <details>
+    <summary>Question 8: Design a governed data lake for FlashCart that serves marketing, finance, and a partner in another AWS account.</summary>
+    <p><em>Maps to:</em> Objective 9 (Synthesis).</p>
+    <p>Store the data in Amazon S3, and register the location with Lake Formation. Use Glue crawlers and Lake Formation imports to fill the Data Catalog. Attach LF-Tags for department and sensitivity to databases, tables, and columns, and grant each team permissions on the tags. Hide the email column from marketing with column-level permissions, and use data filters to limit finance analysts to their own Region. Share the product tables with the partner account through Lake Formation cross-account sharing, without a copy. Start with hybrid access mode for the teams that still use IAM policies. Query with Athena, and review the CloudTrail audit logs. Check the pricing pages for the integrated services.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>

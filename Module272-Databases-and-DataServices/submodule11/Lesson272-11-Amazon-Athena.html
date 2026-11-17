@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 272.11 - Amazon Athena</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,UklGRrgtAABXRUJQVlA4WAoAAAAQAAAAowEAOwAAQUxQSB8ZAAAB8IZtu2o7tW29X/lK73FPcHd3dx34wEmCO4TgMAk+J06CDFyG4DYUh2G4zWADd0+QOBNCpJVSvvdHLVV66+Fi/oyICUCXi1fBz7F4BwCDVtxqz0MOO/Sw4TusvXAHAKiiO+912KHFQw7bDoJ5q8PShx1yaPGQwxaHwzx3xdGjjml69GHDt1qxPwCo+9kRBbDUATe99M0clsbv33/4v7cZAIjrPjKBpU9B5zEeB7J8T/h5zyh28XfPXr5dH0Dl58UB/Q9/YjazKWvMfvuHzQCVbvNBCiml1EqPzoNGplYqttKu86JDwtzQfEwsfnbZCoD+nCg6T/ycZAzJjOWWYkgk/7Up4LrLR0wkGfn4PGhfRhYjd5sXHcrErjSLIZGzblwE+vOh2Og/ZIzGJi0YeVVPuP9XyKZATtofTn4mPI5sMSQ2HxNfWADu/x1IC+QVcPKz4HEaLbKiWUopmVUgW3x7iLhfala7CmmBv4PKz4BiJIOxNIXI0hRSGVt8QvWXWn2LIVoJ2eJl8PM+J0v/mBLzKZG06V9+8MGnk1okLZawxTHQX2bWqs1iLLMW94TO+3A/A/ORfHPsrisO6wl0DFx6+/NfJWOJpR8WFvcLLPG7VZZeZunKy6y7+wUvGM1yTPbtYCfzOMU6lpiPfGVHRfWtn2bKMfAS+F9kExVNrnk7aTkGXgydx3ncxJBLvKUD8OpEABGnXoBzGC2T7IuekF9iX/dz6qqregH2/MEsZzZlEGSeJujxGVMm8kmIR01VjGHM0LgJ9BdZHwjquw5sNTdahpEHwzchTlXVyTzAYWVjPqV14VFbOvA4YybwDPhmxDlVdU7aRpyqOmkLUQDSXcRp0UmXiVNVdU7aC+jEOYy5YPdD64hXlItXaUDLXc55B8C5Zjx2ZcwkvucEDaqsm1Im8h5oA84ryp1X6TrnHUq96xpxqCrtJuoFFdW7xkS9oFy8SjuJ6/MNLZP4dW9IJacAMP8qm2251YbL9AMAlVp1RdGlHoczZCIfgTYBkdcspJRSKz0PqeUUgFt4zS233HLtJXsDgErXOAUwYIVNt9pyzQUBONeUUwAQDNiqN9wgB8C1lVMA6L/MeltuudWGKwwDAOcaEQ8A/ZdZf6stt1xnqX4AoNI+8LiBIUPaynAVnAMWPOC2t75nMX7zzCWbCOBq9Nhp992Ku+6xLAQOWOnsR95459VHNoRr5qgq0ozHTSz9SCDVnAMWPeze92ey2PrqiQs2EUC7QoFlT3/yWyPJ/3t17FqANgR47HoXsA5XwoKTz4PrCUDaRoEBu1794reR2Wlv3XHYYoBKPQV67XDl899GFltfP3fFjn0AbSPZmzGXuCO0TIEN75jBoqVkLL56mEKrCOYLLD0H3mHAjXOZPQG+mSNLEt+CNHTEl598/vnnn3/6xTMdNRTY+N4fWEwpGYuvHd0T2pxi6VtmkaSlRJLp3iWhDTiHtXcR7GoDsUZaG5vzRAx473oRuPYQweJjJ7BoKSVjceYfNwCkhjgMO/cTFi2lZCx+eu5QaNs4rEXLBR4EX6JY8m6SMSRj0SwGI8dvCK00bGoMMcY4J56GTiz5FhliSnPjkU0NL6G1VhZtAtCePUoFlRVL30syxmQsWorByLe3h5NmvOKwGWSIZiRpKRgn7wSthw7sM70nhs3aBGtxQ5xgm8gI3iI6P9rCAafMIGOIZsxaCpFMV/eEqySCgyeSKUQzFs1iSORXI6Dts2yglRxfIg4HTKVFY80U2BoFrTSDRpKBY+AHf8iWkWTg0c0oNqHlIv8K7xppWBwOnk6LxpopkOfDSSOdGEsGY+XA9GtonZ4bwuHjg4HP/gtrcwPclYbhmbQydpx0NDqkyxz6P0IGY12LxueHwFUQpzeTIbFuCuRFUOk+oriUDMxaDCHEVCCj8Rz4hnA/W8w25rDgTFqGkecB3jUh5VXE4QoysMkUeTNUGhBcxGCsG+3H5cRVEZUBX2wHnPoG8LcHsDbXxQdfYGU+6wZ8xOMdqjYkrv/zbBnzZlZCssWXeqmUiMp9DIlZSykly5Ap8Hxou6xNY8mBGfG4jsFYtMh8igVa4FHQJs6SfRjYRRAZbzHHyPsWB8Sr1GlSFLcwGPMWitEytBYvhdb7F0ayZRZDCCFVYODT1YAObD+hnxs4YxM57XOsEVbXOffjao7E9XwYGDEE0jWKh9hiNgYjyRgtxxZvhJYoLuBcZlNk1oIVaIE7QtvCy3DGXOIOUAAeF7HFbCRnjb/j+pse/IKMBVoM60AbOB3vW+oyj7MYShj5/RWrAoDz6qRLPK5mi3mLLI1WIAN/Da310IDpFiPzKZUxchdoiWDItujE7+8Bbn0Am3LAklxlVZ6K6VM7N0kzlsFoPtPDd4niGLZYtERy7szZJJlyjFwPmlGslYJlEjnn09dfeXsyyVRgtI96irSD4maGHNMKcIBiL7YsEznl7GVQ7L3zc4wFRv6nw0m9UeszkpZiCGF2OKohh8VnJythJONzZ23YB0Xn1TWlOIIt5hM56U9n7n/AGX+aRFom2YT+InXuvphzyen/vO7Cy//0CRkr2BNwZW7Qsyegs8dne2HVH4b1/nqdHsf2W+XxNfbnBfIBj8EJ5CUe0gUiQ6elVDDy6WM3WHLhxdY4+H4ylT0AV/I3RhYTXz14qU4Agze5di6twMh94dtAXL/vaJnEL3tC4GTBqSmxGPnvxQHx3iuAixkLjDwcvt7RN1iwwNITGoLiNwxltECSEx47b/cVe6PoVRpwstysaLnIqacMRXboGbNoBQaOgVZLfH9K5JSTF0Sxxw4vMJbQ5i4Nl4Oi7/gzIBtPGobxYzG/Q/bAiQudzadwPHkxsAS6wON0BpK0NOsAlG/6GVPGbPZicAAcFp1tVki8zQOAAMC6nzMVgj0GbYNOnM/IbLB7oYDidgYWEx/vRIdDUbzDFYyFZJ/0FKkRecmHDGT6+F9//etf//zX7aDNiOv/CWMZaTEYScav/jF2jyUAwLt6+Ccjs5EvLgmo994rsOFUS4VkE3qLVCJpfH1JwHnvFXDXMpYEHgmf6wBczyfPAH7zKNZZFwC8iBMM3pgzB+1PXoRFH5i8CKQx0XctFhJHQL0655z3WHpKSgUGHg4PwGNfRpJM/LwHOpwAEO3E6j8lI2mc1A9dph7bhWi5yL3hoVgjJSsk+3wAFOWi7nVGkozcHVrD+OTcxGnnr9qBLnZY43uGCsUUQ2Rx1svjtu0DiFZT7MDIbORLfdAhyEontgzRSDJxF2iNlL6cHx2ConiHPzKW3Z5T7Hz9ILjOJ85Gx/v7AhDkFUNfOPrX5PnYbwJ5kGpTDqsnI8nIx9AhKO3EUYwlt5VcylAIvBEe5Z24LswOxdaK1fo5ddXVewFG/mTGbLIJfUSguJ2BGe4Cj6oeOzIVgv21FvlT4nNLAHBalMag2Ggyg1UqWoohkuTn12wAiKvi8LzlUpq8MDwqduBqxkKwP9TjTuhAuXNDp5hlIsdDCnB+34f2BHo+ORbLr+wUFR16HEKe2/cO8qs9kW/C42iG3O7iUS7SbxKtEPkyJHNr2fmuirptWLp1pYmKJjf4I2nMB54MD8ECP9AKkS9CUV30XSaSxqmDIHXM3uyHDifocsVyz5Eh1chaConkEzsDWuawPhOzkYfCo6pzC/5II5n4nqJa5ItQVPW4kCGTOKEXpADFAjfetBA6Hr8MdT1251mbfUre3gubbA3X2A0Z48wFIBXgcD9DIXFCLwiguKPsLnRUEAwdO27suHHjxo5butKk1ZddbtnKy284fOx4MhnziR/0dAKPwxmZO1B8DY9LGEgycRtonRTXg0dbKvTkb8kUrVYxBSP/tQ6c5DyuYcgkvqNOKkFxX5wTYwzxx4XhKgUeLb6Sk9WiZYzfL5DpGAIAez50AHBaT6kBh6OvIb/YCbs+zs86pSHFw3FOjLEV3xBU9nJRzvjDsILHDTmzGYui05XULCNpdZmNLLWQNoICivstFIw/LuDUVe9wOzMWAs+ErxH4EBRt6oD5z/6EZArRapGMkXPHQKQg0vEhUybwBHhU97I/S7eAVmJaBa6SoONTptzsxeAg0vesMRs4YMg1ty6J+oqNGX633uj3SE5YHK4ZwbvMPw9XDceVzVoUrnC6ZZj4+rKA804y4kulWn2LIbHcAkdDAUHviUyFyH+iwQXn0DL3QmtE7i2+XQAFeu9x33ckmUKIVoOMxtvVCQCHVZKxaJyzJFwNwaAR2eEjF4JUSfymD6QSHB5jrFRc/YSL910Q2OnmfiJ1BH1evfWKb0g+sy8gaAbYfuTwESNGDB+5KaRMnO+po+sotmHKMHHGhcsAgHqH6tWsJqtH4znwABxWTcai8dsXXnyh9vgWi4njIdWMsxeFax+IBzBk58tf/J5FCyFZFVqL90IF8DiQMRP5ugi6uMobqOvxB4ZawOA9Lzx9I8ChvmLcbHLi1WvLkD32hDRVU5z3iuxRdQR9v7GUYSJn//OENTsBwLumutAC5x4FDwCKPRgzXZv4aQ9IpcT3Fe0tqgCwwFan3D5+CoshWhnZ4tnQwjiGTOAt8PXEl0q1yOcgta6sI0M6UVzzlMtXhqvncTzfvXHUcbe+P5ufSGPq8yrqHbKDV9/73Ls/pVWD4gKGHC2S5Md3Hr48AFFpI4uRfHV9KIoeJzGUWGwyZ5w6sEbkv+HaC4CoFxQHr3fUbe8ZyWhlFuPq4qD4S4UxTdTtmkvquO32G77Tekv2AXoNg9RTbD7nwy+Z/bgXpKFSVQDov8aIc+97fQqrVhAZ+AVjjrQYSLL18nlrAdC2MEshkvz8xE4oSsZW6ErjzAXgKgXeB992RVHvBQDcKic9SzKVMPIhOAieYSzZv3tdWgdwg5fbbI/9Dxy+kUODDssb2frqqWsOWKUDQFeoAH23veip75iPIaRacNhgNkNJMYVIks8e1AviasX6xuKcp4/oDziUXV8hhuZbYebite7sJllRrwCw7i2JsYQWVoAKXitJ3Bk6Tyntu3SvJgSL/DTruWtH7bTFdjvvOQDSnCiw6c1fsRhDSEbSrB4U20xjSBVIWgokPzgE0DpNxqmv337EsgBUUOHaCl28WK27ulNRnBdgwzcYSwJPhwfeZSrZbh4imO+6G2648aabbrz2Nxf3gzSx0A9pTmJ2dbjGHPCrJ0mmEI2kpRhCYmklKJb7FxmjVSimSP5jcWgV4/SDR+47svLOO2yy/GAAEBVU9Li+wkO333lH07ffcXNfSPuJlksDRefR/xmmXOTf4YDXGUt2moc4LMWKi8M1Q9JSDKG1YnOKQbeSFo2kxWDM/jTZGoACB7xFMkarQqbAievBVUicgGbVO1T3uKLCMujytmtHj/m+s5RJ/LwTDs+VRO4LP88QzD8jtEK2tUoTDssEGkkaZy3WmMPy7zJFkrRIktPefmDsEVsuugNTA3CCjr0enUUyhWhlZODUZeGqfN3fd/jKquoE9T1OK0ncUXtoF3YDQb9fbZv91a/6NIYOnM6QMc5cCB4PMmQCT5qn9JpIYzFxa2g9xUY05iYNgDTjZJEv2WIxkd8/eNx6Q5HdohlAASw1+vGpJBmjlTBwvK/WB4I29BjBmAk8Fh5d3GYOa7F8E2hTTlZNVpKWQyeuqXBjI65U2gyCl5kygUfD1/M4mCGT+LYADenTbLGY+P3Zi6Co3ne6rZuCqAMwdPtLX5pNMpYw8CC0n8M6tJLfNyK+tFssPzfFlFKamw4V35Rg8HRageTq6MSoksiXIA3UbCePOxlKboU2cX1J4F+gzXgcxMBi4n+WA9Q7EQCKrRoD4LwDgKUOfXQuabloL0r7CQZMoRUS31dpoGabCYbMoJFk4F3Q5vpPyRlteXRgfVrGOHMhuHorr7nGmmuuucZaC0Pa7biSxE87IbVE32UqGQPfjOhbFgvJJi6ADkGpYptaUoqsqBcAK91AWsY4e9n2g8M/GAu0tI5oHcGiY04bUzy1P6T99F2mgnH6EOcacrJMq+yHBeDQeyKtwMDD4Gs4LDaHReN/wbeXw+pmGSZuIVpHZQNLzBrXhzbisBaNxcCj0IGKHsMZazTpvAO2nZGswMS9u4HHyQyZwBvg63icwvysvu0HxT0WCoy8BB0NeRzKyGLiRx6iuMtCJvIluBpeDmUoJG4HbS+IvsWYCbwftTzuYsgkftIp0ojHKIaCcdYi4irJ/zBUc4MG530FAK4T+zFmIk/tBg5LzTErmP24mLgaKq+FOSGEOa0H4dB2HoczZizO3RidjTjVt5gywf4ChWInpgwTd4GvpniOkaRx5oJwbeZxNkOGKW0IraZYo5UsE3gxPBq6Mpc4sSekisPzjFUcFvvu+xnff//91O/3El8For2+peXO7wZQPMxQYORf0CGVOjCCkSQDT4RvP8GCM80KTJy8DlSljnjgakZmIw+Dh0jnR5Zy9mk/cVU8tmciyWhPw6HNHBb9ySzHN3o4V8U5/zITi5bmLg3X1G1l3/SupFgzGksWgRMM+T/mr0c1QN5kyp3VPTZnzDDyFHhXoQOLfpcSSbPZS8C1HxR3MGSY+H+HAlDvnAgg4tQr0OcmRmbNZgyDAB5HMmQYeb/Al3Vg4CeWCTwevt2guIEhw8h7AS858cBtjMwG3gZFU3fkyNYyzpU5j38zlrSWKbh3LZpZtG/6OVdFXN9JtELiId0BDo8zZCzyREDViYjzgsXeZCLJwPug6A6yUoiWYSKf2K03ag46/AMm5gPHwQMQ1/MDSxlG/qUfxKuqesHApxhJ0uyHBSBt52TBGckyDPzzAMB7Ve+BPncxMGvpx8XFNXZNSeDZ6OEEgDgPjGWp0VaCg+IeCyQZeQPgnWTEdeJARmbj2t1DVpwTrUBLvHtZlO89kZEkLabVugcUl7GVoyXy81sOWXfhPgK4votscNQ935CR+WSThjkBAMV2DJZh5Lu7O+R3fI+RxcAroWg7KI5kK8fIj0b2QLZjj3cZmW/xRCgaO7HE0o+bAXBOAMx3G21yK0PjWlB47M9YYOQVPQE4VXUANp2WrJDs/c5uAcXxbGXIxJ/u2GeFoYMWWu+U/yUTi4FXQ9EtRHu+xpAjYyLJmRM+/OCDjyb+RJIxMW8t7gFFVnENWzlG8j+X7L3ZZnufP56MLKY0dT6RbiCKP7OVYyTfv/rAbbc58Mp3yMh84CNQaUqxMS1D409nL+UA9F3vom8YWqfOySVuDoVgwKSUCkx87/jlPYq9178u0FgMPAfdAx53sJVjJJmmT/mBZDIWA9/po9I94LDERIYSMoVgLLUQjKUWeB4UeVH/JFs5psRSS8y2uD8U3QDi+r7GVo4psTQl5gPfHiQOTYn0+MxShkbOfuepJ//3a5Jz+PvFmI/cEwooTmErw0iGj5742533P/MlSWMx2ZSh0k1EOx5jyzK0GEnSQmQ2cOoKcOgmUKz0KYOVFC1ljVUjOQ6KcpFBL7OVI1OIKcUQmW/xWii6BRzmf4OtHJlCSCmExNIWP1wcDo3BYwxDjhaZD4HfDVlwDq0QeDw8INrxIlsZpsjyYCxa4HBoN4FI5920mCFpZsa8tTh5PSi6DRQL/oMMVqHBFDlnNFQqwGHwE4wpVzMF3iUq3QQOQ59kirm6KfH5BaHoAnF9P2LMkZZijImRrS0w8Fum3JUFOCzyGVtWIC3FGGJMzMfE86DoLhDgrMAYcxUtkK+tAEU3ggInTyNjtGYsJvLZdaGo7tBxNRlSrRTIK+EE3QUOfhwZo9WKkbymBxy6Ag7rzmIoyVrg7N3h8Vou8hE4AHBY8hUyWKFmCuQYKHBImBuKc8OX7QVxWP9pkiGa5SzFQM69vDcUVaaEVgghzA63tw2cYNHLp5CMISarYimGRPKNgwWKugLs9CaZQrISSyGSnw+HE5S9H+aGEMKc8HQDF4fZIYTQCj9WghNs8QLJEM1yZjGQfHlbwKHSyDAnFOeEXXNQbD2FKVrOUiA/3Aje4/YwO4QQ5oYPFAIADr2vbJExJCszi8HI/2wDBTCK5bP6thegwB5PGElaijEZSc68cw3Aocr8LH+gfQAF5j/myZ+YtZRiTMmYnXLPTgo41BdFz6PfYDGlmBKLX5w1EIqKMpmlbzZwDcuXqARRyD5PJpK0FGNKLD47UqGCaoewfJ8SKJZ5mCRTjMlI/njFQCg8jmb56nAFOGCNW6ezmFKKKRmLb4zqAQWAFUePOiY7+qAOtLsTYLXT/z6hxezcLx4cvTiggsq9Dh99THHU6G3g2geiABbd6/J/f/KjsdR++PCx87cbDEDRrAJu83EvTWN+5ju/370voKi83+hjiqNG7466DhseO+qY4uij+kGqAApgtdMf/6rFbGviP85YE4CiusNyo0cdUxw1ekm4HBTY4g+fRxa/f27MEoADBPMdkx917FKQDESB+Uf+7vXpifnWxH//z4YOUMwDVQAMXH2Xg0866eCdV+kHQB3mkeIdAPRaYoNd9jvq5FNGHbDLBov1AABVQdPiAWChTYePOnXUiC2XVABeMC9UATBgtV0OPvGkQ369+kAAooL2dA7ot+7w4046cNvFAKigC50CwILr/vqgY08dfcCOqw4CAC/IAgBWUDggchQAAPBTAJ0BKqQBPAA+MRaJQ6IhIRMpJjQgAwSygGLFNq7fsN7ADGMKYIdlj/desz+4+oB+rXSv/pfoA/jH9j/6v/M90/0FegB+wnrSep5/cf9z7AH7W+m7+1HwLfuT+4/wE/zD/I//n97u0A9ADsbf8R+LvhT/n/tS7cL2b7d+trn/uA+safD+Y71fk7qEezfBB2aGl/7L0AvYz7N3zWpN7SfevYA8kP9F4N/17/d+wF/Kf7z/5/7V7rn8//8f835wfzH/K//L/Z/AN/Lv7H6Xfrm/a//ze47+t3/uNdcD1M583981iFafQxwiAWQ+QNkAqlFrAUqNPqCBJ+WnYV46tSa+UpVzcrQm9mccVHg10G33IO+JdlzfF4ePr4zJwGTFQmrUfbDpZwHk9ZI9P6ob+J08auSIOJfZwgRSZ5T8wJzmWmxTmfVxMdwy7jZVyDEi3/iFfAAbjXzV9Up0vvVpOAXULcECl/9ujC/LjAor29Zejnq4m4Un92jh4IlJXs3j4fVgcVd6mPzYSrCmmSeAQMrBxCjGIuV53dUT+mX490QdqkA0SWyjNq7LLfp+z91RyTsB0JS5fxzWswQ3LGIqSU+5FBB71wShYOzg3P/0XWoRcN9bJriCDpRKR/LHD0E4oMyhji5NrSTzOLPRCGCoWKipQFzz9ePFSV9TwY4SA6dx19MfAAh5TvfowpjY+RqBY5ly5vDwX/kqT1qJSe0hjFA93iICckeJaO6TyiX6Gy7A7rh4WRtByqSkSkUd2xq0lLPAopBvi0fnAfVDOuNxJv3nfNQCIRFULmrK7O/BkxgWhMTrWYq9m49ACqUx6MRweN3zEI6jDCv0fXYTP3blm4JtX0qstBuJCrJ1nYGkLrSJyQCWAU+tymG45IWnmHxOMoIxxKk/7uAAAP7Z7wD4ZoFOpYGi2cZOMvn3/qEB0fDcZwl6pajUgUMXSq9jaDXVdsTjODN8JJHkx1VZtQHvXxS2zY4fQ6QZtfYluz5CROMcNc1htHjthhyTAATAzVBMuF+eXopAPsoUTgi59jNl39JNRfG2VUQF9BVKSSjDjadM3nHpF0bzx/0q83I36znklO08kL1RzMciEuNOcCAQ31g6LSP+V24QtUpWXBl6tYUttnsxNPQKFGe9Q2iMIavhpQBrmenPtyQjuOSc+h6Vxpz/h8QLnM4/5NCIs1nLvYfN6II1a/sskyx3kow5FOjhxTV2hyYTZeVhxk2RTTCMjgLPjdWNPtgnBL6l/zaEwr6nW0Q0F1zI576sTR1pWsGvv45ji+TllQPiutz1iWlhpA/BV+7aLmnHgCXi5G83sKH0mTlmuz1axqOBq4LwzEPBCvark4nd7+5eQlxH7KCMEv/SKUgWMFAAcwoErskiQ2cK0xarb+Zq8ZNp5Z6KXZexkqS7pTkraKd2omnzt7iFGlWOAuO5OMQgx0R4de7KcW+o17OZ7hfu+UL4bmDt6z0ExvYy/ld7Gc0TPAiSk+hkRYYYJGQI40MlbjNV5xH6bWjC97cRG4zS0nPbsP+buk0/qOIMg/aGl8T0JCtRbHntEw4ACbgDXSHuoSphinjmgK5U4oja6fYO6aIGva0X7QBRDf+aa2UhfZ8/iDmhlvrTxwp+epTLBtp6nRyXk58Kt/mx+cfdLyOBFHb+rm9aMADriQ1FJdf+QEH5k6239Fv7Bo/mTM/D09XQVrD3IIj5reojCmpYPXDQJZN5Y9/OCJyTRXLGrBJXxQ/xsjIBmyGDz4K7XMyL3Y8LvNYKsDTPgMebhNElvOEM7jf4SWn+idcJAqb/qOKSWILGlo6zbUC6fUi83V7VovlPB17IgPq+0o0W51VXbNwmfLng5/Hqb7ywx8Y6drggHryTe0f1uKwvmiRM/oNwW5WtxlEvN/AHUjbvhrcvcAoAZM12QxrGBpM6JPPBsJ8exFWHjnxa8FiZWatxghkWx6XtvrSUkHsKEWQEKJeyRDzNNah1TQ5DVhRfsK3FH//bFLrWMdX7TE9+7h4K5E567ggEvv1kvrG8m5JudDwSYa0KQZEcyN9aWa6Qfycvtx/HqkL6qAk7o1UvWaoI3GI4YUM4r192FndGoK+Kb+MT1etPn4cyUbWhDhj0OWq6l8MsCmNB7zBKKpHnGIZgNc2HoK3n8ZGhotqAQzj8ac9mETXqKa5uDH8iUyMHQW3s8MbXMvvPvHdey9DANpMCD1lUyTibRI4RKY9vq67W0wCchN/XX6kgLutS/6O/OYgHsRic94IDoXBkqo86Pzn/e+IeVROtHCT6HcDF2P12oOow9JdGQIKcF26dS3oCQiw8rR3KrEd28UtlHplL5fNC5RJcYgdenC+NbDNVHP3weI/v007QLfVH7rJo+6VSTqgel6yxb6Y/Rk7c4YJ9bBvZA7HDU0XUnkNZ9HRdp5Ku/1NU+k8c1XnXMNY3cMT+RQDbLAnTH05zP1QqxCyyqYxkCubNM5o1CVXIDdOGeVrkIUWRakWIbjK+VPnQmahRe3ike9YZtPpebR8PlwlXxVUOAxWb/44EaIxrYGl8vw+FknNggyDbtXL/3i/IraE+A8ENy6LT2gTYc0KLMMbLn2Ar3yyRsM6hmyQcBwJ5lRQv9wQzloQ9Jl3IySvxbjcK64KXOrV/HxClirmLdYnPle/sxizKijIeKZdasVwcpDO40f8ZhCi/z030M7QgdEeQTket94xvprrTHFCnyaEq4EqFJOJWPMVy54kLhAquBa8AViuMI4zd5GCJpe/rsOcI0o6qvos0xoFkaciDhWncZMxyf4N9EFJc1BZSdvHMm4r7IEIGBbfzNaPjfQHxR9xiB1ssTtaFmSViVCdMb638LdflrMwW41rBMep6IieS1PZAsajmIoZdurPG2qvOzgLJFIy/wpBH//iL9V37uacuMehUT5au1UUHC8iaH3PUyoy+BWmWqOuhwUM/sHGQ5dM79XtCl9cVCLmo6xQfs+vwe6fYnUxv+/armP6gkKmvcJakUq8pZJwsJkRa4pGmJoGWourJAHCzSrjT4HHUkwDyK7xAd/2UdGunQzsGqVfjYsMwPUY/4x/+lFmgISMTLOUOMBLFnJtK7eNtCpAJ6QZxCEz2NKxTSGLvrhZtGVX0UKO6IM0AIW6TA5odcJg8Gf4D4XACQ4OvnIP7hvZX4TNQD6iooYni3ys/keke5XIkGAVaaL0G21VaMq3+asHpDymOytpbFQtc7Cp4PnwSMffeqyQjvXogs5XkvHrteW5tGRtGWrmRk/wzM84V8aEH4razp3COkHJBqvp1yWsU6ICDoriqK8IJfzLwGncbDdGceoTCNwtlHIQ6vEPmmzF+O3b/neHyCfmAuYnroKX45JPPrGR056hJFgtqTm9nEMTy66E933dpl9vvg09Faooq8LlJfQaUko4hXFRG6Kdj36noBt7Bx4pVCbDel+6isE/Vb/jYBARSZvNhlGAUuM4CHjpBltZkoMg2/9TVfEKkFT8n0Pyr9IMgKpeLt1xJP0GgV9VP5okMhnw4lKRy/gy42J7c+TxfkcJN4h2rD9IGJtpqmYPG2dYkmDEPXrIy9VjL5CBoGFlVlIidWHPFy8lq1wwA8Vrtpe7qJoTyoX8urNov3ebe+IOxzpXpp1ol+0CwgPRUS4ODvUNMYRpNtTMK1OzAq7Qc7ln0Vqjsb9UcQXMbvdoX7JUHberzfIxUqnhJVABQVkFFrbYHeXGDhGrIMd3oxdA1zxd+H++4XCZaEaUe4eXf3ZElE8345oulJyjzpu7VCFkuYu5XDYh1oa0C+RgdtiKl8ZYUZ2nBzxVXcHmdXFavu1ZuO6NXUodp5EZ2cyoN95Hh7qhBVpUScW/iaXxhZ3vO5qDEwmn+qfj3fVhSuU9NYjTqFpCK864NHCvBTlXpYIQ7DcTzUh9gSPpqMmQDOrO31eGPtt5RtQWkzotu1TdJ5KbwHp0WJ6+/f6pdxFyTXLOgPfS/ucdZqfwHWU1ql7PTAz6Yki8wpEUSCkcPltHLMeguDEOL3JaXvTh5kfdjDytl8I3SaVTaoEIxYjsyVDnZkYiDhlVw09K5Sy1U8RzRt3SxBkH+07j8a1H7Zm/pfl9HiZxLHZc4EiLa3MTLOSvLNr28bJGh2aaknR4xuLgu+tNEHUMmchZZ73TXmhScAKS/mlKHEZ7JWmsMgSRdXLs8uUuQIKlQbnkVX3Frjxrn+uR7JZ/H/85JhsK3kSrbTnaRnlngKMp4fRSoNUFaMRZPfhj9EGTwvdeWnkc8kyrH3N00IN/ZtcaQ7g4aBdFi94WdyZ1IaBf9WZ56/g1YpRnCm2DSCFBquTODFJINdvLAQRdR4ugO/3Iu8PCP9ZPMAU8OA0JDcdHO2P8yLEKmZrFpnqh5roHPL8MHK3GNyztNNEqu7zmUF/fksEUEadk2zlHUfQ9jgG5CPBah5qClbWhn0D53PeXLQ8f8FVxOaUwgHqbX5m6Labei3cfqE+ipq17k12QDPdK6q6qkcOcpcTQiRT6VCy+Dd+84HPhbGRUVGYkrzGJ6GgMahleNV4x4PZqmzQY+e310X7/c7f4Q8TvMYSYTEssGvCWOFtmSRK3b0BVrOoGhj/JLZy1Ekoizz7V6ssQqfL3JxUadWCP7huxdR9K56mBw8rrX4V2yEnmGCZKvv7AxvCrZEA9YC94vvNp7ivGTLBy71TXQCty2TFUVbv2FnPT2s6gKwNQKpvHf0kVFwHrOkhaD3UxONTnOyhOv/VLIioHSy75TbGV2jBMJAeKdPsabAndd25G5C2CA40CAL4g9JaHeCEMfS+kYS++YcvYeQbZF7m2eMZDijk1r0FydYRzQ1ijrehf3a8OeNYGNFYFSVqdSKWEJBGA2Kj+osTR0MMfwvtJef/P34YK4ja2WceDJsT5/Tt4RcnHxlVJh2HLlPhKVrFbWGZRk9EO5uyS8fkKZcocFm1yilq2J3MTI8mm/Mlh37zTja5dmaBkcEZCTSQVDE99aF7od/7gcMz4LpclMckWUBsmMv8LeBK6DSL6BBbs/yDPNkoVwrvCzCISIkBLoG7WPkHx7S4kI6iuPsAq7NmK1GH9PPLpKfCU8LL3YN1n9yfeXp9z8qvj1/jx8s5vOlOuLiJt7TioHpgSnPl0pWhK9mRNfMWhYVXgWGO+3JeIyx9WNHDkMyOrDh1VXx4FM/DFBBFuxVz8O3W5Sryocd3p0Mj/bE+ffJcWIeXdirETE9AI2ogTK9kMBC6h7dcZ2LAwxS4C0Wx+5NfK47UwegVjH8h8ob84QJe+0ovFD1mKeyN/vFpIlH1eqSyg9OnJUxzzDK5OjFYz4b1HxXx/WjMSdoGbSjTzqO88Cm0r4kez9RC69o5OwwtB/XzGVz596/KKPtafNabSn+itIAJ+9HFSWFwGsNwl7Jgtdhm2LJAT6psu2m65eXJixoOGH5U9qZiaEPXOyUVbUhYUBZWfPsN7mJcvs6TXj2i35IcpPK7HHg2oSIsJPIBvzpvLeUwt181vxmLWRsoan4h9lIaG0r9UXjnONID+fvu69GeQ/mz16+a6Upytnhp3olErznWlb2uQmvbZrsjvI2mFDFp87qn/h7p6ePC9OTVWLedCAXAAPexnFDMAOvuGWSmTAz+buAAFBSSe6fCGDydMv0YLSJpzZMYbL/PKgxgjhUNJfoIH4xWJvaqi+W53ea3qQwMu/3KyW5oyz1G26360Dk5QdUbHqLN8GLp1IG7y/8m16C0hv2aJBLSPSm1A4sC7PImC8gtduK5OJpZqglC9gfzAeUPHESufuCaSEWDFrRwrlr88mLdtJU49g6vZ6zRYFV1O0KmavhBPnFnFkc5yCWfzBx9Saq00nynwwLWBNX7UVjb/OAOC0+vmlvDRirU1gBN/QY5HUfrB5BWJscA+fZ93oq8h7jiGn7AB+Z7hkETodTnqnzeFcpZ9sI2Y1fAu81FRTRsNeGQG3rtWq3Tfo/+BrB+VpTZdzkbCKs+P5oa2ijqKmw1+/CWpcqhqZPcuQCj43zdRZkQ2snHH64sIue/G48rEA66z859oh9ys/Ng1szoS7/YaVc2BxCMzHGdlHoeFeFLWnc/Yhh/4xkyeowZ18+OqPibc3qw5y3aR+9o994WUbGvQ6COg1Sbh/4GVUWSwjx8dbIdHao1a2xJSP/2oDrE16rfACq+WG2yAnj3VigpX3rQSqk0VXLOkHGu2Mu0ipggtiDzXNvy9VhR4cGg0ivW/NgtNV0X01P5DGGM88NshceIFRTChkImtK16QzM1FtMSUntAv54omS4H47O79uj9CQ7HYf4bBgDgFAR6q7Mz8kx+udYkU1UdmTTmvDSZSt1K3zlC3kxO6B6/dZ1f1JF4N3YQlw39NAX4cQpuPJC7g19BCo1NiXh9gyesoo0Iu4GY5Q+SkZJTW/px2+0GgtnbSTi84Cu/mN/iyMubvzAss+DNmXx38jCsSQXPrvqUVqihR7i/0vIQLP5KzlhwsfcyZRLhTllLVCMX3LQwUmr6x/xCpFwt2D4zq9C4koXy6a7lQK3+7Sn5F3mKOl6EdMBWDgTFYkxwekW7PyAzBNImq/FIFST6z2/sSJ1mv5Yk/qD74Gue9M5GzB3PLL42CckxI0KhCU9dM3pzHEYK8jjeFtpYg4Vaq6q1ELlaY7c59uryo0Ioibg/pUfNf7MYNne25NQdbKWeWRpx+e0V/jAUWR0GvFAc9aH+nZOkDgyEHtE/ETbjAe4iBNNoDb3sAx0L7+qrZ7YNMxYdo+K9C78SdThCkTeJQ3swfOsKFFBCTYe6WwdOHzLzOfjCDfdg6NU+4aLtu2TBRLhd2SCplpciglDI0FScTr23njmdqEGm4QnIfbHxSQEs0oJTiZAbU4beeFgJMDsOTUJ4DqDSzw6etH94rVZKZ71h3skFCDo8WZyHYxMEYSKkvnFXC7MYP+p5kEyuyrFZX0S06k7IQl/ivAj5cHfIDB+uC0HdO2wd3qmL9j8fWXkfPvdp8HOwd1T92o+B01cwAA" alt="Per Scholas logo."></div>
+  <h1 class="title">Amazon Athena</h1>
+  <p>Query data in Amazon S3 with standard SQL and no servers: how Amazon Athena works, how to lower its cost, how federated queries and security work, and when to choose it.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. Introduction to Amazon Athena</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Performance and Cost</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Federated Query and Security</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. Comparison &amp; Scenarios</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab5" id="b5">5. Knowledge Check</button></li>
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <h3>AWS Analytics Services</h3>
+  <p>The data lake in Amazon S3 holds the data, and AWS Glue and Amazon EMR prepare it. This lesson covers the service that lets people ask questions of that data with SQL, without servers and without loading it anywhere: Amazon Athena.</p>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 880 440" role="img" aria-label="Map of AWS analytics services in six groups: ingest and stream, store, catalog and process, govern and orchestrate, query and search, and visualize and share. Amazon Athena, the topic of this lesson, is highlighted in orange."><rect class="sv-box" x="10" y="10" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="35" text-anchor="middle">Ingest and Stream</text><rect class="sv-boxg" x="30" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="90" y="107" text-anchor="middle">Kinesis</text><rect class="sv-boxg" x="160" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="107" text-anchor="middle">MSK</text><rect class="sv-box" x="450" y="10" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="35" text-anchor="middle">Store</text><rect class="sv-boxg" x="470" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="530" y="107" text-anchor="middle">S3</text><rect class="sv-box" x="10" y="150" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="150" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="175" text-anchor="middle">Catalog and Process</text><rect class="sv-boxg" x="30" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="231" text-anchor="middle">AWS</text><text class="sv-t" x="90" y="247" text-anchor="middle">Glue</text><rect class="sv-boxg" x="160" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="231" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="247" text-anchor="middle">EMR</text><rect class="sv-box" x="450" y="150" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="150" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="175" text-anchor="middle">Govern and Orchestrate</text><rect class="sv-boxg" x="470" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="231" text-anchor="middle">AWS Lake</text><text class="sv-t" x="530" y="247" text-anchor="middle">Formation</text><rect class="sv-boxg" x="600" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="660" y="231" text-anchor="middle">AWS Data</text><text class="sv-t" x="660" y="247" text-anchor="middle">Pipeline</text><rect class="sv-box" x="10" y="290" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="290" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="315" text-anchor="middle">Query and Search</text><rect class="sv-boxw" x="30" y="340" width="120" height="68" rx="6" style="stroke-width:3.5"/><text class="sv-t" x="90" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="90" y="387" text-anchor="middle">Athena</text><rect class="sv-boxg" x="160" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="387" text-anchor="middle">Redshift</text><rect class="sv-boxg" x="290" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="350" y="363" text-anchor="middle">Amazon</text><text class="sv-t" x="350" y="379" text-anchor="middle">OpenSearch</text><text class="sv-t" x="350" y="395" text-anchor="middle">Service</text><rect class="sv-box" x="450" y="290" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="290" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="315" text-anchor="middle">Visualize and Share</text><rect class="sv-boxg" x="470" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="530" y="387" text-anchor="middle">Quick</text><rect class="sv-boxg" x="600" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="660" y="371" text-anchor="middle">AWS Data</text><text class="sv-t" x="660" y="387" text-anchor="middle">Exchange</text><rect x="10" y="290" width="420" height="130" rx="6" style="fill:none;stroke:var(--warn-bd);stroke-width:4"/></svg>
+    </div>
+    <figcaption>Image 0a — AWS analytics services by stage. Amazon Athena, the topic of this lesson, is highlighted (Original diagram for this course.)</figcaption>
+  </figure>
+  <p>Amazon Athena is a serverless, interactive query service. You point it at data in Amazon S3, describe the data with a table, and run standard SQL. This lesson explains what Athena is, how it works, what it costs and how to lower the cost, how it queries other data stores, and how it compares with Amazon Redshift, AWS Glue, and Amazon EMR. The last two tabs prepare you for the AWS Certified Solutions Architect – Associate (SAA-C03) exam and check what you learned.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> an introduction to Amazon Athena, how it works, its data formats, its use cases, an example query, and the hands-on labs.</li>
+    <li><strong>Tab 2:</strong> pricing, columnar formats, compression, partitioning, workgroups, and tables created from query results.</li>
+    <li><strong>Tab 3:</strong> federated queries across data stores, security, and encryption.</li>
+    <li><strong>Tab 4:</strong> comparison tables, the SAA-C03 cheat sheet with decision rules, and the lesson summary.</li>
+    <li><strong>Tab 5:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Introduction to Amazon Athena</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Performance and Cost</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Federated Query and Security</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="5" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Introduction</h2>
+  <p>FlashCart Inc. keeps CloudTrail logs, VPC flow logs, and daily sales files in Amazon S3. The security team and the analytics team both want answers from those files: who signed in to the console last week, and which products sold best last quarter. A database would need the data loaded first, and a cluster would need someone to run it. Amazon Athena skips both steps. It reads the files where they are and charges for the data that each query scans.</p>
+  <p>This lesson follows FlashCart through the Problem Statement of each tab. It assumes that you know Amazon S3, and that you know the AWS Glue Data Catalog, crawlers, and Parquet from Lesson 272.10.</p>
+  <p>Use the tab list on the left, or the Previous and Next buttons, to move through the lesson. Each topic tab opens with a Problem Statement and ends with exam traps, keyword triggers, and resource links. The Knowledge Check is the last tab.</p>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define Amazon Athena, and identify its supported data formats and common use cases.</li>
+    <li>Describe how Athena queries data in Amazon S3 by using table definitions in the AWS Glue Data Catalog.</li>
+    <li>Explain how pricing, columnar formats, compression, partitioning, and workgroups affect the cost and performance of Athena queries.</li>
+    <li>Use Amazon Athena to query data and logs in Amazon S3 with SQL.</li>
+    <li>Describe how federated queries and security controls work in Athena.</li>
+    <li>Differentiate Amazon Athena from Amazon Redshift, AWS Glue, and Amazon EMR.</li>
+    <li>Select the right analytics service for a stated requirement.</li>
+    <li>Design a cost-efficient query solution for data in an Amazon S3 data lake.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>ALB</td><td>Application Load Balancer</td></tr>
+      <tr><td>API</td><td>Application Programming Interface</td></tr>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>BI</td><td>Business intelligence</td></tr>
+      <tr><td>CLI</td><td>Command line interface</td></tr>
+      <tr><td>CSV</td><td>Comma-separated values</td></tr>
+      <tr><td>CTAS</td><td>CREATE TABLE AS SELECT</td></tr>
+      <tr><td>DDL</td><td>Data definition language</td></tr>
+      <tr><td>DPU</td><td>Data processing unit</td></tr>
+      <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+      <tr><td>EFS</td><td>Amazon Elastic File System</td></tr>
+      <tr><td>EMR</td><td>Amazon EMR, formerly Elastic MapReduce</td></tr>
+      <tr><td>ETL</td><td>Extract, transform, and load</td></tr>
+      <tr><td>HDFS</td><td>Hadoop Distributed File System</td></tr>
+      <tr><td>IAM</td><td>AWS Identity and Access Management</td></tr>
+      <tr><td>IP</td><td>Internet Protocol</td></tr>
+      <tr><td>JDBC</td><td>Java Database Connectivity</td></tr>
+      <tr><td>JSON</td><td>JavaScript Object Notation</td></tr>
+      <tr><td>ODBC</td><td>Open Database Connectivity</td></tr>
+      <tr><td>ORC</td><td>Optimized Row Columnar</td></tr>
+      <tr><td>RDS</td><td>Amazon Relational Database Service</td></tr>
+      <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
+      <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SDK</td><td>Software development kit</td></tr>
+      <tr><td>SQL</td><td>Structured Query Language</td></tr>
+      <tr><td>VPC</td><td>Amazon Virtual Private Cloud</td></tr>
+      </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. Introduction to Amazon Athena</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s security team stores its AWS account activity logs and VPC flow logs in Amazon S3. After an alert about unusual sign-ins, the team must find out which users signed in to the console during the last two days. Loading the logs into a database first would take days, and the team does not want to run servers for a question that it asks a few times a month.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose a service that runs SQL directly on the files in Amazon S3.</li>
+      <li>Describe how the service knows the columns and data types of the files.</li>
+      <li>Name where the results of each query are stored.</li>
+    </ul>
+  </div>
+
+  <h2>1.1 Introduction to Amazon Athena</h2>
+  <ul>
+    <li><strong>Amazon Athena</strong> is a serverless, interactive query service that lets you analyze data directly in Amazon S3 by using standard SQL.</li>
+    <li><strong>Serverless</strong> means that there is no infrastructure to set up or manage. You run a query, and Athena scales automatically and runs the query in parallel.</li>
+    <li>The SQL engine is based on the open source <strong>Trino</strong> and <strong>Presto</strong> engines, which are built for fast, interactive, ad hoc analysis.</li>
+    <li>The data stays in Amazon S3, and Athena reads it in place. You do not need a loading step or an ETL job before you query.</li>
+    <li>You pay for the queries that you run (2.1).</li>
+    <li>Athena can also run Apache Spark code in a Spark workgroup (1.6).</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 860 310" role="img" aria-label="How Amazon Athena works. An analyst or application sends a SQL query to Amazon Athena. Athena gets the table definitions from the AWS Glue Data Catalog and reads the data files in place in Amazon S3. Athena writes the query results to Amazon S3, and AWS Quick can read them for dashboards."><rect class="sv-box" x="10" y="125" width="130" height="64" rx="6"/><text class="sv-t" x="75" y="153" text-anchor="middle">Analyst or</text><text class="sv-t" x="75" y="169" text-anchor="middle">application</text><rect class="sv-boxw" x="200" y="115" width="180" height="84" rx="6" style="stroke-width:3.5"/><text class="sv-tb" x="290" y="150" text-anchor="middle">Amazon Athena</text><text class="sv-t" x="290" y="172" text-anchor="middle">Runs the SQL query</text><rect class="sv-boxb" x="200" y="10" width="180" height="64" rx="6"/><text class="sv-tb" x="290" y="38" text-anchor="middle">AWS Glue Data Catalog</text><text class="sv-t" x="290" y="58" text-anchor="middle">Table definitions</text><rect class="sv-boxg" x="200" y="236" width="180" height="64" rx="6"/><text class="sv-tb" x="290" y="262" text-anchor="middle">Data in Amazon S3</text><text class="sv-t" x="290" y="282" text-anchor="middle">CSV, JSON, Parquet, ORC</text><rect class="sv-boxg" x="470" y="125" width="170" height="64" rx="6"/><text class="sv-tb" x="555" y="152" text-anchor="middle">Query results</text><text class="sv-t" x="555" y="172" text-anchor="middle">in Amazon S3</text><rect class="sv-box" x="710" y="125" width="140" height="64" rx="6"/><text class="sv-tb" x="780" y="152" text-anchor="middle">AWS Quick</text><text class="sv-t" x="780" y="172" text-anchor="middle">Dashboards</text><line class="sv-line" x1="140" y1="157" x2="191" y2="157"/><polygon class="sv-arrow" points="200,157 190,152 190,162"/><text class="sv-tm" x="170" y="145" text-anchor="middle">SQL</text><line class="sv-line" x1="290" y1="74" x2="290" y2="106"/><polygon class="sv-arrow" points="290,115 285,105 295,105"/><text class="sv-tm" x="345" y="98" text-anchor="middle">Gets schema</text><line class="sv-line" x1="290" y1="199" x2="290" y2="227"/><polygon class="sv-arrow" points="290,236 285,226 295,226"/><text class="sv-tm" x="355" y="222" text-anchor="middle">Reads in place</text><line class="sv-line" x1="380" y1="157" x2="461" y2="157"/><polygon class="sv-arrow" points="470,157 460,152 460,162"/><text class="sv-tm" x="425" y="145" text-anchor="middle">Writes</text><line class="sv-line" x1="640" y1="157" x2="701" y2="157"/><polygon class="sv-arrow" points="710,157 700,152 700,162"/><text class="sv-tm" x="675" y="145" text-anchor="middle">Reads</text></svg>
+    </div>
+    <figcaption>Image 1a — Amazon Athena reads data files in Amazon S3 in place, and it writes the query results to Amazon S3 (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>1.2 How Athena Works</h2>
+  <ol>
+    <li>The data files are stored in Amazon S3.</li>
+    <li>You create a <strong>table</strong> that describes the files: the columns, the data types, and the Amazon S3 location. The table definition is metadata in the <strong>AWS Glue Data Catalog</strong>, or you create it with a DDL statement in Athena.</li>
+    <li>You write a SQL query in the Athena console, or you send it through the API, the CLI, an SDK, or a JDBC or ODBC driver.</li>
+    <li>Athena applies the table definition when it reads the files. This is called <strong>schema-on-read</strong>: the files are not changed.</li>
+    <li>The results appear in the console, and Athena writes them to an Amazon S3 location that you choose.</li>
+  </ol>
+  <ul>
+    <li>Athena works with AWS Glue. A Glue crawler can discover the schema of your files and fill the Data Catalog with the table and partition definitions (Lesson 272.10).</li>
+    <li>A Glue ETL job can convert the data to a columnar format, which makes Athena queries faster and cheaper (2.2).</li>
+  </ul>
+
+  <h2>1.3 Supported Data Formats</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Format</th><th>Layout</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><td>CSV</td><td>Text, row based.</td><td>Simple exports and logs. Athena reads every column, so queries cost more.</td></tr>
+      <tr><td>JSON</td><td>Text, row based.</td><td>Semi-structured data and logs.</td></tr>
+      <tr><td>Apache Avro</td><td>Binary, row based.</td><td>Data exchanged between systems.</td></tr>
+      <tr><td>Apache Parquet</td><td>Binary, column based.</td><td>Analytics. This is the recommended format.</td></tr>
+      <tr><td>Apache ORC</td><td>Binary, column based.</td><td>Analytics. This is also recommended.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>Athena also reads other formats, such as Amazon Ion, and the log formats of AWS services, such as AWS CloudTrail (lesson 274.3).</li>
+  </ul>
+
+  <h2>1.4 Use Cases and Querying AWS Logs</h2>
+  <ul>
+    <li>Ad hoc SQL queries for business intelligence and analytics, such as sales by product.</li>
+    <li>Queries on the logs of AWS services that write to Amazon S3: AWS CloudTrail, Application Load Balancer access logs, Amazon S3 access logs, AWS Network Firewall logs, and VPC flow logs.</li>
+    <li>Interactive exploration of a data lake before you decide on a bigger pipeline.</li>
+  </ul>
+  <figure>
+    <div class="figwrap" style="max-width:500px;margin:0 auto"><img src="data:image/webp;base64,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" alt="AWS service logs flow into an Amazon S3 bucket: event logs from AWS CloudTrail, access logs from Elastic Load Balancing, flow logs from the VPC, and more. Amazon Athena queries the bucket." style="width:100%;max-width:500px;height:auto;display:block;margin:0 auto"></div>
+    <figcaption>Image 1b — AWS CloudTrail, Elastic Load Balancing, and VPC flow logs are written to an Amazon S3 bucket, and Athena queries them there. (Source: awswithchetan.com.)</figcaption>
+  </figure>
+
+  <h2>1.5 Example Query</h2>
+  <p>The security team uses this query on a table that it created over the CloudTrail logs. It lists the console sign-ins between two dates:</p>
+  <pre class="flowcode"><code>SELECT useridentity.username, sourceipaddress,
+       eventtime, additionaleventdata
+FROM your_athena_tablename
+WHERE eventname = 'ConsoleLogin'
+  AND eventtime &gt;= '2026-01-15T00:00:00Z'
+  AND eventtime &lt; '2026-01-17T00:00:00Z';</code></pre>
+  <ul>
+    <li>The query returns the user name, the source IP address, the event time, and the extra event data of every console sign-in in the two-day window.</li>
+    <li><code>your_athena_tablename</code> stands for the table that you create over the CloudTrail logs.</li>
+    <li>The filter on the event time limits the data that the query needs to read. If the table is partitioned by date, the query scans less data (2.4).</li>
+  </ul>
+
+  <h2>1.6 Athena Engines: SQL and Apache Spark</h2>
+  <ul>
+    <li>The <strong>workgroup</strong> that you use decides the engine. A SQL workgroup runs SQL queries. A Spark workgroup runs Apache Spark code.</li>
+    <li>SQL queries are billed by the data that they scan, or by reserved compute capacity. Apache Spark code is billed by the compute that it uses (2.1).</li>
+    <li>This lesson focuses on SQL, which is the main topic of the exam.</li>
+  </ul>
+
+  <h2>1.7 Running Queries and Integrations</h2>
+  <ul>
+    <li>Run queries from the Athena console, the API, the AWS CLI, an AWS SDK, or BI tools that use the Athena JDBC and ODBC drivers.</li>
+    <li>AWS Quick (lesson 272.15) can use Athena as a data source to build dashboards.</li>
+    <li>Athena integrates with the AWS Glue Data Catalog, and AWS Lake Formation (lesson 272.12) can add fine-grained access control (a later lesson).</li>
+    <li>A SQL query in Athena can call an Amazon SageMaker model for machine learning inference.</li>
+  </ul>
+
+  <h2>1.8 Hands-On Labs</h2>
+  <div class="lab-box">
+    <p class="lab-title">Hands-On Labs</p>
+    <p class="lab-sub">Lab Overview:</p>
+    <p>These labs give you hands-on practice with querying data in Amazon S3 with Amazon Athena.</p>
+    <p class="lab-sub">You can start the following labs:</p>
+    <ul>
+      <li><a class="lab-link" href="https://business.whizlabs.com/labs/querying-data-in-s3-with-amazon-athena" target="_blank" rel="noopener">GLAB 272.11.1 &mdash; Querying Data in S3 with Amazon Athena</a>.</li>
+      <li><a class="lab-link" href="https://business.whizlabs.com/labs/query-vpc-flow-log-using-amazon-athena" target="_blank" rel="noopener">GLAB 272.11.2 &mdash; Query VPC Flow Log Using Amazon Athena</a>.</li>
+      </ul>
+  </div>
+  <div class="lab-expectation">
+    <p><strong>Important Lab Expectation</strong></p>
+    <p>You must submit proof of completion of each lab on Canvas using the following documents:</p>
+    <p><a href="https://docs.google.com/document/d/1aqZdvtdL1Rr5ZzOf7Q6ivVkQh88tJlkH2GGvMMBsbr4/edit?usp=sharing" target="_blank" rel="noopener">POC 272.11.1: Hands-On Labs Validation</a></p>
+    <p><a href="https://docs.google.com/document/d/1wsstAz9Kfnjmo4aawGrqFglWgb_NYvDKuQ0j7VGKwPM/edit?usp=sharing" target="_blank" rel="noopener">POC 272.11.2: Hands-On Labs Validation</a></p>
+    <p>If you do not complete all labs during class time, you must finish them after class. Failing to complete all labs before the next session may cause you to fall behind.</p>
+  </div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li>Athena is <strong>serverless SQL on data in Amazon S3</strong>. There is no cluster and no loading step.</li>
+      <li>Athena does not store the data. The data and the <strong>query results</strong> stay in Amazon S3.</li>
+      <li>Athena needs a <strong>table definition</strong>. The AWS Glue Data Catalog holds it, and a Glue crawler can create it.</li>
+      <li>For complex, repeated queries on a large data warehouse, the answer is Amazon Redshift (tab 4).</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Point it at S3, define the table, ask in SQL.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Serverless SQL queries on data in Amazon S3”<br>→ Amazon Athena</p>
+    <p><strong>Trigger 2:</strong> “Ad hoc queries on CloudTrail, ALB, or VPC flow logs”<br>→ Amazon Athena</p>
+    <p><strong>Trigger 3:</strong> “Query data in S3 without loading it into a database”<br>→ Amazon Athena</p>
+    <p><strong>Trigger 4:</strong> “Table definitions and schema for Athena”<br>→ AWS Glue Data Catalog</p>
+    </div>
+
+  <div class="qbox">
+    <h2>1.9 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company stores AWS CloudTrail logs in Amazon S3. The security team runs occasional SQL queries on the logs to investigate console sign-ins. The team wants no servers to manage and no step to load the data first. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> An Amazon EMR cluster that copies the logs into HDFS first.</li>
+      <li><strong>B.</strong> An Amazon Redshift cluster that loads the logs every night.</li>
+      <li><strong>C.</strong> Amazon Athena with a table over the Amazon S3 bucket.</li>
+      <li><strong>D.</strong> An Amazon RDS database that imports the logs each day.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> Athena is a serverless query service that runs SQL directly on data in Amazon S3. A table definition tells Athena the schema, so there is no loading step and no server to manage.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>EMR needs a cluster, and copying the logs into HDFS is a loading step that the team wants to avoid.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Redshift needs a cluster to manage, or a loading process, and the team asks for occasional queries only.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>Athena reads the logs in place with SQL, and the team pays only for the queries that it runs.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>RDS is a database for applications. Importing the logs is a loading step, and the team must manage the database.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>1.10 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/athena/" target="_blank" rel="noopener">Amazon Athena</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/athena/details" target="_blank" rel="noopener">Amazon Athena Details</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/athena/features/" target="_blank" rel="noopener">Amazon Athena Features</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/athena/latest/ug/engine-versions.html" target="_blank" rel="noopener">Athena Engine Versioning</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Performance and Cost</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>The FlashCart analytics team now queries three years of CSV sales files with Athena. Every query reads every column of every file, the queries are slow, and the monthly Athena bill keeps growing. Most of the queries ask for one product in one month and use only three of the forty columns.</p>
+    <p>The finance team also asks for a way to limit how much each team can spend on Athena queries.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Explain what Athena charges for.</li>
+      <li>Reduce the amount of data that each query scans.</li>
+      <li>Control the cost for each team.</li>
+    </ul>
+  </div>
+
+  <h2>2.1 Athena Pricing</h2>
+  <p><strong>Prices change often and differ by Region.</strong> Always check the current rates on the <a href="https://aws.amazon.com/athena/pricing/" target="_blank" rel="noopener">Amazon Athena pricing</a> page.</p>
+  <ul>
+    <li><strong>SQL queries</strong> are billed by the amount of data that they scan. The less data a query scans, the less it costs.</li>
+    <li><strong>SQL queries with Capacity Reservations</strong> use reserved compute capacity, measured in DPUs, and they are billed per DPU-hour. Use them for predictable, high-volume workloads.</li>
+    <li><strong>Apache Spark</strong> code in a Spark workgroup is billed at an hourly rate for the compute that it uses.</li>
+    <li>Athena queries data directly in Amazon S3. Standard Amazon S3 charges for storage, requests, and data transfer apply separately.</li>
+  </ul>
+
+  <h2>2.2 Columnar Formats</h2>
+  <ul>
+    <li>Parquet and ORC store data by column. A query that needs three columns reads only those three, so it scans far less data.</li>
+    <li>Columnar files are also compressed, so they are smaller than the same data in CSV.</li>
+    <li>Use an AWS Glue ETL job to convert the data to Parquet or ORC (Lesson 272.10).</li>
+  </ul>
+
+  <h2>2.3 Compression and File Size</h2>
+  <ul>
+    <li><strong>Compress</strong> the data to reduce the amount that Athena retrieves. The supported codecs depend on the file format. They include BZIP2, GZIP, LZ4, Snappy, ZLIB, and ZSTD. The ZIP format is not supported.</li>
+    <li>For CSV, TSV, and JSON files, Athena finds the compression type from the file extension, such as <code>.gz</code>. Use a lowercase extension.</li>
+    <li>Use <strong>larger files</strong>, for example more than 128 MB, to reduce the overhead of opening many small files. This is guidance from the course slides.</li>
+  </ul>
+
+  <h2>2.4 Partitioning</h2>
+  <ul>
+    <li><strong>Partitioning</strong> divides a table into parts, such as one folder for each month. A query that filters on the partition column reads only the matching folders.</li>
+    <li>Athena uses Hive-style folder names in the form <code>column=value</code>. An example is <code>s3://athena-examples/flight/parquet/year=1991/month=1/day=1/</code>.</li>
+    <li>Partition by the columns that your queries filter on most often, such as the date.</li>
+    <li><strong>Partition projection</strong> lets Athena calculate the partitions instead of looking them up in the catalog, which helps with tables that have many partitions.</li>
+  </ul>
+  <p>The next table shows the example from the course slides. Each file or folder holds 1 GB, and the query asks for product X in November 2025:</p>
+  <div class="tw"><table>
+    <thead><tr><th>Layout</th><th>What Athena reads</th><th>Data scanned</th></tr></thead>
+    <tbody>
+      <tr><td>No partitions: one file for each product and month.</td><td>All six files, because the file names cannot be used to skip files.</td><td>6 GB</td></tr>
+      <tr><td>Partitioned by product, year, and month.</td><td>Only the folder <code>/reviews/products/X/2025/11/</code>.</td><td>1 GB</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>2.5 Workgroups</h2>
+  <ul>
+    <li>A <strong>workgroup</strong> separates users, teams, applications, or workloads in Athena.</li>
+    <li>A <strong>per-query data usage limit</strong> cancels any query in the workgroup that scans more than the limit. A canceled query is still charged for the data that it scanned.</li>
+    <li>A <strong>workgroup data usage alert</strong> sends an Amazon SNS (lesson 273.3) notification when the queries in the workgroup scan more than a threshold in an hour or a day. It does not cancel the queries.</li>
+    <li>A workgroup can enforce settings such as the query results location and encryption.</li>
+    <li>You can track the cost of each workgroup, with cost allocation tags and workgroup query metrics in Amazon CloudWatch (lesson 274.1), so each team sees its own spending.</li>
+    <li>The workgroup also decides the engine, SQL or Apache Spark (1.6).</li>
+  </ul>
+
+  <h2>2.6 Tables From Query Results</h2>
+  <ul>
+    <li>A <strong>CTAS</strong> query, short for <code>CREATE TABLE AS SELECT</code>, writes the results of a query to a new table. You can choose a new format, such as Parquet.</li>
+    <li>Use CTAS to convert a CSV table to Parquet, or to keep a smaller table with only the columns and rows that you need.</li>
+    <li>Avoid <code>SELECT *</code> on large tables. It reads every column.</li>
+  </ul>
+
+    <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 214" role="img" aria-label="Four ways to cut the cost of Amazon Athena queries: columnar formats such as Parquet or ORC; compression and files larger than 128 MB; partitions on the columns that queries filter on; and a workgroup limit that cancels a query that scans too much. Each leads to less data scanned, which gives a lower query cost."><defs><marker id="ar27211" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxb" x="10" y="10" width="430" height="34" rx="6"/><text class="sv-t" x="225" y="32.0" text-anchor="middle">Columnar formats: Parquet or ORC</text><rect class="sv-boxb" x="10" y="56" width="430" height="34" rx="6"/><text class="sv-t" x="225" y="78.0" text-anchor="middle">Compression, and files larger than 128 MB</text><rect class="sv-boxb" x="10" y="102" width="430" height="34" rx="6"/><text class="sv-t" x="225" y="124.0" text-anchor="middle">Partitions on the columns that queries filter on</text><rect class="sv-boxb" x="10" y="148" width="430" height="52" rx="6"/><text class="sv-t" x="225" y="171.0" text-anchor="middle">Workgroup limit that cancels a query that scans</text><text class="sv-t" x="225" y="187.0" text-anchor="middle">too much</text><rect class="sv-boxw" x="520" y="69.0" width="180" height="64" rx="6"/><text class="sv-tb" x="610" y="97.0" text-anchor="middle">Less data</text><text class="sv-t" x="610" y="117.0" text-anchor="middle">scanned</text><rect class="sv-boxg" x="750" y="69.0" width="160" height="64" rx="6"/><text class="sv-tb" x="830" y="106.0" text-anchor="middle">Lower query cost</text><line class="sv-line" x1="446" y1="27.0" x2="514" y2="101.0" marker-end="url(#ar27211)"/><line class="sv-line" x1="446" y1="73.0" x2="514" y2="101.0" marker-end="url(#ar27211)"/><line class="sv-line" x1="446" y1="119.0" x2="514" y2="101.0" marker-end="url(#ar27211)"/><line class="sv-line" x1="446" y1="174.0" x2="514" y2="101.0" marker-end="url(#ar27211)"/><line class="sv-line" x1="704" y1="101.0" x2="744" y2="101.0" marker-end="url(#ar27211)"/></svg>
+    </div>
+    <figcaption>Image 2a &mdash; Four ways to scan less data with Amazon Athena, which lowers the query cost. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li>Athena on-demand cost depends on the <strong>data scanned</strong>, not on how long a query runs.</li>
+      <li>To cut cost, use <strong>Parquet or ORC</strong>, <strong>compression</strong>, and <strong>partitioning</strong>. A Glue job can do the conversion.</li>
+      <li>Use a <strong>workgroup</strong> to set data scan limits and to track the cost of each team.</li>
+      <li><strong>Capacity Reservations</strong> suit predictable, high-volume workloads. On-demand pricing suits occasional queries.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Scan less, pay less. Columns, folders, and small bytes.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Reduce the cost of Athena queries”<br>→ Parquet or ORC, compression, and partitioning</p>
+    <p><strong>Trigger 2:</strong> “Queries always filter by date”<br>→ Partition the table by date</p>
+    <p><strong>Trigger 3:</strong> “Limit how much data a team can scan”<br>→ Athena workgroup with data usage limits</p>
+    <p><strong>Trigger 4:</strong> “Predictable, high-volume Athena workload”<br>→ Capacity Reservations</p>
+    <p><strong>Trigger 5:</strong> “Convert a CSV table to Parquet with SQL”<br>→ CTAS query</p>
+    </div>
+
+  <div class="qbox">
+    <h2>2.7 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company queries 10 TB of CSV files in Amazon S3 with Athena every day. The queries are slow and costly. Most queries filter by date and read three of forty columns. Which change lowers the cost the most?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Run the queries from a larger Amazon EC2 instance.</li>
+      <li><strong>B.</strong> Convert the files to Parquet and partition them by date.</li>
+      <li><strong>C.</strong> Copy the files to Amazon EFS and query them there.</li>
+      <li><strong>D.</strong> Add more S3 buckets and split the files by file name.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> Athena bills by the data that it scans. Parquet lets a query read only the three columns that it needs, and partitioning by date lets it skip the folders that it does not need.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>The EC2 instance only submits the query. Athena does the scanning, so the amount of data scanned does not change.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>Columnar storage and date partitions cut the data that each query scans, which lowers both the cost and the time.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>Athena queries data in Amazon S3, not in Amazon EFS, and copying the files does not reduce the data that is scanned.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Splitting files by name does not let Athena skip data, because it cannot use file names to filter.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>2.8 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/athena/pricing/" target="_blank" rel="noopener">Amazon Athena Pricing</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/athena/features/" target="_blank" rel="noopener">Amazon Athena Features</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/athena/details" target="_blank" rel="noopener">Amazon Athena Details</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Federated Query and Security</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart keeps its orders as files in Amazon S3, its customer profiles in Amazon DynamoDB, and its loyalty data in an Amazon Aurora database. An analyst wants to join the three in one SQL query without copying the data into the data lake.</p>
+    <p>The security team also wants to control who can query the logs, and it wants the query results to be encrypted.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Join data across data stores without moving it.</li>
+      <li>Decide where the connectors run.</li>
+      <li>Protect the data and the query results.</li>
+    </ul>
+  </div>
+
+  <h2>3.1 Athena Federated Query</h2>
+  <ul>
+    <li><strong>Federated query</strong> lets Athena run SQL on data that is not in Amazon S3, and join it with data that is.</li>
+    <li>Athena uses <strong>data source connectors</strong> to reach the other data stores. A connector translates between Athena and the data source.</li>
+    <li>The connectors run as <strong>AWS Lambda (lesson 273.1)</strong> functions.</li>
+    <li>AWS provides connectors for data stores such as Amazon DynamoDB, Amazon Redshift, Amazon CloudWatch, Amazon DocumentDB, and relational databases such as MySQL and PostgreSQL. You can also build a connector for a custom data source, including an on-premises database.</li>
+    <li>The query results are written to Amazon S3.</li>
+  </ul>
+  <figure>
+    <div class="figwrap" style="max-width:500px;margin:0 auto"><img src="data:image/webp;base64,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" alt="Amazon Athena queries Amazon S3 directly, and it calls an AWS Lambda function that acts as a data source connector. The connector reaches on-premises databases, Amazon ElastiCache for Redis, HBase on EMR, Amazon DocumentDB, Amazon DynamoDB, Amazon Redshift, SQL Server, Amazon Aurora, and MySQL." style="width:100%;max-width:500px;height:auto;display:block;margin:0 auto"></div>
+    <figcaption>Image 3a — Athena federated queries use connectors that run on AWS Lambda to reach data stores outside Amazon S3. (Source: awswithchetan.com.)</figcaption>
+  </figure>
+
+  <h2>3.2 Security</h2>
+  <ul>
+    <li>Control access to the data with <strong>IAM policies</strong>, access control lists, and <strong>Amazon S3 bucket policies</strong>.</li>
+    <li>Athena can query encrypted data in Amazon S3, and it can write the results back to Amazon S3 encrypted. Both server-side encryption and client-side encryption are supported.</li>
+    <li>Give each team its own workgroup with its own query results location, and restrict access to each location with IAM and bucket policies.</li>
+    <li>AWS Lake Formation can add fine-grained access control, such as table, column, and row permissions, on top of the Data Catalog (a later lesson).</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Federated query</strong> uses <strong>connectors that run on AWS Lambda</strong>. The data stays in its source, and the results go to Amazon S3.</li>
+      <li>Athena <strong>does not copy</strong> data for a federated query. It does not replace an ETL job when the data must be moved and transformed for repeated use.</li>
+      <li>Query results are stored in Amazon S3. Encrypt them, and restrict access to the results bucket.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Connectors on Lambda reach everywhere. Results land in S3.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Query DynamoDB or RDS data with SQL without moving it”<br>→ Athena Federated Query</p>
+    <p><strong>Trigger 2:</strong> “Join data in S3 with a relational database in one query”<br>→ Athena Federated Query with a data source connector</p>
+    <p><strong>Trigger 3:</strong> “Encrypt Athena query results”<br>→ Encrypt the results in Amazon S3</p>
+    <p><strong>Trigger 4:</strong> “Table, column, and row permissions for Athena users”<br>→ AWS Lake Formation</p>
+    </div>
+
+  <div class="qbox">
+    <h2>3.3 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company stores order data in Amazon S3 and customer data in Amazon DynamoDB. Analysts want to join the two with one SQL query, without copying the data into another store. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> An Amazon EMR cluster that copies the DynamoDB table into HDFS each night.</li>
+      <li><strong>B.</strong> An AWS Glue crawler that stores the DynamoDB data in the Data Catalog.</li>
+      <li><strong>C.</strong> An AWS Data Pipeline job that exports the DynamoDB table every day.</li>
+      <li><strong>D.</strong> Amazon Athena Federated Query with a DynamoDB data source connector.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: D.</strong> Athena Federated Query uses a connector that runs on AWS Lambda to read the DynamoDB table in place. A SQL query can then join it with the data in Amazon S3, and no copy is needed.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>A nightly copy to HDFS moves the data, which the company wants to avoid, and it needs a cluster.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>A crawler records table definitions. It does not copy the data or run the query, and a catalog entry alone does not join the sources.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>An export is a copy of the data. The analysts would query a daily copy, not the live table.</td></tr>
+      <tr><td>D</td><td>Correct</td><td>The connector reads DynamoDB in place, and the query joins it with the data in Amazon S3 in one SQL statement.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>3.4 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/athena/details" target="_blank" rel="noopener">Amazon Athena Details</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/athena/features/" target="_blank" rel="noopener">Amazon Athena Features</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/athena/latest/ug/DocHistory.html" target="_blank" rel="noopener">Amazon Athena Document History</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 4 ============ -->
+<section class="tab" id="tab4" role="tabpanel" aria-labelledby="b4">
+  <h1 class="tabh">4. Comparison &amp; Scenarios</h1>
+
+  <h2>4.1 Athena Compared With Other Analytics Services</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>Amazon Athena</th><th>Amazon Redshift</th><th>AWS Glue</th><th>Amazon EMR</th></tr></thead>
+    <tbody>
+      <tr><td>Main purpose</td><td>Ad hoc SQL queries on data in Amazon S3.</td><td>A data warehouse for complex, repeated analytics.</td><td>Serverless ETL and a data catalog.</td><td>Big data processing with many frameworks.</td></tr>
+      <tr><td>Servers</td><td>Serverless.</td><td>A provisioned cluster, or serverless.</td><td>Serverless.</td><td>Clusters, or EMR Serverless.</td></tr>
+      <tr><td>Where the data lives</td><td>In Amazon S3, read in place.</td><td>Loaded into the warehouse.</td><td>In the sources and targets that it connects.</td><td>In Amazon S3 or HDFS.</td></tr>
+      <tr><td>How you use it</td><td>Write SQL.</td><td>Write SQL.</td><td>Build ETL jobs.</td><td>Run Spark, Hive, and other frameworks.</td></tr>
+      <tr><td>Cost model</td><td>Data scanned, or reserved DPU-hours.</td><td>Cluster hours, or serverless usage.</td><td>DPU-hours.</td><td>Amazon EC2 instances plus an EMR charge.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>4.2 When to Use Each Service</h2>
+  <h3>4.2.1 Use Amazon Athena When</h3>
+  <ul>
+    <li>You need ad hoc or occasional SQL queries on data that is already in Amazon S3.</li>
+    <li>You want no servers to manage and no loading step.</li>
+    <li>You query service logs, such as CloudTrail, load balancer, and VPC flow logs.</li>
+    <li>You want to pay only for the data that your queries scan.</li>
+  </ul>
+  <h3>4.2.2 Use Another Service When</h3>
+  <ul>
+    <li><strong>Amazon Redshift:</strong> you run complex, repeated queries and joins on a large warehouse, and many users query it at the same time.</li>
+    <li><strong>AWS Glue:</strong> you must transform the data, convert formats, or run an ETL job.</li>
+    <li><strong>Amazon EMR:</strong> you need Spark, Hive, or other big data frameworks with control of the cluster.</li>
+  </ul>
+
+  <h2>4.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Scenario keywords</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Serverless SQL on data in Amazon S3</td><td>Amazon Athena</td></tr>
+      <tr><td>2</td><td>Ad hoc queries on CloudTrail, ALB, S3 access, or VPC flow logs</td><td>Amazon Athena</td></tr>
+      <tr><td>3</td><td>Query S3 data without loading it into a database</td><td>Amazon Athena</td></tr>
+      <tr><td>4</td><td>Table definitions and schema for Athena</td><td>AWS Glue Data Catalog</td></tr>
+      <tr><td>5</td><td>Reduce the cost of Athena queries</td><td>Parquet or ORC, compression, and partitioning</td></tr>
+      <tr><td>6</td><td>Convert CSV to Parquet before querying</td><td>AWS Glue ETL job, or an Athena CTAS query</td></tr>
+      <tr><td>7</td><td>Athena queries always filter by date</td><td>Partition the table by date</td></tr>
+      <tr><td>8</td><td>Limit the data that a team can scan</td><td>Athena workgroup with data usage limits</td></tr>
+      <tr><td>9</td><td>Predictable, high-volume Athena workload</td><td>Capacity Reservations</td></tr>
+      <tr><td>10</td><td>Join S3 data with DynamoDB or a relational database</td><td>Athena Federated Query</td></tr>
+      <tr><td>11</td><td>Complex, repeated queries on a large data warehouse</td><td>Amazon Redshift</td></tr>
+      <tr><td>12</td><td>Dashboards on query results</td><td>AWS Quick</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>4.4 Lesson Summary</h2>
+  <p>This lesson covered the following points:</p>
+  <ul>
+    <li>Amazon Athena is a serverless, interactive query service that runs standard SQL on data in Amazon S3. Its engine is based on Trino and Presto.</li>
+    <li>A table definition in the AWS Glue Data Catalog describes the files, and Athena applies it when it reads them. The results are written to Amazon S3.</li>
+    <li>Athena supports CSV, JSON, Avro, Parquet, and ORC. It is often used to query CloudTrail, load balancer, S3 access, and VPC flow logs.</li>
+    <li>Athena SQL queries are billed by the data that they scan. Parquet or ORC, compression, larger files, and partitioning reduce the data scanned. Workgroups limit and track the cost of each team.</li>
+    <li>Athena Federated Query uses connectors that run on AWS Lambda to query other data stores, and the results go to Amazon S3. Access is controlled with IAM policies and bucket policies, and the data and results can be encrypted.</li>
+    <li>Choose Athena for ad hoc SQL on Amazon S3, Redshift for a data warehouse, Glue for ETL, and EMR for big data frameworks.</li>
+  </ul>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Athena asks, Glue prepares, Redshift warehouses, and EMR crunches.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 5 ============ -->
+<section class="tab" id="tab5" role="tabpanel" aria-labelledby="b5">
+  <h1 class="tabh">5. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: Explain what Amazon Athena is, and describe how it runs a SQL query on files in Amazon S3.</summary>
+    <p><em>Maps to:</em> Objectives 1 and 2 (Comprehension).</p>
+    <p>Athena is a serverless, interactive query service that runs standard SQL on data in Amazon S3. Its engine is based on Trino and Presto. A table definition, stored in the AWS Glue Data Catalog or created with a DDL statement, describes the columns, data types, and location of the files. When you run a query, Athena applies the table definition as it reads the files in place, and it writes the results to an Amazon S3 location that you choose. There are no servers to manage and no loading step.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Name the data formats that Athena supports, and say which formats you recommend and why.</summary>
+    <p><em>Maps to:</em> Objective 1 (Knowledge).</p>
+    <p>Athena supports CSV, JSON, Avro, Parquet, and ORC. Parquet and ORC are recommended. They store data by column, so a query reads only the columns that it needs, and they are compressed, so the files are smaller. Both effects reduce the data that Athena scans, which lowers the cost and speeds up the query.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: The FlashCart analysts query one product in one month, and the bill is too high. Explain how pricing, file format, and partitioning affect the cost, and recommend changes.</summary>
+    <p><em>Maps to:</em> Objective 3 (Application).</p>
+    <p>Athena SQL queries are billed by the amount of data that they scan, so the goal is to scan less. Convert the CSV files to Parquet or ORC so that a query reads only the columns that it needs. Compress the files and use larger files to reduce the overhead. Partition the table by the columns that the queries filter on, such as product, year, and month, so that a query reads only the matching folders. Use workgroups to set data scan limits and to track the cost of each team. Check the pricing page for the current rates.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Describe how an Athena federated query works and when to use one.</summary>
+    <p><em>Maps to:</em> Objective 5 (Comprehension).</p>
+    <p>A federated query lets Athena run SQL on data in other data stores, such as Amazon DynamoDB, Amazon Redshift, Amazon CloudWatch, and relational databases, and join it with data in Amazon S3. Athena uses data source connectors that run as AWS Lambda functions, and the query results are written to Amazon S3. Use a federated query for ad hoc joins across sources without copying the data. If the data must be moved and transformed for repeated use, build an ETL job instead.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: Differentiate Amazon Athena from Amazon Redshift, AWS Glue, and Amazon EMR, and name one requirement that points to each.</summary>
+    <p><em>Maps to:</em> Objectives 6 and 7 (Analysis).</p>
+    <p>Athena runs ad hoc SQL on data in Amazon S3, with no servers and no loading step. Redshift is a data warehouse where the data is loaded, and it suits complex, repeated queries with many users. Glue is a serverless ETL and catalog service that transforms and moves data. EMR runs big data frameworks such as Spark and Hive on clusters or serverless capacity. A requirement for occasional SQL on S3 logs points to Athena. A requirement for a large warehouse with repeated joins points to Redshift. A requirement to convert CSV to Parquet points to Glue. A requirement to migrate Hadoop jobs points to EMR.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: Design a query solution for FlashCart that lets the security team investigate CloudTrail logs, lets the analysts query sales data, and keeps the cost under control.</summary>
+    <p><em>Maps to:</em> Objective 8 (Synthesis).</p>
+    <p>Keep the CloudTrail logs and the sales files in an Amazon S3 data lake. Use a Glue crawler to create the table definitions in the Glue Data Catalog. Use a Glue ETL job to convert the sales files to Parquet, partitioned by date, and compress them. Give the security team and the analytics team separate Athena workgroups, each with its own query results location, a data scan limit, and cost tracking. Control access with IAM policies and bucket policies, and encrypt the data and the results. Use a federated query for the occasional join with a DynamoDB table, and AWS Quick for dashboards. If the query volume becomes high and predictable, consider Capacity Reservations. Check the pricing page for current costs.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>

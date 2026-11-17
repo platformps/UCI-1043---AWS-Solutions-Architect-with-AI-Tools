@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 272.13 - Amazon MSK</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">Amazon MSK</h1>
+  <p>Run Apache Kafka as a managed service: how Amazon MSK works, its cluster types, security, and how it compares with Amazon Kinesis Data Streams.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. Introduction to Amazon MSK</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Cluster Types and Availability</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Security, Monitoring, and Pricing</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. Comparison &amp; Scenarios</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab5" id="b5">5. Knowledge Check</button></li>
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <h3>AWS Analytics Services</h3>
+  <p>Data does not always arrive in files. Click events, sensor readings, and transactions arrive continuously, and the first stage of an analytics pipeline is to ingest them as a stream. This lesson covers the AWS service that runs Apache Kafka for that purpose: Amazon Managed Streaming for Apache Kafka, or Amazon MSK.</p>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 880 440" role="img" aria-label="Map of AWS analytics services in six groups: ingest and stream, store, catalog and process, govern and orchestrate, query and search, and visualize and share. Amazon MSK, the topic of this lesson, is highlighted in orange."><rect class="sv-box" x="10" y="10" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="35" text-anchor="middle">Ingest and Stream</text><rect class="sv-boxg" x="30" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="90" y="107" text-anchor="middle">Kinesis</text><rect class="sv-boxw" x="160" y="60" width="120" height="68" rx="6" style="stroke-width:3.5"/><text class="sv-t" x="220" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="107" text-anchor="middle">MSK</text><rect class="sv-box" x="450" y="10" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="35" text-anchor="middle">Store</text><rect class="sv-boxg" x="470" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="530" y="107" text-anchor="middle">S3</text><rect class="sv-box" x="10" y="150" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="150" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="175" text-anchor="middle">Catalog and Process</text><rect class="sv-boxg" x="30" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="231" text-anchor="middle">AWS</text><text class="sv-t" x="90" y="247" text-anchor="middle">Glue</text><rect class="sv-boxg" x="160" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="231" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="247" text-anchor="middle">EMR</text><rect class="sv-box" x="450" y="150" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="150" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="175" text-anchor="middle">Govern and Orchestrate</text><rect class="sv-boxg" x="470" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="231" text-anchor="middle">AWS Lake</text><text class="sv-t" x="530" y="247" text-anchor="middle">Formation</text><rect class="sv-boxg" x="600" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="660" y="231" text-anchor="middle">AWS Data</text><text class="sv-t" x="660" y="247" text-anchor="middle">Pipeline</text><rect class="sv-box" x="10" y="290" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="290" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="315" text-anchor="middle">Query and Search</text><rect class="sv-boxg" x="30" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="90" y="387" text-anchor="middle">Athena</text><rect class="sv-boxg" x="160" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="387" text-anchor="middle">Redshift</text><rect class="sv-boxg" x="290" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="350" y="363" text-anchor="middle">Amazon</text><text class="sv-t" x="350" y="379" text-anchor="middle">OpenSearch</text><text class="sv-t" x="350" y="395" text-anchor="middle">Service</text><rect class="sv-box" x="450" y="290" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="290" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="315" text-anchor="middle">Visualize and Share</text><rect class="sv-boxg" x="470" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="530" y="387" text-anchor="middle">Quick</text><rect class="sv-boxg" x="600" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="660" y="371" text-anchor="middle">AWS Data</text><text class="sv-t" x="660" y="387" text-anchor="middle">Exchange</text><rect x="10" y="10" width="420" height="130" rx="6" style="fill:none;stroke:var(--warn-bd);stroke-width:4"/></svg>
+    </div>
+    <figcaption>Image 0a — AWS analytics services by stage. Amazon MSK, the topic of this lesson, is highlighted (Original diagram for this course.)</figcaption>
+  </figure>
+  <p>Amazon MSK is a fully managed service that runs open-source Apache Kafka. Your applications keep their Kafka producers, consumers, and tools, and AWS manages the brokers and the cluster. This lesson explains the Kafka concepts that you need, how MSK works, its cluster types, its security, and how it compares with Amazon Kinesis Data Streams. The last two tabs prepare you for the AWS Certified Solutions Architect – Associate (SAA-C03) exam and check what you learned.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> an introduction to Amazon MSK, the Apache Kafka concepts, how MSK works, and its place in a streaming pipeline.</li>
+    <li><strong>Tab 2:</strong> the cluster types, Standard brokers, Express brokers, and MSK Serverless, high availability, MSK Connect, and MSK Replicator.</li>
+    <li><strong>Tab 3:</strong> networking, authentication, authorization, encryption, monitoring, and pricing.</li>
+    <li><strong>Tab 4:</strong> a comparison with Amazon Kinesis Data Streams, the SAA-C03 cheat sheet with decision rules, and the lesson summary.</li>
+    <li><strong>Tab 5:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Introduction to Amazon MSK</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Cluster Types and Availability</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Security, Monitoring, and Pricing</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="5" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Introduction</h2>
+  <p>FlashCart Inc. collects a click event every time a shopper views a product or adds an item to a cart, and a message for every package that a warehouse scanner reads. These events must reach the analytics systems within seconds, not at the end of the day. The engineering team already knows Apache Kafka, and several applications already use it. Amazon MSK lets the team keep Kafka and stop operating the servers.</p>
+  <p>This lesson follows FlashCart through the Problem Statement of each tab. It assumes that you know Amazon S3, and that you know AWS Glue from Lesson 272.10. Amazon Kinesis Data Streams, the AWS-native streaming service, is covered in Lesson 273.6, which comes later in the course.</p>
+  <p>Use the tab list on the left, or the Previous and Next buttons, to move through the lesson. Each topic tab opens with a Problem Statement and ends with exam traps, keyword triggers, and resource links. The Knowledge Check is the last tab.</p>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define Apache Kafka and Amazon MSK, and identify the Kafka concepts of producer, topic, partition, broker, and consumer.</li>
+    <li>Describe how Amazon MSK works, including its brokers, its metadata nodes, and its failure recovery.</li>
+    <li>Differentiate MSK Provisioned with Standard brokers, MSK Provisioned with Express brokers, and MSK Serverless.</li>
+    <li>Explain how MSK provides high availability, and what MSK Connect, MSK Replicator, and the AWS Glue Schema Registry do.</li>
+    <li>Use the MSK security controls: networking, authentication, authorization, and encryption.</li>
+    <li>Differentiate Amazon MSK from Amazon Kinesis Data Streams.</li>
+    <li>Select Amazon MSK or another streaming service for a stated requirement.</li>
+    <li>Design a streaming ingestion solution that uses Amazon MSK and its consumers.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>ACL</td><td>Access control list</td></tr>
+      <tr><td>API</td><td>Application Programming Interface</td></tr>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>CA</td><td>Certificate authority</td></tr>
+      <tr><td>CLI</td><td>Command line interface</td></tr>
+      <tr><td>CPU</td><td>Central processing unit</td></tr>
+      <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+      <tr><td>ECS</td><td>Amazon Elastic Container Service</td></tr>
+      <tr><td>EKS</td><td>Amazon Elastic Kubernetes Service</td></tr>
+      <tr><td>ETL</td><td>Extract, transform, and load</td></tr>
+      <tr><td>FIFO</td><td>First in, first out</td></tr>
+      <tr><td>IAM</td><td>AWS Identity and Access Management</td></tr>
+      <tr><td>IoT</td><td>Internet of Things</td></tr>
+      <tr><td>IP</td><td>Internet Protocol</td></tr>
+      <tr><td>KMS</td><td>AWS Key Management Service</td></tr>
+      <tr><td>KRaft</td><td>Kafka Raft, the Kafka metadata mode that replaces ZooKeeper</td></tr>
+      <tr><td>MSK</td><td>Amazon Managed Streaming for Apache Kafka</td></tr>
+      <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
+      <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SASL</td><td>Simple Authentication and Security Layer</td></tr>
+      <tr><td>SCRAM</td><td>Salted Challenge Response Authentication Mechanism</td></tr>
+      <tr><td>SDK</td><td>Software development kit</td></tr>
+      <tr><td>SNS</td><td>Amazon Simple Notification Service</td></tr>
+      <tr><td>SQS</td><td>Amazon Simple Queue Service</td></tr>
+      <tr><td>TLS</td><td>Transport Layer Security</td></tr>
+      <tr><td>VPC</td><td>Amazon Virtual Private Cloud</td></tr>
+      </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. Introduction to Amazon MSK</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s website sends an event every time a shopper views a product or adds an item to a cart, and the warehouse scanners send a message for every package. The engineering team already runs Apache Kafka on a few Amazon EC2 instances, and several applications read from it.</p>
+    <p>Patching the brokers, replacing failed instances, and growing the disks use up the team’s weekends. The team wants to keep its Kafka producers, consumers, and tools exactly as they are.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose a service that runs Apache Kafka as a managed service.</li>
+      <li>Explain what stays the same for the applications.</li>
+      <li>Name what AWS manages for the team.</li>
+    </ul>
+  </div>
+
+  <h2>1.1 Introduction to Amazon MSK</h2>
+  <ul>
+    <li><strong>Amazon Managed Streaming for Apache Kafka (Amazon MSK)</strong> is a fully managed service that lets you build and run applications that use Apache Kafka to process streaming data.</li>
+    <li>It runs open-source versions of Apache Kafka. Existing applications, tools, and plugins from the Kafka community work without changes to the application code.</li>
+    <li>MSK creates and manages the Kafka infrastructure for you. It creates the brokers and the metadata nodes, detects the common failures, replaces unhealthy brokers, and handles the hardware maintenance.</li>
+    <li>It is an alternative to Amazon Kinesis Data Streams (lesson 273.6) for real-time ingestion of streaming data and for messaging between applications.</li>
+    <li>You use the AWS Management Console, the AWS CLI, or the AWS SDK to create and manage clusters. You use Apache Kafka clients to produce and consume data.</li>
+  </ul>
+
+  <h2>1.2 Apache Kafka Concepts</h2>
+  <ul>
+    <li>A <strong>producer</strong> is an application that writes records to a topic.</li>
+    <li>A <strong>topic</strong> is a named stream of records, such as <code>orders</code>. A topic is split into partitions.</li>
+    <li>A <strong>partition</strong> is an ordered log of records. Kafka keeps the records of one partition in order. It spreads the partitions of a topic across brokers, and it replicates them on other brokers.</li>
+    <li>A <strong>broker</strong> is a server in the Kafka cluster. It stores partitions and serves the producers and the consumers.</li>
+    <li>A <strong>consumer</strong> reads records from a topic. Several consumers can form a <strong>consumer group</strong>, and each consumer reads at its own rate, much like a message queue.</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 860 300" role="img" aria-label="Apache Kafka concepts. Producers write records to a topic. The topic is split into three partitions that live on three different brokers, and each partition is replicated on another broker. A consumer group reads the partitions, and each consumer reads at its own rate."><rect class="sv-box" x="10" y="100" width="120" height="84" rx="6"/><text class="sv-t" x="70" y="138" text-anchor="middle">Producers</text><text class="sv-t" x="70" y="154" text-anchor="middle">(your code)</text><rect class="sv-dash" x="190" y="20" width="470" height="260" rx="8"/><text class="sv-tb" x="425" y="46" text-anchor="middle">Topic: orders</text><rect class="sv-boxb" x="215" y="62" width="420" height="56" rx="6"/><text class="sv-t" x="425" y="86" text-anchor="middle">Partition 0</text><text class="sv-t" x="425" y="102" text-anchor="middle">Leader on Broker 1, copy on Broker 2</text><rect class="sv-boxb" x="215" y="132" width="420" height="56" rx="6"/><text class="sv-t" x="425" y="156" text-anchor="middle">Partition 1</text><text class="sv-t" x="425" y="172" text-anchor="middle">Leader on Broker 2, copy on Broker 3</text><rect class="sv-boxb" x="215" y="202" width="420" height="56" rx="6"/><text class="sv-t" x="425" y="226" text-anchor="middle">Partition 2</text><text class="sv-t" x="425" y="242" text-anchor="middle">Leader on Broker 3, copy on Broker 1</text><rect class="sv-boxw" x="720" y="100" width="130" height="84" rx="6"/><text class="sv-t" x="785" y="130" text-anchor="middle">Consumer group</text><text class="sv-t" x="785" y="145" text-anchor="middle">Each consumer</text><text class="sv-t" x="785" y="160" text-anchor="middle">reads its own pace</text><line class="sv-line" x1="130" y1="142" x2="181" y2="142"/><polygon class="sv-arrow" points="190,142 180,137 180,147"/><line class="sv-line" x1="660" y1="142" x2="711" y2="142"/><polygon class="sv-arrow" points="720,142 710,137 710,147"/></svg>
+    </div>
+    <figcaption>Image 1a — Producers write to a topic that is split into partitions on several brokers, and a consumer group reads the partitions (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>1.3 How Amazon MSK Works</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Component</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Broker nodes</td><td>You choose the number of brokers in each Availability Zone, with a minimum of one broker per zone. Each zone has its own VPC subnet.</td></tr>
+      <tr><td>ZooKeeper nodes or KRaft controllers</td><td>They hold the cluster metadata. MSK creates them for you. KRaft controllers are included at no additional cost.</td></tr>
+      <tr><td>Producers, consumers, and topic creators</td><td>Your code or your tools. They use the Apache Kafka data-plane operations to create topics and to produce and consume data.</td></tr>
+      <tr><td>Cluster operations</td><td>The control-plane operations: create, update, and delete clusters, view their properties, and change the number and type of brokers.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>When MSK detects a broker failure, it mitigates the failure or replaces the unhealthy broker with a new one. It reuses the storage of the old broker where possible, and the producers and consumers keep using the same broker IP addresses.</li>
+  </ul>
+
+  <h2>1.4 MSK in the Streaming Pipeline</h2>
+  <ul>
+    <li>MSK sits in the <strong>ingestion</strong> stage, next to Amazon Kinesis Data Streams. Sources include website click streams, IoT devices, banking transactions, and metrics and logs.</li>
+    <li>The <strong>consumers</strong> that process the stream include Amazon Managed Service for Apache Flink, AWS Glue streaming ETL jobs, AWS Lambda (lesson 273.1), and applications on Amazon EC2, Amazon ECS (lesson 273.5), and Amazon EKS.</li>
+    <li>The results go to destinations such as Amazon S3, Amazon Redshift, and Amazon OpenSearch Service (lesson 272.14).</li>
+  </ul>
+  <figure>
+    <div class="figwrap" style="max-width:900px;margin:0 auto"><img src="data:image/webp;base64,UklGRrrdAABXRUJQVlA4IK7dAABwvgKdASqwBB4CPj0cjESiIaElJBNK2KAHiWVu+9Ful/bnl4kZpXy14bREK2zxqVD+cL8sAr+v/lD+//pUxz7c+5f2/9g/7h+2nzrcj9wfnnxF/afms/d+OHwv+q/5fnSckf6P+9/43/p/5z/////7n/37/D/3r9wv3////4b/rn+G/yn55fQF+nP+U/wv+l/8X+d+MT9kPdR/a/9j/x/8H7gf5J/Vv9d/hf34+XT/Gf6//Afv/8nv6t/f/+7/jf8B8gH9B/sf/W/Pb5w/+P///cy/vv/C/8PuCfy3+2f9b7//p5/1P/o/0n7u/+X7Nv6b/p//R/mP3/+hT+h/3D/x/tX//PkA/7XqAf8L//+wB+//un9Yv6P+MXwa+L/o39M/vf61f2L/tet/4d8q/RP7N/jv7X/XP+r/nfiU/gfKl6D/M/4L8pf34+TP4h9UPpf9i/yv+C/sn/2/0HxR/YP6p+xn91/cr27/KP3n++fkX/gf3Q+wL8Y/iX9M/tP69/2T9o/cT/k/1e/vv75+iNnn+k/03+f/bz4AvUH5D/bP7r/jf8x/bP27+T/03+t/5H9j/75/9Pkf9I/tH99/KP+zf+r8Af47/Kf7V/c/2m/tX/9/0/3L/hP8j/j/KE/Kf6//t/5z4Af5H/Q/8Z/bf8h/yf8J////X+JX7d/rP8L/pf+1/jf///4viV+T/3n/c/4r/If+D/N////s/oN/Hv5x/j/7d/kf+T/i////2/uX/+ft5/bj/3e55+vX/z/aX//lHfsDaC29OA3BDuCHcEO4IdwQ7gh3BDuCHcEOdU93AAhmqvchKT5WDJzuySqsZQScW+wN9gbQW3EEI1d0CBK2Koammx220YA8j79gb7A1yXFv+wlOrDuO1Z3oZxtxfzOIlLtLl7UIW3axYoBmE8iPM+GMev1a0N4u5E5HMV8Yr4xXxivjFfGK+MV8Yr3XK+3wV78d20OUETV0jKyi8QUyHfDAthH+f7hknuMbbJYNcIyT4+bUGErocmxYXkG5Z4kTUWB7k/dUeUDVWZtzlf8pU/HHIN0sSSuDxcYXVhG9Cniv7V70YGeO4IdwQsVulYdnODyCB5QgmKifgh3BDuCHcEO4IdwQ7ghkfvjyl8u4+Ewb/yFqQLLWGf9gb7A32BvlENte2vbXTIemQ9Mg91vIeapWu7shBlaaFNWIW+1TMSAqilNuahMUPs7ZmmM2zDnzIvU2RFVcEHlFdVBsTrI9kaRfCkQ7iFQypP7M3Zs8mfhh/clOYmS2wblBXs3RFaSumgScin8UI3YXD+HN4RrL8m9sJ04ie727kV9Yq5T2fIfjIYiBbMU1D7O2WpT3LMrPYqlP1lFu5qdVGetCNOV0JJ2Z3kpct1hZ4Re93xivjFd8y+IlUvGMjn3vEFJGJripiV+KvyFPJn2+/JNjRfxoubgHkA2GsKmhuLEXP8F0V50f1V6u4Y9Gk105NyS1fg5Z3dPQ9JL7sPdHDVN9OhK6h9k3LwJiobEYx6R+uGK9mhEh/W+bg/J2qOF0QhU2sXH0UHpflQlx3tkVbjoGx4zp9ivjNqUIBXnOjwLYuDGQpaaD2EuKIiNPmkSM/KsZWp0OhlJpkM+b1qKuamFDqijddLUekitW7E2UsEK8A1QHj3rIrYzUZb+IDmAYQ9zwhTOpHHfmYGKWUbqRpGJN+m1RGJUgUXgh3BDuCHVIUodUj/1g6jA6dSnXkaPQuPEEKkgt8FDeGjSRz8feWnHK3PB+ptSIn2VBkhjxtfQNjUfK5zrOkgeWPQrfPs/V/ZrLpvZLyWF7Rb5qVL71KoxvRz5nLnJHWBLqmwcV4EqQZeUZNBuPQ/tBpXsX/4mZrdgy/SUrm7en89HY199dBy+6L5QorJlise0UQHAiE7q9QlMblex4n3pCXPCSMeLvjw1MfbIemQ9Mh6Qla+F+2M+wEnZkHY4z9iZpCKi9wpkKaKIDZjZfNCMfDvGv4fd1ztjCnDV0Ya/FZ04x5kDc9vcDKpREKo3N4vHIqCKBSHLxsOnruK99O3whHpIEsoHld/mYcCbvzz44Vlz0STNx9/1eZpbt0WapDc63LffHSbkG5p5xW4X6QSxZVL2BMGqiXpSRIHwz/D4H4+0xFJlOi8QUyHdVW58Qgds4I6vaLP+rn8/495DT0EKkgtufK43CBHNOPkL2LFamlCJ8pPIgU9+poeAF926g0XvTOtYHdN4xDgQB3ttDK4WKl7B4ca7neQSBcgVccUii/cyrwMK8PwUouPmFYyV5Ee9XUz1fE/mzz9NWUXiCmQb2x4sel0v+o/WFHRGLaAjSb/wmoSy6HBe17lO+RYjzWFu3qw+BM7D0nXrSmKS5D7/5zOiuskteSkjE1+mAxJTVBKQyczaj8yM+8jZtuyBbMd2YrCPdixtsULbKKKn6J5Z0lqyXN1GzPv2BvsDa7XF265uDuD+6V1scsOtk4Tqi8QUyHo6/j87PfVjFTH1sZnBYI6E9kL08RcX4YxTJEKdVzFveUbSrF2eEi75TaWw8FyH/LRc0DwUewVl3bDrVJUmfgfrJvioSqvFotF/dooMJLYDkb+3C5hUzzVJeu+RlQGDdWYQ7gh3A2Suv1r4ZsPBH105l8SbAN6PNl6EBHOsdwk8Wsjdin9AaYXFBMRgMy454BItyWCUl8pL5R33G1orL8EPLzKm8eig7r4RdYf/M/cfkrXPg7u0M55wjMlsLc6Muxz3OKESA0WN3C21xYBCNGb2TDNCJTVN2skhGej2qyqbj3OXCxHvwXjanBjz//71vz9C0CA012CfYY+9AqqRn37A32Btdri7gYtnjOchSvUScK3V7ReIKZDuQjqvBany0If03iOf9QS8bbLrDRXei3h40UQHhNbYc2b357gSxNA33OscDIG/3u2gGPAbdFkzLnZPnoqZEy8yAb351vpDDBeeSe/r7CZrFj9NSiRAZEvDG/oVYZUbPQdZwLTW9UXiCmLKpewNrhB2FTUNNdOKVdhWNcplLj2MIP5Luv2BvsDZyaLWPwmQp9vQT08adr68aS8OSvdWUq/bNGKsC6er/p08XpSU//sFfJVjan5dsTT+6ZE699Z/XZT35CPNSJvhPvLWb5JxsDB0vgk9lh10XQlYebItM7+bgpWKC4hvMA+XJZ5WSC+afQsnMtGTnCNmF3CZLfVb7rnvior4vZLgTXU6VKPcwza9scPtHGPxjJw2yHpkPSCoznonvXkEBtKsqRHRVlVPHFf7E3kU6NCbnx8XXSv25qwl656aJWpLDtXCZHqEvIL0DhPqzSdu2JFfPK8g+pcqMANodfMtBZaCoYNkatheD/a19BKVOiV7C6DIyCkeixS9b2Qm2/mBHwnH6nTtzjt5gs1/rBfbo72ShAN925vdsqeqcQVPStrxGapullS4kU5WlAjEwGdMWrql3NuY59xmLdiYgkbevHQQyxrdbJvgqrTkUuC93LgyOw0Q/cJaWOBs7P9YMYZB4M917c1VQhAsoNLTI6KXsDfYG+wYGjjmXayCVp97d/jt6+0eUQ6Xvd1CFd9RMuFuXuH86CzRDS4i+sSVBMMlOOe6iU8/pV4GFCHcwDm1oQYbMlIXdXTXC7xy6Z7G7p5j3+gSSkd9u9rKjH+CTEzzt7KZ9rEmtb3JwzDQSGfcubUbr1aWaJES2NokwPFJBn6J378Vx8BARM0Ag3wV3OA8C1HV6RdKSikybmhLyfPvv2BvsDfFCnWFUq7kHMf09m4mzmHWlFhkPXzx4ZZMkBriKNUlNXc2vqUw2L86qLVB12MZuXajl90i1+TLkBeZkhT1jtoMoQ2rLAGOy5pKPJkgSu6qVtInEJ/NC1dD0ffjEPsjabLTkm0LHoKJGjGnAeEo1cVvv8H5qpzt+VTMyZbZTVMmZDlfajUsyzoXZ7o3inzkxw2ACDNFwfT9rZiE7a+Is0AcRR7C8+gNkH5U6T/qUb5XwblTqOrOwY2GyDGA1Edxbc4jPzKpcawFJaaycdIpkMD/qlXqme1FVFL8sTPJlrA32A56haitnLglJyY8gbY/4eza3I05gY+wDuc5dp7daLSUfnufoVrBAcfa5JkkKkMaeNhNaqOU37sti9TZo7HfdadvkMeITH8fAOS85cI09AYimXxY6qk/mqp05VbA6pVHpHeAJNMlTdW8Eq8MAxFJWBnk8P/QWvzO1fWOSy6RMPoxQO9BjgWVQnGeY7tWusLCf26C59Jry4cInqi8QUw+WDVdn4vX/jwqtW+SsTM4oYEuLDrXz7LGhyU6tKOdFNJ6GwrDqYN7C/lmwddTWOeUh9FQDdN5+ShU9z3th26rWD+wYIsgp/7f3mZRZQT8FAtf301txWKW91GHU3YhgG7SDF0yEiDJPzQgNDmauV+Ex1DkU/49Mh6ZCBrKuOc9E6HGuK6XpGIauiovNi3L4lt4ghUkFvkm8zBwr8Zsyh3e9Qk7yf1HYMauj9IHyLkWinfezdP/MkXyPUC8k+MDGJyGouJEW7RG+tYts0hRrfba9meYGXVFKrf16hTF24y+LyfuhpMJQo1OvashuqQ1IE9Wgz2SJMW0O9/EpYLyThtTHWount/nHxW1TYqFevJeQ5QpC7fO4GxSmWwYBxJ7i+vow7OUTfu+MV8YrqPfVG35W2XjzeOFs3yNLEOcpGPoU77de24cJFKgUXfGyVYDVysqprgbk0C7/hGByInVg/LZgLAalCxZ1L7dd40QA8ADcB1E8odHbIpTlyuet0ufLRe8payUj7TIOI6mJQ1B4CR3lo8l0d1xC7WHN5RCVZOKf/AocGWlrGDpPjv6T3jWIhcoH3+jx1Vg54UPwYKveg8eunrKQRPxEktmp87XTNtYzUYmVC/v+cQg/ZTETJjGBwRyu4Gxe4aofFwnS2G3cHMUnjlQcRYZL5SXykvkVtrWUxi+xZA96ZoF7X/VzcbPIXjOPcVNXgTLcr9nXc8qyg2msiSLlw0qP++790fvba2r/0NNRlKZOE+u85z2F6YLaDXDMzBOvY9kS3/YCCnH3v6cFBJ/fR4P/YBajktVVmGzBWW8ysL5TDVuhP9sMJu+0GD+5LmiielYeOaL7UNFH6NvpkKWudqr4qVdDE94xPf0a/nenQIfBDuCHcENTCeGyH6xgSoiXfZv78jlIdXvd4fgpQwARUlVfyWNrXQ/Ewel6+A63MNTJ4WqBKVa45X0rtI/yqn9Hn1+UuwkhlveAgFw2QakHe/GN2GCUqVKpGffsDfYG12uLuBef1hHTTWsJquVlXU32BvsDfWxdCJPngwx7S5T3gOcPel56ma6rvUFAofDC6mHyNSHMbYG+Stb5YX/7j5embROYMr01Padtyd3pY3pMrOeSTVXy/+vbtRIBPhoNJlZ4j1p7Y/cDQcZ+t4mhkEghKzsHAsZXP8GThUC9hY8ZV4+fGK8O+GS+Ul8pLOVtsh3giaSkWHNItdgkz2SHtL9pz+/s1rcstrRY8lxivjFdqVNPNaVx8Q/zwk8vNuxjbjBmYBHUnFMDQMiSYaICz1ztQf/qg2moLJmGYJyfsQRivNNcY65DUvOJVBEYgrSyIbeg81cBQTfmItht+YT0NoxRJWjEotA+vFw8H4tzBzKhuwjQvMcklSRzAyTa0Amt7yulcoXbv2sbLsUHfy9UktlCsA0mrKLxBTFlUvYDGmCxoevnLhjf8d24vQaYZjt+xaKvNM7oT0PyrgrtJV058Yr4xXdtKeDNar0573SgzAJJ7vCGWi7dB0Nz72mPbeCsj4t8laxXIS6J0cdD5cf8x5pLeseCTbuFhCnq3uKaAwWPgC8ac3ZSUymOrGXZ8vjVTCocH9aqlUj3/f+WQrI6SddLE1gbSq/wo2wkESeo7yaYThjFdkzdKEPgh3BDt6Ftffi7jhSbwhfqwPK14uLBSN2pcudDDtKQUDnGyqStpZmGeYY7KiZHgfhcYP2Z/qi8QUyEDCVfomcHcsmmndGJ1cYpkFhclj57c32htHWY7ja63MCIY885l3NQejV1QXVkkec23gt7Q37NMK3DVKOaXlEgSywVijK+w5zV02+tD9BIqL+0AhFnwbwRrGJzasiYNR9GT1dkaxiQUZ/gR2fu7iybJCIPEQa9G+2LfYG+wNrtcWUztRmqehYnOawEtrBqGCQHigb7A32BDnjuOioOFqM3dOi7rN0owHnXb6nYbkop2vddrezoA5G4htMbdXHSeJjxEtJDgxqzlQb40NUhP6oV24OYfCKLSlmQ0hRRNoHDYsmOA7VYWzI0IPFjXk3cd+zWcyAkdRpgBBXk9YN5or/lk+b9B0CSczVxlIov2BvsDfJWufLUtOVHv1bLBnp1dX7WHoNE1lK6nbuzYU9sBwHqSYwcdhCDtrEH37A32BDV8vqfMekweKuoB93imErnKsj3UlCheQH1+zbILemltMH9QNv1IOulb0fLO+fA9l/wD5HemN4qhFOnjNyNmeotpnIst1T1E8GNkTkXbPPrwSykuPW3sUWnH9Z5Q1mVmTFMTHvd8Yr4xTJEKgYoVq4SW3W6rVN5B3DMFm9SUghgKFN4xn8W+qW4BG2vn9caPrM2vBDuCHUefjCwnTaTekCotT5NKLDP3QKCfa/xZAExtyh34UxmjAT6YHlsvBDuCHXRZy0cqMlZlLuiF6PwigW0mzbC7Ian/Wy/LrzdZ1kyWHZ+n5dpreqLxBTFlUvaMRv6E3d3lfEDJglLZyK3Gx0Ebb0S+l395dfcepsPkwGVlF3QiCSMxCnFPdMlRhh/XBDAdnKSY/+LY38R+ymeJTXBIWLhNRu6svbSQdeGiw3kpcLizGV8JnJrLrM5dpunZkq94Rn/r9qzcIdwQ7gbGqcPtECA4yOmUeSDrNb5ZGjR/5cbtjcX0hlhU3Fp+wsyxu8gZUzIqg+/YG+wIrNs4z1aNYbiVhxqVZ+fJyg4hBJlYF8W9s3SVDUlloSGHgqcs4QSwzIR8SmIPT3gFLCpkO6BfnasANC9gb66yCaBICg+ZyrgNsG/AA6jFTY7MW1f/asSEiXhwJJmxp1/V566/YG+wN9dRszyvhuluh5Jwzz3HQ9DvQQT2UQv/Ip0/3j+rZzaXQSe6AFFnMIdwQ7gbJXX7A2MDC3KJbwqERN7vjFfGK+MV+AQ9iD/0k1Q40slWBvsDfYEUii5H4sGE5Tk6ey9p2sTGrwi+49i/ybqLV7KMFBIh3iMGNAPYLsfCdN+74xXxf+eLdkMqbHCmLvU7stxC9UuQVfT5auHEBxgtHyw/dqmfhuDG0audMaQHMrY9fp9ZfnCC93xivjFfGK+MIM95lJUvWKpsJclU2EuSqbCVctY6JgTWZtiVNhaOZeN19ySD/hwkhGZiKjSOLzjFw2x269QvuQPXYqtfzD5gUG2qRiDbVIxBtpaB0nrEO8VnQFaR9AYL3v4vlDsQ3j8W0kUWYf0RMPucOxIjjot4C64aVxarvP1zUbhL5SXykvlJfKS+UyJN3fykvlJfMKMSsurLHytYPdu+MV8Yr4xXweQsll4IdwQ6YAA/v2wo4GhW+JX+YElvPGnMucbDVurebq4voUZYlAABXyRBKkjsJ2HrHMNZ3f/1aZ1p1INiFUh2ydQETOLjScs1mnAA3aWKN+d9DjY671ltUyWAs9sXvrAroe2jNmFJ36GQD/aRKiEJQa2HHgPjVox57jpJEec0zFlonIN3TqUvPa2t56e3wuJpKCOybQOhAow1ujCGUFyPXuzxE3KI1urZatdgJmcixovFtbQRoDe7tfVNEYZ+W3iFmqbAEG9OTGNl5pTLNbBgZ/28GXhVMwWXtEDvPfLZIladey4sqflcR99pn2Qc75Hz2qaIIIivKWI3TkssQHwZ3hHyQY5tOSjRYXiKItrrkGJNI/SYpdp9Irn+evejtn/WZUHf2Gc+e4gwe8mionKQCWJd3EiFUm+gaGCmgZZy0c0Dqz1gAkmFcJmGZoCA8kMXkg8/o6NmQk8oDLSsnLjLXb4qWJBMS56VemHzTqt/Wd0y+ftTnMR1O5eK6xKOu3V7m00+6ZcsVP7pXWcBFggYRYyaLCanZtW7DEMSh2wD4xODTFErlytqdlaJt+alBMz1i/djkf1SueW+gDUBJ/9QgwfufRvu3agYlQxBnCc3L0+o6ZA9oQIFZj/ed0GM/GA96TjrYDQoE0KkGu4IP4DkdecpLykPPRE1oMN6A6+lhKmcmjUQNzD93t750pnJh9mr/1Cn512nVCq0Pc7P4/NgnYeBVVbkcN01sVtzlnixeirCZiOoN6DWcmsRUdQKN1K8PQELTQ4ByZ7HliYkNM5flAG2lweV1I6RBUEAum+oSdyaD3gsSonR0ZT9OmeEt/PAMaKXJkj9ZDj6PyGH2pJ7Qkz1Xiw0zfi2P5j/Z6ulqoF8QVcy5QAZ9gyhJ7SOI/60c+0nrRcgDtDjCHjIt2fMRdXe2TIqbiiFhTe/anNglfrhigcw7E54mynSHn6fTogWZ39JJGcw+QLcV2j/sSA9ApDNuoNCdSD/FzTxl0mb/jZ75ujgNxxFsvuKX+LRaW5rUbnqyYfldBtKEEh3kajacBCH+X5M+ejWMXDlF/B26xVunKVhpbJ9ziptShEFT3vQ3hYwXAJQAUgACNQoGKnvFAACCVbxwJGkIO2c0maGgfCR1RQtyZbOC7NzLCGYlla6xSsC446wIRNmtnvKV1O9Pv3KDcdRK60vxuiIrr5F0xKOPDtwJefatMcn1cgpM8ShIZDd/Q+dE0YJCKGQTc36KJK2l7FzmyHC9FKMYi7JijZ5ADB0lRpoiaJtjg2HnMKenKP7u24KBqrnZbTH9kUf64SKeAD4GV7lNRfbjB2eH3AUZ7OFhpdHBu+E7CzZdFmmExzZyAZcFCL2O01cgsv0KeeFoh0dOUqvbarFn6CBMITGlWPTFwma1kGE06/wqz24JoC8M3UJF0S0q9a8AQ6nL88bRJl1JtZEKj9yjqmfON1Anv6UETgm2cBHLhOAwb2rG6fSWkn9NmDW6c6qKtHLEeeQ8t+MMaEGNuqiZ/N+T/MBb/ndJqdwgR6dair3mPCn0vXZYPi/RUnkjmg2UvzgTKs0iPv8mzu3Ujz2dkMHfqGuZ/9IK9KfmPzIxdRsFiZ4ERzNOwNTrRqb5prdvXM4iYApEQgR40wKg0omJMgN8xou9aNh10mDmE4MY7z/Nc00aMpAwaMH2h5f3IMM5rj0cEIZ/hLOtsE/B2rtgoJYUSue3MilhngVdrgKN3xecYayV3aJbjogIIm2Srs8aJs44TdYOGAZNKq+s5EEINElXGub/Rz4ihIEjBVHx8nQqvpHTQZbFAt6zJavR6oqEGuH+0q13fD8eLci8wzp8/DA8xmbJROLK8Exqb3GXOVtsdW/kZI335vOpbSazclauMPA7j0euZWlUcGOKGtJx6YwlLlla5nsTWrS1Pgp8speSM3hJcDxwG+pikuNk4pkwGuDmx3DqEFHzxdZ0t7piziJwsZRVGDFeLFzr76df/Q91B1V1vZDtn5AShiuiEACcFodMQKf7hy6rTMrGcjT5TmPas+0wGFBl6+W/tu4pg0HV1wj2NwFSfjRD0omGXVEGf4jdiWO8LHQgPJlAgCpf+XDEB49Ew24B0Lz4ne37rxJnzF+L08mU6SJfmckVm7EZutUNv3p8Te8NM88IKVlq6lpFYpD/KoXDEagzLn/5ZQFYi2xVo+vfmRh+xPNU2KgajhDNYGWHDqQKQibob4eQDe9nxwsAoAAORCE1wMyMfwlc8UzzPjKwbM6DQar+MNDRIVsoMGgiuhZ4E9NYKl5tJO8oNIr3Fh13DWU1WBlPDoVuyorUp0FGG+mBx6D4BDzLHXxqYja5qA90n6VVmZGcJzlS8fOrisNcpqcpvY65m2lCS0/d52Jc9tKWF7XsDmGi0+byuH3dUfUhUxVaxoCYSH5n1ynjK3+fI9Rn8+TEzxAsC4LHMkmrbZTJ91N15XJXTnYMJcHzGutoF3+P7Fi71Sgj9vE15BBVRL9SzZeJgBmxsNycH5pLqEL2jsjV5Atm/bFFrMF69cTGUCItwNCI+6Oyp3hGEt1TOXWVsx/Uq8bpPSmdZwjw2AFzemmDaJMgbV7rSmImTDCMXjbr3TmA9fI4AAAMizV1OxwOCp5NXvTMAAAAIbfuVfm8miWmz3ki1xq6OU/6X/JJjVHrtaTYpYgSctBg1/1ftGFR7h2vYb3ArkQIGHX3IQuTazwlM26A5K6S6XOyf9DaRzi4njkZjU81Joqww8hFkzc721l50PdWAJPTkZsg0ycs27Zq6tPVG9zphzbviGwDLnXQZdQQPqRogNzkKJVy8sKDQ4y/DzMiqcGGbZ3Ocvc/9ppXdd75eZULX/bu6r2Lo5pLge5Ftw30U2sLYV8i4ASYzzN60/9oTEndCvbyzdOQvpkMOFfyXE2R/e6+8i1mkxbpeJy/ix6lEI72G3Qrz8cVllDDRIAefVqIkaY/Uof2p7b+H1HG4nZpIZoACznmDU6IdDeuZ0oibMivvYvjrw0Lh1UVR9+9jndH5s0Rf1ET7vquIsuHi33V3dn3+IMG59jF4Lsyla49odEUnhOHlRx5XWqBlVsK7RtpirBuGp5q2Qyk60zXJOnIy+cv0AdK8yGjB+pVaP5P/m7EkwhI7GLJpx4ODsr0w5RFSnfhxNNnkQyPVzBL51IVVUfgG2dnLtYSTxQzvwQ3km2pvhDlgHdNAUq8YHCV92IyfuH3AMH8hzfgailuM888+GjbT8PLDeAsiK/e6q3YLr1RSIqXOgX7pzK1hO8WaV2WwNx99UTMX0VBSeMYALQUz+5Q4J+CQPS8JUxWvDZnl24JRGQDHLuQ0HLApwgbdMs1DvxlXXzWfcD9P184fgjnL5FSDwxVllZLXchGOni5tqSRYx79CCffGjUCMLawTbcgrChyIOTXOGpJslMdt5Bl7oSuHnyf+LTEwboTzfgNxulWUKRTkd8Qg0bFCttnjaWZtERHRr+5d53mBbNmYbJLQ+wHhkvunWB8R0C2oqHQCGscU8qsmuRJunVkDnLEEjmXBfCT4h+985JAUIR4Z7Jm373P0mtg8jp3iIeCXAb53xiC412K9mfOj1bOTAZ3PwAYO5UJnEY/dr3aXuWvxS8ANly+u3fQMxK09c+C7JUcnkPoOSug66D6HTU+fF+63awm0RLZaoqTocbmH96EwOdsmXn2ekQTBLSx264UDzhjno7+qzZAH8Jn4rQ8/SN6VCyHcRRCTSOcCWuqMczJoeII88oTaSH/fz0EggJbG/hLXZTObcZNfxTIe0HZbeOSzAWZ/Ifqk+jRhgVnogyMtEGnXyLm6OvvbiRJBhszy1ewAew5Ejo+4WkaA92q9+oxc3MvQ2JgUF+wCqp5otH+zS/cwtQtAzQtQDLACkig2aBE8J3GGybxRCX8TY0OfkHAhhf9y9qzY94aX62JJe7RcWDOu6F6BVQf8J1UCal2bPheiCQT+OgK6hYCPr2AbLTjh7g+CRxg87VQ/Sb3RIrZwm9gjUDfmtSfnOBbFga9K1mfJ5HW/bA4E7FC47R1sADTvDzb6vxwBUl9yyXPF/Vy9KlXrmPfYUCwabZGpc0y2EqUb38be1JqByRZXIV0dVdVFYHH2NtwVC/igNLHgFlVtA00QiMHnbZREhjh/kfENiH0VOU4ErMViPAzhDi/uR6tjnGV35igKYtswZ4E3S/UDp3T16u/8ZcDMcylLpb2wXVIOR/mNNq+X/aoT9dHLFnd6lW/MNTO0cFInjiSmt4AIysNIeDVpe6UKBI1JUauu0YzaeiW2avrz7hd/8H99ukelRRPjrdW8FBvB5aONbw9zTfr1dBtaAOOTt/JHKC7qQf+duKdVsphe6rGoYx6n5HynM0e/BpAEXfoNfiWvEKWmZmjhxhyQZAmca+RR72ZvuMcXHqIpx2Z2zyjrVrqpXgcnNr72dQtLXY+Vmd9WGT/XovMHG4FLVkR8cmS2qX4dy1BNizkt349wmL6EjX+VcKL0tBT75QB47ulRKsFGuBxCn9V5WboP/m/ls/xhgcK/iwyDou0QOM+ly7gi2M1HdL7wDdBpk8phj8WIDZtsjrT6R8G5LiWLEo5b/GRAj9fQ/JDh/yzx7YSJAYXDWFI5yhm+gb0tRtt6yuXFiaA/r0s49+d+sBaAukQj8rqn60S75TgmjeQiAvrAKga3MJ+bqS++WAIA4+bqhPvAl6gJ3Z99cS9UY4BLPY9TVoE7LnO5viR8RDwwf7lh2uqv2NsM+uliGEHKgt0aR9SYRoCUMYIq4885LDytAzLeqbTeYhuI8WTKF7g7KCA/tJ0PK6Yh0i6cRufGH5vP8vIaznckVU1OwAe1F0SGhaTagTdSngI19r8wL0RhK9xMkPZqf9ZE6eqydSeiSrYPO0aAYZcq3t4Qqqiz5e7fl9zHn3VayzvMf2GD2Bnj8Y2f907gZ5Sph3i0RrINnsl26qt45Hk/FQEAhExOiymVVx7+SWq/FtJ19VlPZ2HfI8vXKDCoawGsy2HTpeySou7TlZG7klZ/T4gNijwCWP9rwDayea2e1pQHCswZ6po1OyLk6H6RtBnqpk4/Q35JrjM0pbdFfKhF9Z4YulCefl45KhbzT92vNO1tmDYUlizFCCTt8qB2RKgnOO108h+yktPqePz50VevUo3UnrbkMrf8jDI1viNVc9cfFhVwclprxPhC2/gBRZYhDnfFQ/fBaAZ/9fX5ke1wYl93IjuHbPmx2Nb2yGNm6WRTsSTRSK/UGrwJ2MK2SpQyfQ55NDNKB7voOXiZxXfdRWj6/8Q6bd9+Nk9VvVI70r93pJUB/+Xr6L6s7BpXGDLMNzadkUT1mCnIWY6UPJsXvTHAFeP+Gv+4O7MWAsOTNGRdVMaQmn9wzKdaL5rQcTUC+Uo4Yzcrx2LihxLpefsvfevUYbC1X4BK2txZmjarLuX99cOh5bXrjnUho5l4w/OyVrwtY4tt3j5fvcqkPw5TJoQ8F3xNooazT/Utlugz69/LrkcLEJu79Gw+RPAQ9ySp7TRbcl6M1Zr6FMbDkrTcQcwUpf2mg8u+pGGd09skSAgSao0jDky0G30Ia63XAa2kGItw9UhjE4MtBSRFbdDbkoodh5G3eL3NoSW6cfexfqVqy7Q248VDYDXKPUqAPIYuLaUlMY6TnGAyicKNuyaKhuuqxBcSZs1qbNlJ8g8R5xJCYOFSdpKdufXlv9AXD3SDG9MngwOtQOeqkf4dhpogfEDGl/yPkb3ln5szho0LAhr/8eIrKsx868E3OACJRVmpjJGu+x2nfSc1Ueor+vtXxpEisF4ii96tZ9wXYLr1ochskEq5xGy5iTwO9iQYbCUZ5AiWM6XRqcUc8gpxfTsceA6j32qKHwxHET2221xxEOE77h/JdWlOSWWWVd3LfIrnbEraOicMOz4HibiDNUryN46k87JIm6DAe/vYMHf2n9W6s9bkE20279PiixHvBnuXWsClDXN7CDGzWdFJDtdRKX8N7ekKdFy9exupr2QqGrcx2vf+Rs2VjrtNqt1Nhp8pJoI4T4PKhsI56HPimeVlfyISNJX/W/VC1etNyy7vXSbazxYr0CjyGCZxVOKt4ItovSbDeaiPmdmQPE1M3XqV/L3WBOrWzZNqp4MhWS8fSTAHogokjtsnjxlQYLyMt0oBXe2RGLs8vbBkDSQm0rJXC/ljLx97EuO0NQzbMA/fu5szot0Ifwu3cng9Xm/gCLOODV1q7b5KxOMPQ1fR+TnLJXPAX2LZvjDDysEJ2tB3k07q+bVHMeo+aYjSGDd5ngT2d2hp+1tHkmPEguXI1VPL9kv97DSo/ChP4WhDgxi0qgJKz7M4YNKPTKcfy8Of30E05yHB/L6EKdYKNhoGqmrL4MWGRpic/ntHy7Wine6L290IsYoaXlzsPAlF57aSChlvpEPNWVGKZenlCqaD/k+xDQ1b4E5ImyOGGzoRFdnph42T8GQS/S7rWqXRYbsyhf8as82FV3TjPIXAZtvR2EnV//SKPU8RZjr1toSqjdHZ79Jod2h+z0dosHDZfuMB0umkN5HoBG/8b9vWSq3YWvr+gbL21PXEpJOeoaiR03KWie7fl4rjsJFVWWhbmjx8DH14H0B+ycvcxDry9/hVPTIzh7qUzJOo+EYqakIaXhKvMGd8ao4gYqBKTf7dyRi+cVnuoaOUvqNYmcAxmoRPYIz6wdIhNPZuEzg3oS/FTAbQybEZKs6GQunWy1UJ2df2OQY92zOT0YznHmrIDh4jlMn4/E7z03cOApIow9Qek52ORsK4VhmBp2oWLtKFjj7WWJtQ4pg7BenVuySvbFGS5zZXVwetFpP2FkL/+xbkVfgnKOAtscnoXdM0m166MrBblUyxHrx5eTN5/YgJincT9RC+rfKBD+fQu7p11Efbj6fo00VxFu7G10rTMVvwVU3r0F2qZxDg3VAIbzRSMhOCIzdIjlN8BKoo4R3JjtOuty7t6UeoShyen6uPpSjJ9ZrLPxSVtRbAoSlF3LDXtQ1xZul+fV+VjT6CkqNi0kOl7+GV9ruw3o9ZEgU3x3Y0sCE7ULlGdUcxF9Jt6QLRMu40iae9OWVqwD3bWt/kiibmI40nSuRQg0ltSngAz6C79xFwoVOKwh4OCLJUyhx4zZhQxd4qmVZez7q764TZ+eBQA+hZrvPy8s/EibfiP6/VMJj5i+r83gvakQh4dU/ZXgxmzDBss24kEGYYQ/PI+1B/uTHR9AsukX8N4I6CiDgMGq6Y5MbVl74roqYla9F+Zw37iqL2l3CpqM/XBvk+jHGBdFD7dBXQZAdS/W5URAB32Chy6OzfqO6SNvKh6dXK8YPUb/XMBTo+VGhizXnwam7GIeMXQF1pc7uri+/pROHmrS45iIUXf8hnqvY50KSWZtWvGXcm9sSVR+QSieyrMAGF+pPLL5Nw//CgKb90t4jz+ZMB/0kcN533MoO5pTtlDHBsCGwOz6ijR7o29663Y5HfLfkX1kqjJ6Kw0VwfKVUuSU/olUn1MMvv8n42gzP6z9tpQm9e0HaqVyKmEFSMwkFxAwVrAGLBVN6MDSlXAqbggo+xuzi9kgjZ8xudHOFeorl/E+K0ziVG/q7f4JbT88yPlz+SkRozrGZu1o+isLYLxKA6XkWW1Xzo/bFFJZ0q9LUIBuXfJd0IMfEQ8qiDXA/T2hH0mEGHtkb27wGR/OsKfp1ufLi3YCj/je6wc1e9jEOzZHf36NjsHfZZcUSZk79AlnGgS5RlsCSKPOvhjov2grm7DTZyrREbebA99trWd4b5F1mgBokFXgdhVLnx8y9/qt9hAFocV2fNX0F9h0iY6vmMJGSvchXrbhWLBj225/fflRFQdI4ywHUp5T8zv7Jgv8G2Ccgl8f+4McWFVcvKDsPg5BPK7SHiBzJvMO5NXbROqhCPQypJSUnQYnhQcSimUtOq5bjhrAu2ZtQk22+0L2VeIBA4iMTDtOhGOi29T9T/OEeBrpkzbTF/drEN8RPgjEo/jX/7UCi+dWWnTzdbkG+84/shCUWW959I0QN/BDy9Qrlje5FvumXAYHF8A2c5cZkI7M0CE6Vg/5ip2dK2KVG5ntRkxPthlP0cElDv3hZdYqBT9+6/2lXJgwuhXH0E+1tXFasuYRkijiw0RA2zgioDb2lj/yQqzRjroEzNhwLwDP2YOE2rQWbZgSeNWc8BQqe1n+Pc1dOp7NPmVrgXy1cYwMRq5tyuIkN3BYgwkvubhPtaRXuTb6TXCDN1F7KdyO1pm68qv7cV42BwOyT0+d8OmwufUhx3Y/rwCea3Cxig14sjvCKblYU1sO/iEHexy49SFoEAdQQP3v81EVn6LYZcKNt2j1PC4jhL3FUBoVefU7fftOnIhq1KkgUA/VwFQOtJXrQ4kT7tl2/1cK0gOQ7MgsH54vph1GSNyZKNRdoU9VvXSVLupjaWk6mDMw836ap45H/0fOn+nxrteoy5eJWX+OnVczRhI3bTnqcNDNGyaNyhTYnx0nZNHgBs7wTwlCj74Z5VBsTZ/9vQp6Iq2c5RNOI7PSp2Lh0w90DIn2Y/2lrPKowRurFldg2atE9IsAl4B7XfKX630DaKZyoTIyBh7rV8BmgVCDJQtjDXvDVg4jNjco3hhxHmTHtucVJoq9HXDaDhUaEcD5mi6GfaHrsqKk5SO8a3fp4D7MY760ia3VJLof6KyypIiPIn7Th7EwHnRbel6Wb4Zqyciu0NUgw+lIqHRsUO3v4slqKlr7q+E3QngXYdCSv2pgoZqQ6RgJ2IIU2UXUu3UAfP2V+d+sBdTnj8D2ngyuM5Z2JPXsBwID+mfv8ZlBLFfiRDQEPTB/jPssw8+kDr4VB28EzF7FXyxy03v4MQHgqyaz7yYB8CWovMl7PugMdRDRYxQPoIWWNu1rDaP39WuqdK5kkcUi9O2M9nQyQCQsYMXAlOgte/k7Q1RkYjEUubOYdury1uFh3g1Wi6oLDteu52oRC9TciJJ1XdX+Oodi+fyxl6zIn3RmNC7ySPUVuEVHguGoTSMjoS7zCZdgRmL39G9okL3A6ozOq2MOVD+fYsevtYZvPZM0aj/PzNo0LH4XZortY5qp3YNcsVgoLIZxvH+Sv7VbHhm8drkskSZ+KxGOb6vr/FnEdibVT/mTy9Nn7QG1gmJhKi5sSSBB0zHohbCMX9CQBrYrN+p0H8lq6haNaORQPT/waYPr8Rv4znlbBdLptxFHXMNwmhqHIlSp/b20hcTUsDZT6se33OzFVxNzFSFTTCHE7Y2hHnI2z3RjPNUyQ4tGetncFruktUkbllkcKp6m9lMwd0JmPa2UCiiPoKhJE4QD9BLrFM0U47vxmKgH5x4mXTjoRPg0zIlSAV9PVDRnEf5eYz4pMXbDtjFE3y3Ot7/zkWiUg0HgNXs/AiK/iRoEIgqsgE/DmJBqoE2Dw5QZKtux+7Aec43zOKj7vEHIZTkfK0Wd5DXijhZTa/beIcBIGtPW7dP0dbH03zzqV7GNzAO4AlLMIe9s/FC1KzvjygOUJrPINoNnFErDhub0vxMwddAzOifJVfNUMF8T1J2Hbp6pvS+PIkma+QZ6e2zX/NVyUjas3J5J58KJ/eTVV6kWbBLVjREB+MTJA6zC0yQDu7WwJndePj6kQDQbh1SaDTr4HGqVNXrWhNW5CmxoU6CQjbx3DcLJS8b+epK71saslz699PhSxYHa4uZqvnoC/jZjRu3H8PeKtIr5KnmW74L3ffdJ9V42xLCUv5yKlqgMbE8SrxqC91T0LdSa1EiO2Z7Bk7i2UZVdo9oZnQ2sH+TqTUuZV1OefCPlfaCnu/oc9qUwr81b9Ecp/AaH2G1lftAUH6mjT+lCWyIvVv0UCSHa/u55UOmNnWjJ9qGnK/+VDm+dJfvwjD8liQg1TlubrnxS13rNsbRntL7kilSBT9V9ynmAxfFZFE9hKpDQtjE9zzmOFhDv13jGnWUa3xwrNAyx/Z7DzasDfOhNmF7/VGE2VwzEc3DqzT6qG/qb4sFEuFFA2iuSL6ra/uBUB5iiIZKIkmF2JcMTwSgwxQnGy/yv26oGThexPhBycOsNfMjsaxplUaDr9VScXAXD+RSZ8wcvpQJuJEOIOZMKtPi11hdNMQwF8uaCB6grTAtZBNP3KnB/46V3aYLfp5lAFkX+GnFbZFm9gm4RhQ3fL7zEkrtSz6lRLWam+5nCatIQycrk1qDNq8Dwlb+Sqv4R5xbSBC8yFo2UT33Meo8Qe0MmacIxL/KEUkk/bti3KPV1b/9Bv4Hmm6CLRGS/39M2/cSHWOZvcwWENjK+c3OmkYFBxeUcsjq3ttnmaKTNL0Ww1Cjhi6JDk7iEJvBScaJHHaZWFStlNOKayYsgtsdFjr6DbFP9CyVZ5iSViQUImGWXPyeLukDdszdo9xT8Od6ljB/nmpfM7DiUeSI8p3bolv5Sikge/XeFtlLD0xxi4SsZF2cxuCcMPZOAwpqHxwqkVmEIkzKYweVO2A9YLgUhxM5bNzBtTt6o/HK8c1D/OBhbyk6tgytVHIohWSOvOiubE8r7B2n7yr90CMpQradKYlTBpDSuzcF91hrQQA7I0cU/72HWeez+lgXpS7Xcj91NfT84cozn5ONRub2hx88YAwu2xO5nNgGmtzmKe3xbsKAV+Uk3+mfHKeLMnDoBQg7u2sHYROmlDnSUARoep2Ys3vS76iPAZZFMTCIjU6kss97b74uNYTEstN1cfuMipoN7qQ3BOyFjvZkvCfgGg1wZ1sai1eEnNXuir1ebACCJgdiquZuJPXlVTdP3QHmKOkt1rMBBlOj1J5EttWkFyIxi2UmKO5iYJEuJ5bmJgvTmIwSxQnXXpui5rc4ZUTFLPZQkEnCh59SLvFxsVi1v9mZNZxPa3v+KPwnxw1/78qY5vMEwVuKfgYBvnPAsv1aXmBwsDTAzi6ME22PkFjaEY0jJOlZ4LCZ3gl2rzAZAFZpu6/MH32i5hX4YKvKzusiq8LX7ygLnV0SHZQJYK594V0hH2Z9gLve00XP3ttiwyyAa4RzkN4j6VuXwftoXQjCuftW3vnJ15YDWT9lMnVIeA3sqzL78kBVWjpPO3FpN5s+SQvRML94LJP1iQrQK0pEvxi++U0dGFbPbvsTvqGGM5jzxZzJOaNxOvBuxV72SwK8B89i1vwOo7k3tSriZGTewX2Z/RrxRRxMZt9xFViSZDHIVxV+oil93Ktt6w/P7ETBtOz2wCAhgbrS8f17EyuSFC08pPkPFiCuzSw5Np5iNwzFMWvg5u4HIsC/Z6l/YT8VwLJbKGpo3YM1wD9H7MKeLr1YpzPqTHR6FtxMezGgGsPLBdGhwpUb1NxEpny1kQI9rBvs6ehGVtczT3ZKweJxQl8Cx8jvWAb4cxXD4U7Qgy8x47unVYpFRAjfxXGPm7OHHKuXGYsOqEDeHzz2KUiGC9mU3V9G3YAZ2eLo2pfuuiNapJBcBG15yQ9KOOgY+jJLDVwtwuJ713jhADPAczvn9rjCGe6W8hc1FdzOsYXayEOXHLZBufZhiEtN+BLYtD7gdC+edhR2dTgKnL71/PFkJJjrWX3w9sba4NbegmuB1nin1Q8luHdkgEBBGwlHp3I18ro+KJa6sC4d9agrOmLo4sst1tfaZAX89jA6kxNs8ULJ2OdSa2qmfNwTFrFFRHwGtw9U5GJ6EEeRVKCY5wDvbo7MbsxJlLTO1MnV66+Ny9j0iSfyUMMHBAflNAmJpqdtbnRRvja3a9iNGJoNnOSOkNrciA8cfsXWXxfXRZjnRDZd87gCnuYank4zp7jB+FJAQ7ChYYnOut0JjgunFEJC1zkNFQiv96NSA/Z94oCD+NqdwgjuiG7fF6jJYsJjkSz+s9DvEZ5rn3qPn+SuRDEux+Cb+dmFXSYJI+KQddBk94Lnn0cOy/K+zGLiEpaumstMXmuB3EccTo1csdLQltzPmph5Ag+/A7NscscKKCtsywRu9daxQYT/fhwhhRAD3tRhl9cUW6iUKL3VIk4IICv3YP7ID8JdEjQ6quo2L41gQSYMYC0kLUpXp84Owj9sE7fYG3RTeKcWnLGQiNNnSt0Ulhp5B1u3f1T9eLJd8JvPTfas6nvI4YJBQpbOlRB7jRMmRNVQAyB0axW3MJtyPVC8Vl1AERwiv/NXxv5alL6TSdiNbKhyXq1RKCITfrBh7vjrKXks3b9Ohi+gZuEi6DFuGSqytLZVZ4j7Twbk9tcFhztxqnaUotkpoi22kfgMCsjapkd5zVjlbc6fY7PTYl4F3xxUP//zAoFhMkCT8V9xoPfJ5+Z1whhVo01Df7n6EnYgboYq6dj4JUsDt7dssb45RqyY4LD71plEIyduWBhZJXxJdYwgeMqGzh61FolEc95OfspPFGvGaS6S0RtPpDEtdphn4EQXtJ6WS2r2PAUAytlaV10f3xKAAObiI8M/HE5bwPfp2yzKNyaFWs7+gY/O79GwouHYbRAsO3jct33C4zqJjgHWN4y/xPwRxyTe7fdQTm95ISfiisL+XfGGVxk9aLfvoyXXwfKp7IGSKk3MWMksshFDyuLAiNqOCpqJvc1nlBArdJ908E+fRt7+VOg6+Wy8nIFmKwAMHcuL8p88PB+6/xd4mzSq55zYmOKIf6GPO7n10G0yCrfLPvGNMyKMK2IJGwznkjI/LnO0EOSnGOU6npjYy3Prvik/MveSyE0J2MRyqEtIAy5vIfOQWmKQgp2tQj20y0qVc9VKNDACTnqoXpK4kYYQUrvyvG6qxeziwWJ9upw0/8EE+SAdShuq44MbuJemCD+1XG7d+/0B8iMBdy8UDeeTZzhQ+lQcTV9LNMQUZAHPzLqf0HqJRY7j//nciU8Tww6J835YK3TG06fD43WIAb4iJXdH718v/C1KARf+3o/dY+klI0p6LhH1xgNdL/FkfbIRPz2SMXHk4OkWrWwXv5n9p6zApASV1ASZbR1KzMlcGSsIB5F9R/Qu4SLucGjPeztWSwtTALyUHv50TNbnGd5jcBlfBf7SEv6h7VYP5J+f9ZCha79Z9JTjRpyI6tFMDROMpdkcIjYU2TYf3vUzqXajcE7cEao6KRZhVZNXQObUwLhrPMBLxgpBd0gvJ5S1HvmyYvShMhv72UH9bPsk/MUnL7rQmuQ2oMnpRc4YwgxHJnrkSVMYTvdlesb2TsR4hbJztRD/z3y8i+zhxTi8IIFhxHa3kTsJLrNakiomrisnd5FAyAQ4tHdXSWPiGJLcCUlfUVbXLmp8TxeK5WKcsnzN7rgkT7+WYZqtOf97BcdfR3oo8Z3mVT0JGX7HaGZ3J1ekWES0V7gX9ocrXLLfswCkTZAnY3qSk53YBPk/k3i7KDXVXYvcXbNVg6hdIrDEx4b6tUguEpxic9vKOXzLcIT8q43dzIj1obm+K87ohJGpsjtTdMpaO25jxcs5u7qNH0vWK8WPbtGt43kJWRR8ytu1QFip5pjXqCBy4iMOCI+IfPyHHkolkdU3phFOHd4pY2jnGEfbcMjR8aq++3aWuIy9zb9GhBDqvFoHUGlZ2TrmnH48KAsQBAv3RqcUObAAEOpNn1/rT2GIdfyN6UhpNCJoEAUHAlF7DqezKK1MRydk9YzwHan8uw8cOGy9Z3f+r0srIyKnQPba0awy9AOrjNKTo1zx7lQwe5btPow2KUMDXnBs9ER8dfYjC/9mVqYfMO8gVjObEJzmaupBx7OorSv4uR0iS1txqW3FXmFb4ATxwqhCTXr8ku7oGRuxkaDQLrQnxtiuRNk5XPMX9U4Ou7erwyjpvMoucuNJEtDA9U9MAtsAqzg91n2+FNn+euWpjPwfmVwJTuBImb+bvG6qVNZmtHGloy2jlk4OKcX8vHMOQhK6T4Spp5ShjWIqg//RSsBOWECGXO4UAFd6feCBIeHKGPp5cPkNU4NSzXxMOk1X4BYXaoOz2wz06kgHLEr0sAVGqlZfWqcMrrAjPt0rP5+zKRiZzQoj1c0Ha5Ku98NyGHX32KpdTYjYbLrkCSjXPuzOMhyY/lls83S6iugNANNmPRBeGuy6V5lplYd4OcKIkxPxJ657b2q35OBfoZRfu3GL7d87yzHWQwCH347sOm0WzsQLMVrlVNOQ8vGh7U7pqYQGtJTzXrtmVUTXP48ovZToIUK0o8c4MfX9lDrjMBHD5tu8XcGPl5Mq3XGHiyI7tTWZbbIIkiRZ1R5D+wqCjHN67wVPJOoi09IJcHHMLNSLZdf9HRkG27zBlpUEXtShMrpT6fU9pRcu8a+b+ytJxkqScMyel3R26X1k287rIQRfLXMp2EXyZOWYTGWI7bnqWsGa5jlbD+Tim/26lIsEfNe3lB3Yfmqt8e8BwgJb+zKdpBusv/vn779BzpwyAhlZ449YT68csp9SDz5zacJfhHmzp7FVRvKp1GzsrTvRcz6AxxJWDycawsXTje7eBUeSw9J3F86nQ+VKKOKYsK+zu2lRJJlj3uxO1ExMpIU5exlMUEEcSpkIFw8GgHFnrd2+bJIZ/lJ5WFlNbpIMGIYEpJgClJPPK14j486zvcq3OlIlJbZmOxc9HXNYk7Dq3oUF08RlKhqa15UAhY11C3uyckzviov3c8Bu7cxb3lY9ZqNlwb4YYZ1L4X0UEl0nqYMCLdZKIv1X6tOA0+7BnVLabb/wuRO6vJFHTILcXjtmrR4FJauAFH2BRzG0ZGLo9GVfxqbl/mBCNX2Pb+zD2CpZmDBi2uOr35tZ5F12cLvp84XPG6Ifig58ja34EyfsH07pckXtNEiS1jlM4j+bgSF+9i0Cdeyc/8X2JPRsVY2dF/yP7ODUH1VXsDXhl1A/8I7QzxJiBg5B06lW7KcqWM2EnQoNlwt9/5Mm5gKPgU0N8Ja0RNMrQuB6hAy7RkDqTqMoTZ+tJUrm+kPBnfyoJ8rxo2Tmk0hK5eYuqTJBWdMAKu323D+/Ei4n6X0TW/xgUg8e3k1yMXUvu41HTbdV2rSN+4dZk3Ao9WzHqC93cBUO3upPnkVJi6ChuD3Rb81piMgvGwSkd7iR8POgtpf3RihI48YqPV2BjnO14OPN/snq5DU73SydXSZnmfl2LhXK21Mq/S9ZWhqvpXxRZUvKdLc3RENWHnwJkRFvsVChTj4VlIpS9QPRxNJrq4y3MrIOPlSXHhDcwAkNc7q0pq8PlY18+pytW/TOM9Kwn3RGbhV4Fy62/zSsvBs9gxGMaPalQ+iOIFUY5RgMNC/TW/hvklhHL8Uwr/8GR/EJbEJvFPqBPp/zhGujdbHYQR+wUrhKokd7S0ruczYcXXSvxORGSYO4n8mrxCjm8DJCQobhr5uH6vpKptjwYCCaYD6vxPSbzGBS4fuBdTEtl4hbOiNzQ3DkF5FKpguaQnydmIfOtHvaHalma2lJtT1klKTNmZfSPoDga+Bbbu4VPS2Eoo/wXL6W29IqM7wIZChOvgW28WNuHw5G2J0SHdOhiN14LUcru4Vm022jm7lnAkbTqK9FxGbEZn4Az22SKzWbVmVFrmvWEST0oAKODN7LDc8AiwtUAZSdAO453FBNLZVVTtM4Hr0hy2TI4C9cVyxYV7Kj4pyf1afSfFej019zZgN9a+VSeIRdpOfCMBiRL4H9cnu+6LCjDACKwpoMQ1mO95K2thhl8n8NGqcTElbNiZ+XtXVZgg2WmAokUcg9a3x+KXh2l/OX4SZqtof1F3BaLSIonMXrkZKnbP7SQ48fpuThXBrBLc6Ly3EBInClFvtk6F5KI06FpFEXzoyuN0NQzg6JiE8tr8yy38IaG6nGIG11Xb8IeYEQAALnDrvYCRsNjFlfaHFSoL0+hjHARHC79SJAt5Mqk9APaC2o5MXZ822kybWIJx7hiTUTSuqVcYOkBlcE9kK/XZq8CCm0eLKF/oh39B6DOd3eXL8lWv66mVfmwR0lAGbyRN3edIC1cWUUxAzrxAdi8dpK9t7QejKiHkBV60Pk4w6Wesv1FYzwHApgTE8mKOGTlfLPe0WIMPuOBf0jm2rVPX9xTd5464SclvmkVs3w1eP/kHZIHBW8WDpjSy9UEKSlFeJN4vRkL3+kUAP4qtXms//BvfUtgLUGBBGetC+HDxaTUNqL/8a3v7SFgMBu6M8bptCdJ1VWtYEO1Rt1PizlEq0B68azQ+cARCUCBX81Wg5wH3FPV4yPDIqydLVIap4coTjvKBBsJ1FL+A2aSRcfr+Pz0tCQ7CRApIxB5gzMQ2EBTZ1TjD04r0eDvoJ7bv1TQsYc+RxfQ+G8uttk2vJi57VhLdSwRkmOKXt0mr3Qty1wpJ7TR52IIDWJYV8eBvAI6AWWW8c64YDAvLWPbm02/HS87kwtQ6QFHDFyxCZ3beD0AoFyRnw4XWPzt60OtdiueXJ3P3Y5ro1U/eKa2cfFdFIXcXn0Xe/cuZUuqHQ5pmv1CLI/HUdfFMW1M1MUOnSOKyQG111jAi584hnYgzreXXXeAGPoIZd7n2cp4zbZlo/1SFMt+PYdAIVqxkwxU8TDw7Ow5f2qn1Cl+5JSxc4hBoVM8zzVVuaaCRnqDKC5WJZYIISsNlLubu2sSPKdGJGlVmOPxsdIbGQzJ3FcDIN88Qd2VlngB5PeY6sJ/aPl2Hs8puZCIMUJOD7iBSJWxt6FaqrrKLIukYACoOMYiSLaC+9ZzjF7Uk0IXOaJA4eTCElXl/1QDhSfBAmXtEdLWFfHPVKbZ7qVJwvJb+Cqvw1souYyFiTSeP2hqkiwf8MWO3BbCtaXcTrs1yXlfHDEL3wIJLgikcT+vhCcmKFGi6r2vm6g/9XLat2DUtmE5ZQB2rxgJD28McpI1VVXxiBPSwzvVLZtDV45SE0SVOM85CfUMnGlqELoKByu7IFtcJW8GAMYk4GT6X903Qb1OMA2Y/4D971neckE4wmPmfCRKw9FZhJX8SKZpi5FlNtvdvJ6wySRNIgNLORJpWh9as3gc8DAuieN/Q2g8oI0P7JooZc08GQuFMNZp6CTET0aZWBhBPFaKnmFai1iy8eTetXo0RfMRExZnrhq+xSiI5s9IG+1ODOZF4h8I8kBb7zKg18KvZy5T05f7MnZhNjC9hDrNPnDy/PHbELEcrsCouTAqwO/B0ZdNhqb4PjPG+Yul0zepm5aTmiUhDanLSIsnsYzef9GHwhLXZKuO0F+GKnEPCzflO3tlW/hwHq66PLG5Td3m5WmG6ZSyWUxiBOJF1uxj8U1H8ZAkcP+TRz7a5i6n/9xfEy5r3rD8HE/ltqplPe1SN+cqx/AYBeaN04VRvlNMm0DPYmU57euoCG9CJBgusOR1MR4QlJ+kWOpcwfjqTCgcYKHdE7QbCGRi3vafgKxW9e3GSWaKGyMa4YIVYzrh2LzC3O1HYkA7HRXcr1Nwf1csTsScnoxW26xMf+lb7sh3L5621M+G3UEjKmA090MvtGK9eStvS/hnrmWmH++Sd8P6tjLliIaIUOdOx6Q0b+X+R0mHOIX7eNYfvr4ft5U3JLGD5ZEB3cyO5l92qnDkAjb3PtrjxsCD75DpRmBGlBtDFGPVQsTkrTFWEKa9FRZ7salIlUGmaG3rYPxxfVXy0hy6Q5bIYZ8+7lNvmSUdolNO4G8rmTLFMuqzCvnPUmvDJBulLpLL027fE1dI5f6TqqzeN8VGahNI7bN0FS5vblJfDFulC0rLLPYkDOMOrLXPw3+Mb7BFY8SUxT/lY0W9bf66rUxHz1kfG+bhZwO5XUqpCq+/zIDkAlDpdro8QS2JyYCT40DPYZ7MebLvY81QqjpdqfjRaQf1FZmxh5BLyA8bum/Ugdn7sOARPrVTJEitgTEGWRjAhaUCOUixgWfdV7I0RfOYorTO/+94lZzS6HPiQ1y/qoj7OjTZKXNtG9uszIpTRyZpHYhWPQvp6XbwI2T4SDM9/FLTm0CTxzliLMUzuaA7ortHqnn5vK182LrdDsAAIH7Atw4noTEQwZepLev7ZimmxlhIEu2EHWNpvjOk4cFLcS9r+xvEKaM9uuA9azJsKiVH5agLgabEMbnVTer0URUx52wCaEyB1uK1rR5LQAtz6mJt8c9C3VE6ok0ARnTp3qStdZG/n2gFjlH5mQPPi2XE8t6Esgw2aJ+7K2SpAc5d/GamqOmRE54XhEAtCGPE2LSMpvV8L3hstfRPqNy+/tY/auqOkJeFIZAjt2PN2D5CswK65Cfl2uEcjls5jgl+UgyG+hWX+u4QueubqgnMePuBrlSle9A2+US3LasAficrKxTqVIGHxlXUPdjxMY9tTEMkk/ppCiBt6iDZ8LOG3y/bGEGqyHOl6tIvGcGtPagiBS+wZjCq8AOLycwCnqvRAp7JgNAeaMCeG+vzmTvHvy0BJ1V/B3il5Nt/41yjyh2lh3+ZPMR5eZPANNgY2cEWFHHmuyaoX9xQi0XV8jUnh/EzPi0pI9HN5+cj2q1wGKmpsi8wPw0PogICUuuCt0BKvHQrBAwaPrMAEwYBogKkc8mI0mgFlCZ8rj91bFEhBvzaM+bfcNdSblKuWPIUW88sabj/v5E1v7in9izA4cBKwhexFUi1y/+nBv63gOZQCohjbmr3iUKlc70+9v11wxD43queWMm7rXFBlNXaEjTVyKjKXVsDG2hAT6+041gM7k9a+3CQsh1jXZQLg1vQ7DvxZRkvxY0juiiJNtbQfuvM57lQngwdq8GBkmaDa3O13/ugMFXxzcy9g2aw4UHqk6l7wkIUejOlDjgcemvg8IYp8V8CG5oyWK5Fo5X/ILSGnEpdOdiGRPzmj06H8UwePL/odiZ1fsix7KoeqNolYoWIyYp+jVet1MVeACQfr8gWVmv/tSizn3f9DXKeDauxJgvNSLUOLghC0tnQ3WHu87W13bYcK8b386AmMiCea9AaNlyx6QRLlHQeZtsjsNNkc428HyAu/AgTlk0keMzOVAr3jYPzRaldMpUTi9VOUOBgUzqhSb3QSM2gRwv1v6i0pgPaT1CIF3I7KkEVR48Rh0eV+KFCMjXQ48mrdNpt/r/Qj4j+7mxTNPhYgawQOvhPSzSOxzaSF58LSvv+0Eg6G+N+R/ZEScqFKyZKcGi6wVu9qly4naPJh/lcRapfhXyqHJg3BpQtWXwgYH6+qEkf0fyiElOFS8DyeunNb6zJ3a2nTRK/k/Muz+Q7DwOn5lsc6sLdBZK32rmm+rMLCAJwrbVZ+SQPxX+y/wBTkVIuCwBJFdp2egQnrqcS+2lPaN8f6B4zSG1Lq+WA18bW8qU3axqDILWuUG3XRM2YrNviyx2N0VaUQ5Hz0xjPSl4a/6mUCxwkuFLA+T7FkzqbIwOLTRly5/TQHuVBpfx8VuOxt1co+m6gcF3npH8kdCmOcXfciLTZNYKc7wRYZ5QEsnEQbK6CUHYq9t/z6xgy2X/RjSiKPNxSNWwGy2gw2h44wl9lY4Vo7OuNbORhGJliTlFIxkTBlCFS64wERKs1TCRf66Vreiq0TA7VGEHwMsAEaPnNKZBMJ0tI+LdE5rA/ubU99kVDuScbg0y5T8HIDcQFcLXO7sChPTDFy3CCJuv9Gp61eJeP9v24ExA4FZJRAovbkdtjeqQffeKwkq0SSAcJEo+UbbQoNgsKAmGJXsv131KCZnwtVpa5ssPZ9cknuQAI19XR6EwAon+tCfDoUWyTudu9Wyr3jYbTvsYvndVgTtsGfjp18OlCjNfViq2U8fRsOBKqzyVwh2EEFg+FQASppT0S8fBp665LDhY1aIg738sI1VlalbOmJvV2/NQjgdljOvbIYRI59swlHl+L/ak/B3/Bod8ZxJs5aNDZrPpJsN5lyopxE2VcDyQ30/DhNw8H+f1TOZkR02rvGsrtUjaPfjrNnBGXjiO5AFJohdTR7sBql2kpw60ZtDId6NUuLpWjloNqyr0Eh/aXI7USbtWv0Er/0tN6FlIpD7ixqhxVBpEzeyszSqjXVjkSa8e640e6ye7kxhV1ytk8GmM3rCRj3wqVL353ub4pxJ2MwmOz5dxWK3QTwLO0oQht9DcXu/adtJ3HbaNcw/GE557mxORUcERq0hy4sV7XqEDe3fiCFypgxQ33Udz79Ibf8rCbLeI6uHbvTk0dNEAZs+80kZ3Un0MOZUrCjGWjtnodu7rDXComar3RpKTUwO5OppSf+gsR/K1UzJaMAjClI8nJX3GDQiL92sy7r9S1fAnIyv6JkWAfeFYWWSv1gIWC5xiEtkvGi3gs0wwhVVW+7j9IGaxQsKAlO9UcIXKLBVDRtYpOJEYFfWP2wbiTrWhHOdSXhFNf71Mg0FW5yERUPOXwZIRJEQyRsT7WNEE0QhS69U1JpqC+mYab3KSdASMZzGvy15jTiv/0X23+9MQ3TgPPh+ORLtNg7AAMS4259cm5C2EIev+dJzwjIgDRJQ62lwE9GpqQtDC6w+dUf0QxsTIceBcMrabEOv9TR2KFB1AKl0d96a0jQy6mk7U7wI7z+F8bAdlG5mIZenijSawOR5h4kMqNtnc/wAcSwDblXFChsumW0yk0AQIAPA6tC8HTuELmv/qF13kz49UC6LNpcSY/fRe/oRLVwkRhA4jajqxuHL6/NmmCc9ZDAkm4imG7e9+jT2MAdgv1ieQSicb2i4ZLmmwauSEIAiuWXQbPJDwADSOc3nobHkTsWMhpKR8vPePa0Re/a7TqrIsRQ8vTjLWUcwQ5x7VZWRQFvfTWddi+gShGu4FvaU1aNZ5SBT2a4KFIiQewe48zFLruKVO2dX3BxA7corTuBKG7R1KxrNs6n+p3tHPDc2g7skilG3GH1q2c9kGKEkLkRQK8QwjW55UT1qlzPHNP0DD0CavNvw1RiSDCTaWtdgb2a8sV9AiJpow2LS1PvS0SKDwqkdm8+fcmQH9bkAqEbxv2XumIW3ehndMQgzjGjyPEF6KpcrT+syqkaoKrzuLulo+ppAgOQKNWP3O7Fn5UAG5QbZqAv1y/+AkrBuXX+WGhKLqX599p1lHxCdp0V+DkKXGahUeaMFtTamMmcGZa2IERjzpL2hPoTrYFYsVuH75KuBuT52ouv7OOWja4ILRVfBOjl2Pt2o2RbwukH/CZV6HqScIrLPkC7nFn24WZZ8QNdE6X0ullzQU/QjmgtU+arVi+mtl7Zw/OrUXq9v/9kBV8JgmucTkdFGLGKH5Lx07TfuhijRcce1IBw8QFRTk16ISgYVtK0w3CnA1kkSPgWPjqqm7sSRho8K6dbmFFwinAetbPVcCruIUQxxNeQvBWZwD2CfHmqKP3LADtUGm21idhq2zi/Yhc0VAYeiwybnLYduoEhgRQWm+pRIvrFHgYu481iZT+mHGj4B7g2JHEP1LjBIAnjqc1RE0CPLfbBjVm3WWoAsX4zujq/WtSr7LjuFZMIYOhKBf3nXBthXx9+CRmAAZLiccecFWccIbPXlpMdZs9BGt8g+4irUHmqEkhvufkt9FwEA2jBOQqHooJyXaRAHvkIX+4qvItHNrwBFQdaknIFcwPxMgO12tRyN6kvZvSXNORvqYlRwUwFGZUTsP1sncOxm3oB4/ozS5VQorkPyBvINCCPa+lHP0ZCLNAavuweiwelBiSD3u6Yttku5CnQUy7/Fzt17rCq/c/S1GxU+2p6EP+5eZYYzlaqjbR9fFmTNqa+QkkQrVIbE1F8Q0rONLuiWkcfJMjqbSCPPpEDTTe+3ioRLNHXcHRs/DWMBb+k36i8kFbAySCk4XChKXGASd/WfSjPOhgUM30vMiFoSATf1EuCNDxyKae8IQzj+85swGcB8KpR6KoC/UarglI1n5xSromaAUEyev0HQ8r3kM1oMK7HBTtxN36bF+VoGAfj69qhG/ST91XOVmfG1tY0/iWDWcAT1XJNju1LtRWOSb0bxzfVf9HNNA6XgW4dExfyk3os9IE5fhuTWSXGJh15pI/KdKQQ29MFLb1AyEP2x6OECiu/IQnDHzTLKiB01E4sMfcNQ29yAZ6f6xTRY1zO1dfoUK6q06eo9TG1KVAhyreJ5r3PDLI9GbfWY4wtKzxN3EeNCj0xuppI4JjqDGOf6N57HnnDsmXJttmc7mO9h6SLsaZKPt13V62VSmobZ9+ypUDJZYpV8KJuax+0s1xOONAZ3LStYztomCmRg+03a2kZxuYfezkqwN+ZNm8IH48LIBhuOO52KIaEBnPNeFgX5VrW2WLu/R9cG7ixsg1p2neeCce2c55iTbADJc84I52gIw2gPcSp4AyL4q6bFESmYfKbFpx51e4Y485nksbmK49hTY+dK8RnxnQryBnLt4bou3Cpm0NJkABr54fzUyuq9sJcFkVMFCQY7igyVlpbS2xyBPmOO+U6ytROi0jgQj6JixGqtY1o1kuKJ8REXJfc1Lo3fC08+xtr7nvN6YpA4YefKtZYKO1XSd6N402iUuUw+LiAhjTc9KlqcmUZY1XEmW0AvnBeLvxgqPv8jZj+I5ynNARqhkFWpFWN8HERn97rpu//wYDICJW/YW/7ClstMrrHzCaCVQDJlPDrKSD2tihpQe4FmaXHcL9vAN4LyZvF3LaathWfTkxzBAzSjtZMJikquAHNWnXBWDkY18jliJ7Tljor2Ivf2Co1XI8fre5ITORS0nwJ/CTJkKUYWWtAbr2jVxOAXEdTx1PYEeEQKr570TCB/Aq3f1pJOMou/MNEV0K//f0ok8k/lqZfVphLGvvSwnCRWFncc4sL5Gv+TNPu3kW0zOOWe0Ui3HaWDZXOLUdAgrB1P0EukYzZXKtVCkRfexJE9Z2iTlxBNYbUjYToHgsnRwjWE7+A9HDnniCU927X6vsBty6Rp7QyO7k6sl6ZSoDUNky0gGoEwxauBfTghUWaFpIW32pKmA6J1titK2RbVXNVWM9bsy/nX3CQnKSbmTJCogozDMMSCztzRUpQlEUm7g6gjbgUvLDfZoaHP8GhNUSlLWYSPDStWJ/9pE95EHwANOS+8kb6HhB1VNp7203SrJYNWh1ffJaCmeaWtVFt+bt9f02GksfZ9GOOxhIYm74GPyB91bU9u51AaB5XQh+FNT27TP988K5i74u1YfmugBhhrieREzlQUi36u1WzTXcS+DJB9Sc0btyp1V2Jx9OcmqIrDYV/7M9UHQ4MeVTwjCPOaudNKB1tU4gTjxx1t3egVEf6BXJhqyLVgxjK6dIlQyTIdXy0A5B8nOTGwj/WCgbfFySfcR0baPL/B5v/4f2DS+/DQ/N2afFCEksP1UMZfsn13wXSemKwesafWFlm9grLcxS+wRzY31gvLDY77AR0EuW5fPkOboVT1UAvHgIyWcO/w8HRtZQG2vdVP0O2Rr3a7tsf9oc2hYP587SSuO9FB2IRJfA+fJ0nLD7B6moaLKg4etFhevciVTy5uGTS87JqJe5cSNjJvy4i78g3OXR3Phlyz3X4sLzTIExgNv1Iya9VtoiPsOLLrDTOvBFf03V2TpjdJTWQml6C/ll4mc6CbDchqKFuOhhv4OIGYeA4vZct37T3S/I5sXWBvNk6kzxLzLPM2urQVtaY2gRiz/68ZzMcBqmrVTI2YoAuWFo5ohnJx2HFOkdGLbhhzoPKWyiv2ZaeZukEZNBg0bMAwLPysOW1bFS0loQi65GslEGL1O96wwBkKr8cQopyFoIscjwrnYrfpi7Vfx0Fquojz0LaR+dexcUI/imcqnTGwpHqbHG4+jIDIs+oI4Lycj1R6daRPTMNXjhYjlwBzKBrYHn+qaC3Uf4bivjKROperyhvNUjxaMfA9lCAlTjTdvSAU7l54iv4AJpoLgDWfEFxpi+GJ9F+GN3QZdQQQhbMevtIf+wumtEqbZLIhByeQIZ2k6Jf2VCJcyLCehS5XB7K4VDTx/bCJ5OChg/YNOonMUAFVtM2emoj3x5AsNowmvVegF5tY7T/42XfsktizVBD5QGhE9Y265Abxah+0orJKrl+6A2NdIvIbe6DEClSTTeS1hnyWIbz/senwQNafv22fU6ErHhF2CZVwz5yxOr5KPqgeufDEtDrQm+biC8oZMmaeLKkXl2paEh/tqb6GsVyMS1lzzVKKcmk66wf9NNH6NQRwnkwJAKPRXaJRHwZI9lrJcdUI72K5lHWFdFue2tlSVDEAy/QMQA2CHqjjfh4nTjhgF575ezwwoeVZHFEfh76JigRXFwfm6EP6mueyw2QL27V5iGOb2WmiEhxZ/CR+w1jVwMXZUIuYF8IdhGvcEXLsd7mNr0Bz4yuvnh+fUzu34HvxKpfXHLDYuVpJ5XXTu5K4GQw4pfKKjM0Kie/D3V88PmnAn8nF30S6VazHjeBK7h/eOrjtQEJpqQ8geIy6lIT9/G6Wm1q23QCAoG9+Uoviln8o5EX31vRGlr0aAnad+BzEYiBmWXmWCacSiFchkcUpZVQBwnCuoFvZSWmxlX6TGBqxjtiRVRnJRbUzamf6Ihzc1fLLSHIuLPEvpC9ShZcGNH3sEQxnS1FurFEtDH/bmM03kHr29W46l7Aaqa94NwcT/Gv4g4TaBgqw6tZLGlPQj4bbMvKkda/h6mnU4724GuWdBXZJtclMyeK95NErc+eBMAP61JfZnWhJJkhnEjwZcE6+BW+L9DRVLs3oFmYTCp/xs1V54SiIjqSmJFxDwQlVqVA4U7eU2c1NGmZv8RPeYA+qFcpenhlX4bKJsBrpX1JGlbdiMQN5GH9BjDVDbY6cgO9Ge+YVqModieZc/Bqn7am/lu3n9gNhMfDVRc0Xl5iJHUJBqggu1HWB6AOe4useH+fXl9tolF0OBuktgx3r2cpUZwqbyhVGYXq0ojtJHiCgJkia6025r4PpueR2vriHFvwl53xRYOXFWL45+hQxeURB2Gyp2BcMwrQ4YWBcw9EoNgfSuekM1K2xDoGpgwPYkQWlc/ClPjTabHhA3sp3QFqFx0N/t69NZDC2rjrgB40eeSCR9tpsJjriy3Ok/b52dC97g4bp9aM1rGRnes6C9qSxy9AF87eYSqJLBZN/VBpfhBZzAl6ekPh7CTWVG3F1nm2Mqbc5W84d7KBd4MWwzrQSDLuob2yniyR6Dgaheqzw+bQ9mvk53x+SMayTm/1291lLYQT6t40rwH2k2Nvp+J+muBRlj+NefndCXfV+TNnVvPjzYyH+ZHJ6QHhoE96XZ8xR3BfNEIy+Lce15Ipm/zWGx6dhF5gKneUHm9l0m3eDzwsyGlVoDwLeovnPkxUm9btKlHk/Ta6AhgWZ25dTqwUBXhV4A7ajTHzXG01mL6ZppfwoG/CSPQnxo58BlxNBpcJEc0rl34XEsRSZigr2VLf8YMRwtQBTwAV1iiYJe9LqUAf1FHnlWOouMLLNSX/C9WrAoKEyKYqeZ5XMLOOVC3XR4vyCecUbpSvw4C7m1DKCV8aX/8eIZ/RdR0Z/oKjF3LjHquITRv6KpHfvym0ZjJb1nlZcbPp0IQKC6rxJETZmWYLeaqHUEfN382pjURyTxvCoSbXUNF1y6ASc6pNGXS65aooEnXSlMdtK2VU7kagT0Rb9/0IsdHA5IMt69gXR2OufMD6QRbGoguT36i/Q9Gz5SoWUVEKkmn6LnmjmxHLXwNPeFo7rjZ4dr1oRdqf0XPcxcCZ03DZPcqkUjgHi9ttTa0o20YNsjdB44TCLr9506pOMklA8BHu5YldXYcM0QGyIBAx/ZmAZ+7U4loJEMu6YFGfenxMi+maZf25KyOAN9oXzSCSKolNdVikPNVjk28eQMZ4Tc6rlytW5484P4s+vqeT1T/1WDmvO90uyltXcUDvYp1XSRXVWoJruI9geLRNepYMHnlIwBFuD4HoNXD72gUm+EDOXF6Z78NkSU6bJ2bz2P791Iu3HyQ2TWoXK0kIi+8gKjVSlcSdrBV4wRA/sSgG2GXZ/WWjhs70je6v/6TtfyMdvjHg8bqN9an1jTuaK1Jr+Sgj/o35lqdvhFrIYhc1EjT53USbLFD+CMuJlr9qQwqqU7EwCA2t2jj1aMld68zSj6H1+LcQqEfGACpm72yoqkt4n3VELfUkN4iRZcbsBybRZ/DvZLUyLHdHqrFpeoajyeZ+lQEnaIwAc9sG+QG5X8bxqfk2z9ZFj+zwZOyHTTcFBLeCvA7c5XM1feNwiKDQLHH9bvkD6eO87LPkVVEiZB1PoABR14Ai1hKRDviUpxmS4wKN2E7KDJRIGxKpFaWoZoijiOrHwomB/yLi0NaFUHLussgTHtySZLawf/Xc/cDujUrosYsfx/c4CDrpE5OaDT/BdyjFLgR/Qu5LeJhkM97Di4on14Spgam+Ybb5WxbPsDjjbtNmAO6ScccogM3BkysfxVi/PgLcFOBAwcKJ3NuGS3YlMECrBr62BRVp4vac5PL1PNWW12Ca/c+GwtU+h0WJGKaunxMHHuxpd3T9I0kexa8BuLFg54lVGoPW2H6hMulVIkkSWmWpc5i6HG6tlZlVsa1SvGY9L17Iyh2YOT2UadMWKhLywEolm+8irIKg3gHRzjqDrQcCjWN6+KF/luTsAqN+UgEp8theuYzqjCd2ZMHQ5PqE8hkqCv8GxATdZDk+80e7RW9/dQRCUEpGcseskt3mY9UTN6/PxwWObmHL5ezHnHGgXWm+95aEhqzXhNkGh+zzYS0FB2eH9xqIjgzmm4dkIaEoHAs96JneinhCWkYHFeJ3bRCxFOfzOg6OrCsW8+iWtC//X33qNSs58w2HU6H7fZGRz0Fqe+oo7xOZKYxcKhm89Ucyt9R8z9zZNW6TX7esI4Ia0m4Xtelw9JwvgC1yc9I53H9IsfloV0HpdD2/xeA/45ep9FtXPoyh/5QOAlaus0RvI3o8313SbiFSIBx3oz/TKiF7tI9ifSH3ICJqLR57zTH7ZwxYrj7O6KhX28q+Qdis5Ij5NVYE4u0i/fOB4Jc4bza/YsEKKpCgfgj6yWByCG4nrX4rWpVdlwrCpNKrnDltezyOgb2l44W+xai91JyIJQn4rWDgE2kNo3JIux51NcH5hPJakm74shJ0aRYKEGRI9/pX2VE2/MDwH1ls+1QOwDeLN0uWL2O+Tb0cB6xqBY56ozqUGnjOULbzG4dH5VOQUA+cQ8T2w9nSVmGExjasiCBoNlMTCGP/Qf/ifNC0oImXW0m5ukTexu4de8W0vSG0Q1knNm1H6ifKneQ4K0Jpit4YkRk7PP4QaRX6IFTJFVj1ZmbqJTCqyGI9PN0n7HLTE4ZZ7FHnYDAe1/iuFBjCbzQ1cSSY/uTuoOqr4crQLsLwW0sEuagzP1luoUxQlrox8vo0s3Fp2aAbvC8eUYGHrS/CUnD0+5h2Jpihy5kt8V3pfRIlvvLAIoyW2poqpDJYLFc0bZSEBcLeJniaqfPe6gqvltU+cCFUQa1mYaB/Zs0VFA732rWemXE0GmTHCPBIAICnA+BLB6cU6bQ8eCnGockmv8QXuQv9eqshttwEH1w+ZVzmg9leKUZpzFECXOKh12k1QaTi1aUqI/qxQEOvBcYgfl4j2K3v4hjsCmjj+YvNh6XhLS88CgFbuxRXzVw0ZqmsmemCkPnDEc0B+4ihvwCiyWgrx+g8L3rbQkLZXlUAfcmHKjAFFBeRWs/dBQIruzGRl85jcTj6dQokQluLycOSDtxq3nEw9lRkELwF6g6sZ0SXpHlbLWs1R9j5JrGJ3AAhzvNld5QYTZrVcCGOkxv/RwLLHqabzDdVjjKDd4P/qVopHe573vS3ZH2ShBBhDMb0XxvbF9dd91hJYhf3biilqTyji1HOZLDVWF38pTV4u/dDfC1MNyng+oKqKVa1C4oRxv3fwvSC1mgFQXyNmPuVmAXr/sOKBoJLTfOlpYJafdcX0Y1Rx9r253Jig83Pq+h3bJ3Gr3MZLHgf4JuUUkqjmvfnAhQXZgSMAAVXyeu9W27noUOnGh2iyi+rFWVjjs7Z7Y6J5CMgxGH13EKbO33gCUJujPhJEW/7btgR+y4SXb9VqBna3Cl+SIJS5eQiayFcWheSxdgfKsjXbRysSxwR320DUshvgxMjeUtENzzBDEibt0icPFNz5OwMlXcaxdFNkKfUanp1X4th0bCM/dQdYn6pybzFJpvi7s8/utxOQoA6JPlavQfusSqZ+r2eW8k34hfZRI8JkO0kOk1m0EY4Tc8KmYz5KT/PMdxd/vkRXvoNjsFlhjs2btRwitkC38IamYzsLyjk3jwQFw9ysKDWvAdfQceC86ti4rGhTd0HM6Hp6CiuWgMXmj4e/+vP6WN8zFCKckDKsgEV0XrJz1teA4/hqwwhCOE00F4JQwwIeTCvKcf41oMlS+A8+JutLyfvsrmqt/qfL7vV+o9nEnSQcuE3987O12y+7plbBRzrpPtxFrMLQnFOnGYBxbVnPLUjlSR0tK7r81liRurhKsLoSRlLvln/m6AF33r3hO1vF9MDOgoeDA5Zh1df2ErR6lwZxHC9ZrEOOxSpl+TG10weEmufaXk6TeYb+NvTYdRkZ7yMM4SztOkcZm/gVLLU4sRzchOVZQbZMDneUJe5Aeg5UJfsXs6tz2oXqxWsg29zrPaWxM96rOtSS/t0sNUCI35k8tJ3OTuNuSWCvvm1+YL9oFO7phRuSBbYYzy+SUjbyLoSYUVUvjrb6U/FoCKaF7IRzkuEfLDseJQnfOdP8ZyoCLu9Kl7I4QugNtpuuRLp1VczeLzhKQu1F9lmcnYcR0DhLpULQRStamw74kanuo+lxRbqkX3cPqXQvPAN4PrPnGAWFUd+KbqB5akPUn1QhPtiqHCSjLZeAn6jn+Np2fjNeSRWkZnzfm+VfwSEBpl+axGDTLQhqiNUa7dLwxpPYCjLwrJP7Uu07ZBNRJnI5PJ7bB5A5eVG46EBZk1kNOGzlaizIQd5VlRFdLW+USH4c1RETSmkqAFnoA3Yk7F1DxZHK99z7SYImbCih2GT3CfSSxJ9Mkj7/LTl48h9eQ2KtXbDVR3OcBxdbGVtx15DjE+5je8H80zdlykAbSdORG7ydoeSygqborPbDOKKYcbcmeB5XI6Vm26nrkK56PHb1QPZwfsBC6ilDh3qAtpnaGksrOXQTR25MPbsrmBVqrZTFtfL3fMA4D8Bjvg7tMHMpdLelxWImyLJrJAH9V9Ly/sDwvTQ05fzM1zdSkMGBjBn+gO/iZsAX/rRpBKtoHL2Fm/RFPljX4qVOFZ55ezSf3HsTSgeNulVCf3+Zls9/gTh7y7kHyI9DJZyEOS3wuMt0dHYH2Xa8TtfWifjwi8ecYZTDg37shZ7X11W2Wm2wyPW1pnGw68sGUG5doGey9lAiSg1NXgQGsLPfucQQh6wL2xbJ5lIGuPLPhV4mFlFS65mKVwTfpfPyhjqMJC3fVTw0ZaKlqpw6UsHRW2UNMASg0ur+ryXKNGZDBuFvD/GjoxWvXW9tjwDdXQ6gGgRc8gQTVBhOoF6GqRN6H6P7qiJqSLQabiyvioyK7n0vz/wY1c5JOUXwTHELXLPflxc4AFhlbLHFMG4bM+7MripvhGCG1TBS4VkjKkC5tiFlj/eDHia//7JOtaUDqa+5UBe7+n4Px7gxB7GVu8hibpqW+u41uNOB7heLjTzPH4a+8pnuDnUGRfT2BSW+EJ9jqMzfFcmKnA2eWTCmwId+KqL+WyMg0j6VRxHX5qOzuC/Pdiz0PJATkV9Ez1oS6BkaS5DeIg5gieroDozVhPlbQ66LKJRNPtchh1zGrML+QEneduEVkmFCnRAAfSy7uKG9hlIV8GjluJUBzlz0FvY9puLCu0oEwdwqYh0iz0NV57TSbGL7yhg+l61ch/e30mGw5K89qKL9giwBlkGgxnQZNtteh/zk7ImeUg7IcUWP5Pg58OUkhUVOjHCqfR++0as7zE1gfKbm/abPoY52Pg9Xw8okEcXSGGnvQla3P0WD/ewPjen9FOOaJYP9U9O3rAqG03jp6d/XSrwTWSgAhC8qTJCkhPwyUUby5NxQETW8TApoA547RYPU02rsWR47Ui5Khq+SxzSZOfLoyGYcT4Ul0UAui5qJ8AcbHfZLn0+u3IRSFl7NurQDBlVjE/dQ6BB6IUKliCglOb0ixbViFnUyRlNqDub2pupKMuAHgqyUQ2x3oS+aYidKDGNMoKNA8BbyBtPfCzkdJaoWuzGNUf6a65g/iMp0NfEIqkudeznzFACXMe9DI4P74YZCL+QtbOA63ilQ3zpTAGMVq90n7tZLbvCgJSk5LD/tGlCOa9/bdgCWZU9Ps5eW3gfY4iMMNssl7UoR0HzTGsNMG2l1ehrQMOTfCj9IG6qO4whGFPXR2zMLDUiYOaMk+u8Jacl5r+t7TYxTU7ksLScA56ntOeJ7LkqRA91CTXFOKv5W4PIVU/+8Nu/Kus1kKIOGw0Hjeuay1EWWj/fXw7wqgcV42tOMYgY9dUUhSG/lv8PBUByCPAYZ8K+drAVAu7ebEJtg2VUSlE5tcpS8N2kVUg2JqhC+4Un+D+L4FRl8kGFG+ChZV2JPdPtuXNOMg7jPKxdbxsBSBlkxInUZYwzJj0HFWsulhcvsn8NPs7wzUyZcVdGzRNzUIX0oUgugy6FXNDtSk8HE6h6k/5uRCwP5eC5f6PL7VW4/vLi3O5GL73tmcI61pL6AE3W1bYn8bOeCn7NaF8vlQjVxYiKerBayX8dB1kNZxEVpA24XtPocV2I1yOzhIkqhtZPhMDioyUTNTyVNKlkx1Xp8+mMN7LOlCWXgMrHxTFvViXPGliB/4bxqb7/0MV+21w9uRD73PGXBIReQHw48Fuz/NhoTrS07O1SfNtyYZlFOVXfLMcJkQxE8lvQTdEjh+Y+0M+gUMERBfLTzieVTzveaFb4llX0boBFF9gs5sJoVgHzVUbLCEV/cO4dPXPzU3dUWPlG2UuUY1JLBsOizHtkGlPOA8yZCBgeLE/9vv0UthtV52QV1VD71PvnFg0XTfG4RRcN+DqkmPzP4sVlEBoOitOq0CgH7zbDGNiSzM3DgZeoZ6ZyPei57V0wU4o62ztwFKW4r3YLTEPSWttEWq5wQyGKcnRgXRw76+nD7GKSfPkl0f5HWXphV8PmmmZLuTGZT60wFNdK6cKxywcr18qtRnHU4WQqYuWK5q6dwYRkP6VexHHwD/fISpFkEs/dzhoA00vO2QTe3nwfYRz1mv+3l/3r4LnY87sDv7xJPc271FTs9jFLUngJ2ZpHzIb8zvTj3MYJimvYLvo3rINwB7TtwI1gsH3DnzE7HSj+CkWW1XhDhxRdyvkHFhziNMO0FA2FDuPtVk8h/Quo+t22nWJrBuVGmhLfVQMfeHL/xlh123KWdQTzZunbEttTT+so7aB+0yfganDrwFz5tXXHy54CGGhQVDXIyM7JfsMItxsn5vPTAn98o29VQrmEZ3C6qGcpsfijGxVJBeR1nt0dFzpL0Q/GMvrg4RFi9+ulDWjYMEgfkM5lqfAHPy5qdkRyRi1kceiXQ4Q8mOj9BY/8Q654XBp5xQVqNefJYlW91O9nQTmmRtMz0PhROm8w8Vu291X3jXMiU3H/DV5gVJSZGREXRs+BQ+ox+1av0+/ziioKz+FuhjO+gugaCNe9Q7davROYnNUWmZ63+oQQWIwGkNpWxeBuvcM1nQe75daJYIht0OK+tL1D/2HfMsYU+kKZTVYTGgbKoEnXlHEkvxVfjSqGUFuUzd0GyHJsakcDuZ9/AmXEOVQkcDjwuVhd2/b2xSKGvV95RnYfn6KUWWCyzVhFQA+SiuV3nQcfGBox9bi21zHvhUs6E1nb22OvEv5wMQdN5SjTF0JEEQoh8gf1rKzN0KxNcE56JsrAc+qCgRKJWsxUrbVyej6GByefBG5FRRZOzLl4AkYpVwBHVPtyrgy0z4EM2ZHyTkqrks6XZFtoHtibrPUTY+NFqMyIM3xJRMPhRNhBUvn+L3YVAN9sk4rNx+6yW+91Oq54+vfxWs5mLeE/DVOninIip1QJtIHZ6kQGR40oKX+FXGOzPZf1mvO4xqJHzKzAEj5Ui+BmZEkMKaTMaQLzolsvnQ9EMXa+PFAPM5HqBO6bvu8nUSER00s1a9H40Wae2zA7BrFN74Ovw9PEjqpt67ILdQflnYXdv8+ECDTMGm7XIzTLAENQO41eDWGqtD5VqacQstQT82dUku8Z8HXxRZqcIHgdOiyFTh0+2rMdx1YqhD5AoUCr1aY6JCUnuQHZs0xGKb6IwCGRzQGok0vpYf6ZZw+H0yS3CaitVWf01eOxO/S3pAyblpU2O9KzBKTXflJr9v//P/5FwmVkHrx33yIZgQV2g+1a0xC10b/Q2bVrvjwPRLJ8UmHLrRqJnJ0LHClZA44qZ/QHnUS7BLR1mdhW4kUbywazYznAMcEpFHAW8EyGqyB0+EtQKPmwHAxTUYuJFuhFhQNqpnOvGaTURcOwIope2CKChoGtphPla8X+mOS+zMgL7CRVcFuUonRVcYQ6myIFhSftC8XiJmFxzhdnyzGmUPjWNueJNrYI5bQzxPLdbePU0Xf5YqjbH5r6shm7iN32g1OKRDwM7tkXErLUxDXFHlG3NvLJNvqP1UVRKJweMowkC7wPscRGGJu3gOClXAF2ZHyjNNzZRITkaZi4WhSsUkweUmzDEcUUUFRiJTWm+rT9J4Bz50hihlVgwxj+qZFLQ8JUXv1iLmQgqVpKx3q4SfkEEi99rAXXF3Wd7hmEHRblUIkCCzEri9rNVIEBJLFtQYATgYXibG6JogpmgQcIG4p+p9ai4Yp2HrKbL80ZZsuvYGVP4VWDu8GqCW6NDWkPzeRAFrRE6GSpbLzVoBcUlRug8szqsQIRmb4uNdvFcrC4xTqQTuhPxit6Go6ERGvXM8rTRYgDaTh4S15gBfX7sGZgYwuDWmXfcdePSFP/u1tRs0nn2h31zrtu79s+KASuwGS9nFhU7zPN1Pw3BJnIDfdJorXETF4TJidUEbzTcZQ8WfF86y1i6FQxfrNX2dd+Fpjv2fBujPZ9i3uTNItcrh6V7ET2VobZM9t7+3V12elsNCocAPynw94zHSjcs+ep0UbDMgEhEz4yZFQCNr6erFBlYqOHEWDMjArkSz3tSMV5zgFfC4t+9w3FXMtwswCbDzOuCgHBSQyqxT9DtjsM1l3SYY/eWqcZuSrZq5XcMFNpn1xPpSwkMwlb14Z1kJgoAlUWasMICWZx9TNyAgFMpsQ/65swg2Q81LqDH00b6Eu2uP4hQnmekkADeRjwbFwVFfVQd4lFMvTH901OMmNUm8ChNRp5b8K1okZ97vS7oVDmbN4DcSKMmxUhWqxTXRAB+G2i8GU4AYwNpV9xlNNiIth+y3dTgfsIPhpsxyHV+XeEixbAHF2kABPCDYgd8MEw/29k/DKaJxA7qdfC1zNH+LCqj91pZn5IO3WAWumc0AIbRAZpjhTVFeUXSC4AgSBn3tyw8oHltMQXOj9RgSR77FP3vFmot3lyhxCs4pzmnd36vvoQZ3S97MI4d0bPE1UIzRjpYSj7PtzcKDk+XDA1GDZASJG6CfSH4RedYVoaJwNLjaQyCTqdQaSE+7Iif6d19JcLAN8ZwtP9AfwjPFxrT0ngttkwM8QHppNbHngMK3pchjLIjLhJKpNwYGtntVHJI7eroa11gpedjbtQHpo+BSvRaBi3mSLT+riD47qF61G6apyuSWfVtagXqZS2MAHG+ME1fSA8xCxe2p23Eb7n6vkV8ZiplCKqI+nw+n5phuNmX47GiOXxRBFUG6X0XySjHdLgYvR2Tr473iWg7N1W+pTfKDAiVOU+Wk86+2bjE/Wtz9d8BWhZ6fHvtfr7rxKP0OqnyNQPg44L1vZ49tUpTJnwdixXncPv488LTsLAz0IdvBRT+ohCC6/oMrJxSaMZfc/RVDKR+403vGBK9YjVKuNgMrX9mt6Xbl1HQkjMHvMQuSpxC0oeVYQyAcag9bzdg/0mmy1x0IC4wSqtx/OflqgFdbW6LNCFWwGa+yXyo4ZkWdRZ3VQngHbsOZEtN8S3mG+GxX5EC481uJVnPjsLc+kqOT/MgAsDTGb/MV4+twAbgKBtqbSmDv1WTSTKS6NOKX+sJtL5dVForO8S2cQdMQv63O6kfoeh11qT/62KgptaOfLgWeyYs8vPjpAoWMQ8I7ykntS6Uo5/cLSaBHM3ZG5WPHexVuA0twTpB7oFXsNag48kxjwrGioK2AsBKvGxlBHHzjLyKRKf5jHF1fV9mML10r1BOiSCDa01GH8yElWCB3mQ2pY93aa1AAt+/fE1ZXmegn0BGSv+8KTuUpKNsRVRx2IfX7BH+zCYCxv1RPPiB+C+YszfAYElEvh5xPewNah2OCdFTHx1UmrtBvjW6CDQh8SVZMBJm7exAKl/pXVTYJinmU3pKoIkO+y6XOCICfWN0+bJb8Kv1n8geE2NwQrwvI0yFLQJtIqZtyfOAFRC5elhW4QcHXOLd7d0fLj3xYzmEO5rH1h7VmNSCV1b4zhvVWXWLn2aTJJ99obmVEAmqkeqk5QIcRlq9BBS8v0xJv+QNg4o0lcUfrFt8SMHYMZ1GREHdQWW7ManSC9kA1bHtpxWimkS8FilqMNztBf43qls9DFBAYJvpg9HpTLH6skqp1fkN6SZnH6e1W2Gt1RzACcEH6NMUutA6m0iz2SO5Bz/aQWnp6/bnyjjQPi3l25BRmxbmgRh3TwVcXmq/1IA22EZwD1eer6ylkqZoI5pzq907Ru1YTl6lB+qEB97l2QlTFa5qHsk1C6n7Dmr41Q8+D2tZaU+bKvts/EZGFCH1SwVGICTlQVG7VNZLJ64KFAo3e/HVCYbBG2D/DWhoJ97aCjQuqmYbJq+DzvgI8ZHDha6CDD+DtfqWD/F4HmxdiPM46U6c/FTElpCCD/9SQKrCrx4mq8PZVhbLGAtSMIhJVc6+Xhtz07pY2tPnzO5mi0HahrXliFDdBSU4K2cT6r86EWz44dHet+8jijPQsVSqVhrTFELS4ge42OlJao0B5qWryMUt7TC+ys4tYQ08USjhCxMnF92oKa0+HrZ9UfmwC3Ov/7Z53TxGHJQBw2Cvd1lHK9InfU0LazrgLjC/qu+gEKF2M2nSting2lK9UzDXzZFILtPuOsYZRq89atnY6yft4QeboBpXegrk5nigyUGguKyJuBjU16SI5DL96RfekJ8Mts4VFbggWi2p4z5FjORduZBFZZDZ48SHzHhkl+PhqwVvJ8BR+xooOjoNU82dpGRoXYByy9RSdoKcgYQPkqCrbv1ccTWnQMxAFdyfbToPRzBk+xrxYhMmrhkiARvHwjqoTwSrGU6Me6MaUkWFgGHjktJDkhPomKVJrl/MDKVGUrz6wl2z8EXMIappxMZh6DCmVbUdhJWMtRdwFpTjqhe+54xSrDQqQGMiOrizCjjg3VSQD9ggX7h51rxbfDLJ4DlzldPYXNKPynK4LRU71C2TFbf5VY7VbviTNr8TMzapLeNt7JudCozXNOntvMm3hG6oY+7LdRrDKLGONfTzfpARqc0VxGYS3DaFqPZ3pLrzeBFfpmGCGuReHtVfDkWBsHFF+Op0Do7yitfR05snu/KnBoyFhRNLtylayvwtsyO2UAVirRmbstec8xGAxN5fRCVv4shAqZo0Spujun9YWO7pCTZU3F05pp0AC5XlAONvXoErV/5pEHiv2ViHprSIBmdEr5834yG7ul+yjYGRHAlJ5py3zUig5F/wt3uXs2ekURaKTc4QTqOPmPTgkNSzjYmrBMWR2iJ5DlQlFRtTY4crZduNMO6EZ77tTE6d3Dcjh9Do2Yoyn9H3hUBunyDRAc3pR4qrXS3VhK9maqdYsNwe0b3lijp6441rsPfdDN4TGHGV34xKF/RjQ6XFA44kO6kh28gS/uYoYwJW8YA4CXQXtHBExs99Py4X7b2OOx2P1yxaLiXcYdQL7X4QUDuydqUFT6ApqxGHRhydssmdFvXftES/RzYD9ScuU4CsAVR3O0I3mEP2Y5Vb1YwRGvyfHRxVn6cnASqtwYohgVT0Dvy1FCIRJcJuxVYuKBuC0lKD1nUoLkilqK2XdRlLZWFJMYiQHCIupwA+AXOvNbfOAuHlR+LoFHGWFjSa7XYp+oyuCXzmjcLDHPxPRAHJl50uCeIUjYv42ixpr4Oerulsu89RcVgOEH8CluevmoANDwQ5NzNrT6mCIgUh4DoKodIXU3CknIbQLnBGPo9kS3G8pGILaASWwe1IhpkgquXR4tb7Gpl24otND5/Kp63S9eHIY2IIcNgT6WOPbUJRbAHqbM3LLdOyP4I2qGkxDkrV2vqSmB28ZN9Cz5xQzwysDBgXtDWEm1HjpxYGF+HWL2d1AyL4b6USCndWmudCEktvnQEr4DmTLBamkxECdT+gZu3MfWQYr7SOfdMnJdz0IlUltq3uSjGMgVb3Y43QMrG45sfe3UtnOm/3Qyb8KWuNPImgrCSx5WLNtO9+kXczCLBXao3ZHu9+l/32lLB4nwcZhk5Bx5nJBTXn0EpZhJuyaTnGdTh7Aqoh3dLpXybVhSCp5jO/+DwAe0xIsLUxiyYwOsisUwitM6Fw1x9900McQd35zu/YNL5EK+U/6HbdtH2X34u7GE05W/UTjr68bpo2LdLnqX2ing4UKvHLPxHtYBjsE38wvtG98DD0wr8amTt0B761dLcI8nydTYOE1JMR2RKhHp+WE8BAoA6YO13J8LISpCjpi/X2H4SGI7K0veYEvG6jnngwx1qp2d9R6RgN6eohuSIsJ2y9oWpewlEXA20Fm8675amgVnO253uMA2Oh7syipsP/vM53NrpuJxmEuB+TQYAYXRdpEpfgSSwvWQgWELMaYR05bPZ8iTR/evorxw0FMmEnqhaCMzLo7+YjVqWncIMJl1iC+18uEnrd+pZO1VfhAoaFy9B8aBNgYyKwlR31tEP5ex7L+HZLNS9eKIKeqAlp8IlUA+/71L9fhkJnJnSyqda8UkC6HxqrowlCq5C7uPML/BYT8uTbCUF1W9Rotd+ifGi5PZJ4jSIFk2F5bPxXCF9ZmPq+OuwVc4PurIx2Z4LWoWSG5FMSOS+aE8foir7UHyF4gvTjdtOmto3KV/6+Yrt8jI8XLOITEWD9a9WOdR9hgEtmfE6vaIEal4emCqu8HPhtSEETUJiiHmBnYOVPKElBvs0jeHgrnk3w2stXzYCG79+VxWgGjGeO1ABao51o8jOXRTJLX/K/5j5rcIVo8AEAP73Hl4f+x6UPcYnqYYH4mDuGPcQ/UjtiGQiy/S0gbY4+eRkgo38+P6G8dY6Wy6snbUdalQHVJjyOMqsa0EuV/Pg4t4vWwAnWnb8dTSoB/c7qUl9PklufssicLMSHWP/H6IvctFCTiLUoJWuWoGUSCdkHBdTV05SKBbO58x7PTla5B7Tn0AtzQyTGwOxnxjIP4qtt3NsdGXg/8yW3P4LgsQ401Ygz7c2dAqp9gCXbVomNJBNqGWqUfTJ34vNOOePMY1ekeH0o/UuhVwTvfJaOcmhAzB1LeR8yAZ1Kzh9P4LNVoptt9nFnPASGg8ab3SWpNi1xNkrrntdEtYH1A+pfrsbLVWAg9Rs5eInACgDFdZZV81PDnLs2DnAX2TIzW8GdXHYLLAhOLpPkZqWSn6SomCBYywMgNXm0JmXeqLk4vMEb2bTOYE9vo0LSPbKuCR9gW9kyjNK9RqOueU4Ueqv2DE21LZzaTYzhX2jbC2Ru0sPnJrDvpnz9RQu8E4q61o/KhWcgpsO0sU21ZCShlYPNt8xQPlDwhbQ+bCHoEh9rChB3GmOAS87XZPy1he2thB0cek6mP2ls7Y/7n/UQuMwRGh2mqAldyZQ9gkoGQZpFgb6sgjMHFzTpR1WikDVJTmCL9UGDceFFI4WDMIAIgKfYUJ4+kKS4ErLRZuYFjsJPdsFSXTN7XS1GfQXZCLykiYnPm4ntDqintRDMGlcCkR4IW5AFdwusRnZbsdtRX6x6o3VX/yqUCCzv93BwzaA+qaYUbKp4uVQsBaQAiWyzbyeCXJzeNvC7ynZQAFMyWC35dWweSqJcpr61h2eIVsh6fXWBZGe2TjB8Noec2vzuCDc0Aws8W9YnGgefnY0jhU/DO3mAmzS+jBihs1lhbSm5Fg046kt8Te4wRFD2d0wbVTdr4guOL1EkYVg4JHSXmQA8DAKdMbeLUyqTNSHRlzOdaeDC7JyEKaZfnNTnnAwpv53Hbf20myVwiLYhLtkZhPElSdCcIvYM3cFMHm/u5+POuv2o1moMCgrV8+5Mw3DrRhSD+IoMus8FW8HJxUm/Xyjb9uCkU8Q0LXIrrPVtwhJH6kL2T84adcwFwSIHxIezMaId8mq7Y7h62f8HCvTZWeGW27g/J/F8BOYYVZShf4bhtYEhu34B2bY2BYgjNjeIiCSjCaTNRuJKei2KP5OiUeAbS5lQUOffSATjwNDLORAJBlJlVfpX17QwFkhZjJfP0xjG+eD8KDx6ggdaKwOcYo/WMvdwAF8ZDqMdApx8Ue5Q7ZECtTQYgGw62RFblygvTDG5uJhkHJpuo7PgLNS312/2LYOMHfnjSgdgUPSd+zaWj1rgYUc7pkxYNTPVUqqCWDA5QA3GcLxcbE1rgWCrypK6AvHR517Nz5QVX406eaeXPD9WxCpVgiA9GQpdq8VW7NNx00SzxrsyvdD8p669fHKTJaa19WczEr6P5beYnphmMz1zOJDXFODqhDSImGbFvmwqzZXc0WetQKyicS16Jhz9biE4tbmkqcxTvKq1thleAZH6o0FOOVCd2Ogj7Ngdm0WuuHBkxrPNDg5rrqzyDkQD9XBImYqHBAiAO0QItMYZtg9qh+FJWWeqk2zalqW6IQ6bOddZvjgpao6Ocge2e1KwjR/Pu6ePdadqWKtlyWNyUrxkI28Z4yyIv5xWZM335wjMwDRLke0Pko3ioN30HjxWspZuNnkhIpu97+VumY07bXCZPUwQ7fDfleoLwvTerDfp/SlJtqlDHvM26oOr9MIj+nYEqz5S90bU0+cOe6g3M+uzIQmzMW66Uisl7kGvjM2yi4oM3ck+pDYNrwstVHVFcDSd3or/hVLUxRANofOLyMItl1zB7k0BVWxZQK2v/p/D2cw2BpbcEnirAZsPq6ulGuzLhQbhTxE4kTrwkaxVWkhD+uTdZtFn5Um8VHdIDoNT5/9GcsJTElYzDnHS8ZHCY4V2XwBnMcN26ra610G6LdQaD811BWuAHl8dU90ntJvkiN9jUqRzJBNA4cFMCuqmqQlG9s4IKXVBybkoT/wNY8bL81tPOE17dXKusIPsrwBFpkI/HTdZGrgLdi3jPdh/b2LSywokAl+ynIKzP1PJ4BCdrMz4aWsSJhnIzwr2ugT4C3k1oZqyqL9ZDMqytxqIzAVcVCAsdNkypzFqeGAg/2GSwCWn0AM4lZYtwFAW/f4SR4/Tv8LzNHA9mweqGJFPyTM0JnxBVy7nscNA5UBM8Dbb5HEybnhAPmvo7WWb4l5Bwqz68ilnPPdEStdfaIqYYYW55rcD4WRcPTsUqYsaPVmKKxK/vah32DDhMhQ6BJWVWWM2XN0AYaj1Sucmg8rDICWRnZKQhHSesgIOaKt4ADwtIWOuzuRS7dJt6RWjL9kfJFDe2NAen5tZ5leHp7VLIGJVwRHxAtV0QJb1Pv/pxazbYPv8aTYKzAoJcoduXL1XXxbe/JDDDM666Q8vT1uw2wPesH5jjGlFeCQatfZc2XeMyTZg6ztlFUOEB2O2lpPvnw2FB1nduabqnAisZLAjbhaQEHUIrXRw49pncn6JfvpTSSGMqFmFSdkL2JrFL919jIpjSHUTVFYB44pmdODRTWMu6Fpl7gS2XgbbPqQZ0O1pbIr3d7sGsMM/pVhwWqgm6wmE7+5f9zE1jTpYBfQu2BtJr7m7e1VliVzFknkeqZrVhDKcZ5s2/BS/w/RzSCv6MR8O5H/ePSBDfwx+krD3hJR/omxJuoZnIz3f2aOZR8H2O8PinfMNaOJWNhf0B4YTv7dqStvhPmDZNNhZBMNljmhnCOBWR3/1cC6+af18Ts9nP5CP9+C3waVYx05TruSrclO8Ve6yvc7nJ33q20U8XpGJGvWfRkr2WSY8TnJ/XRsVpng9g23Q47xkdsFRo6nYdspj4oEGSP2088htWijM3z/8EJSAxOGHsxBVbS3UWDbaYczgi9d/M2S2hnBqqoJgAcif7vimHM7AEHPhURdpsUUpwLCI6ZcfEURENJQkxkSetpELcA5MkrKdfLFUiQgvgolIcZ4+nlg/ze4GcxOPmpnKaS4mX2Hf65m7IcQzC+J3Kn4T8ROoQTThVuI8Nc+YnXhdr6pfBFxy7ZfrzcxJ6wGINbWaaQymltzBLOwpGWoWlxH3kSve5bbYsTlxR+F4gDsk+rotqll/MQV5jXh/PO/av7OTxdhLzKCBBZdKJf6ujcgKYkKVh/A4gVZpzgXzGBsp2ruPBMwWPwTwfr44+vdQcwWqhhUhlWDQnMeaPykqi+zz/yftOMyRmBUKWOZZT1iqv1eGz8s7gAGZ2FJLGyV3snpeWFwKHmQKxnuS1CzYfXSVLQyeuHcuaZjVlp8jCgv5ANV2U1tcliMCXTz+1bLOoV7NMPnvP0oUUgzf0fAoflYHInqOkj3d5v7TjVIIir9VxNnCAEZjWNOl/8xh5Yq17TSeMDFUeDdu0hmI6IY7/h8uA8EMNHReVrlz9J46sw4PkvB0gZGQ0ymsE+6udVNz1fDqhRgmX++xBciPgf55I+CIZEDsXp2PaXTYpFPLMd51ibX2AdtAwhgfCYO/EFrGrMmCCXiMdzGCt2IlpHXh3Weyo+0W1YEgVVU9vqPa4GOjSOlBL9uKfLcD1WS/kwx7GE5dAnUmn8Gyi5XhQiu6wAL5APnmmPcBzbcvrZ8ptnBlK76XJmP6+rNDrdMaJRwIRoInQaDyq+GyE2frM45Udt/U0MObxL+kNwyud76fKPxyitmYX9mqOLm9VGgh6MvRkQNfAnADWpgPaU/PW6nkBS1W6F9lBMkJ9NnbIKK4hkDShlOaL9zwJfIcqtcjCzQVhQPMoK2Q7KYms9LmwmSsSz9Ea/NK0KWUi/sKo0e8NwX3OQ1ENTFnyjNrLoeMlleit6rnOzie7B8DhMSoSTGnlD0RjskwgviBhtHtj1Z4dH2JjuceoKie24AXUU9xXumLX8PiWFvx1Ei4fJ9PER8cghJ2QyG9LFpSJzPvNaHfaWSRk6JLYWF8HOdobHtX2DKse3dd/A3o6fXBGQE/jbSbirEcHTgjuKvFZx71+AYjKI+Y8ajwaSyUsyKd+1eXfga0VPE/s7JQhYRcGa/a54KEJUBxd6W+1xP9Z9ggDBhPqX/t13HZCOhoAbAzU4Uz0q6VA15+ETcys8xHjU9c2hBAocysmSDErv/MolpTl1RTswHFb6l31ePpwVGlzJFT8K08HKfwiK3iNW+AfwdhJDp1Ngcx5jSvEL3zusHkzs4dvDUWVeRJ4eDDAii4WHM1XooZ4Nan6BI14ne4JLGN+ShuG2QH9+Tl8HPR6vIFGhkcYFgW5By4ggbtiCOzK2/h2XPGnT2Z/Cox/OBvYodFvlZjqCEvXnPrIY+3FsgcjhQORgVyoO1Jh/pTYjrBCz86UQ32GPOY58rS4mHrkOTfu0dV4/EjPNn4RfdaCxpsJy2C81WMic0CA6Valv60wZTehUN9sF3Db+hyJo0UUfzMTS82gwEbS0RlkUjF9SKsvAGyYbaDsvl2hr0xZ7Sh0M/b5ZprQeezZgDZ7ptLSmomNtiI9f2wttAD4NxAegPpGtDN2AUBBS88eBVQDueAgS7YsJNG6qfDZCygvzFD9lszkewAH1f1ib7TBytxrqPe87jZpIfZBZ7oBdfDGsRMqkUgq7Q527oo9mxtzUuiPpLcadkCI2WV9s2m7WVYZQEtckXhhRQCCvEWNOsSrNIOv13OmlZo15AoUMPgEAlYOvG4wA80JMBDPDLc0aUbsB+2JCkcn3IuypswWSg0VpM++tjXzEFMrtrPbRaThkL2aeDKLjfB7N+6yIkBw5PqioRH6Btv2jhL20GayAayiAMUGla44kM04YyJdy0lSyHHQQC7w/GczzzLLKDmRnEE0MZFbpc4N+FG/YW35zs7DDbI0xDTR+MRS/8F1DI1PryVyn4mtB9vCnhFkOkwbTQ/KIL/YuJ3fAYJMkKup/2XlNjPeu+YP898pdjubijZT8QWr0xazYTToMO7tWNBPdWmv3MOlDLNj+gDaUpQ8tcaHAD/Ix8rtBC6nETseIjoxp3WhVMAiVY5nkkYXoqmraJumGPPrTHuba+mNAq9St4t5p9Fx3V6K8CyLlxk3KEV1Y9KTcLo7+MUCTftN4Nvx/KF6ZlnQms7e2x1z67D1pWIA2wLPRlMLCSaEhoUFk5ypTV/AIllt3oSWgCHxLTmIh5oKWrZn53/1U20AMnwejm5uLWV2L2Kvle+svRyy8k9QawtazIMtYAmSWI4qTQL6SAmEKsz3XOvRM4Px/hsJTW/S0IbilnEu7zlCycYJK3jwGHREBTOcRexkNTMpWFOZoxPgJUdchG3Fm1kYRQPGHFCH85A5SZOkjIhzNMdEVg+PBLbIpSPHRah+nKyirpxMODnAa2EVeC+0Y/YFPJEpyvvgWA4QTQloid+E5v2FmJjtoMhcc98VO5tmttwX9uivtI13/NnnM7ajxoTuNeHMYdiCaO7MBfNDtyGTolD2PTYLJmH/OBF4LpnRgDOndk7Sgo0CqSsT9JFcedtc+O6/WwKwCqe04QeR7iB/zZLWJTLgENzNjGZWKYP2xz1hAG+6YpARwMIVP1PUbj5hvD6swUlgrJKnGcolSGGUEXoijOKlF2qGJsBlUpEtPaD+OTlfve4o7JRsNcSp91yObD8EmVU7leyl60VeRFOWsaMmsxVbDSu3SNaMctQNc297PuKRn3b8mQSspFnAWoMyofXIyUVgof4BisuUx68xwtvPpol23+dit2ZAgu5e2MEhHVfN7XdtV5mkHfk4JVL0v1A+hlZ6lnu8mfsvflnfH/Lkvy9gVzHBJeavaCmNg4UVt1Wiu7OWFa+nV4IU/rqzzh33P4iqe2XrRf6A7ZUxB2xUYVe9RkD70opRgPkhPpUrd2ud723yAV29gjtOzJ5NZXGnpDzqqyIZNHiOPVMS2BOO0NiYq0fZ2FlHwpHeEejJWxm+vP0eKPPq+2ebAERLYSomrYLbbXJwmBeITm66ZYasdk0XwUrdc1X0Cp2unPT4Kwm75TTcRyQ8GTstDdEBBcDr5fvmURgMPQEQetu4tvKhQMVG3yCo8kO5q9SVQkaN4Ou0WWtnI5brGXVLCCLGIN+Q2n40+dlhJPPjrv/AjbN7ZrHpXWS9xzJxXKrjeLBWA6bQctxkz5M8BEd8TKvZGf7q7zi+EmKzK+YDGNZUlnkHn72jJoaKI1A5mq+c+S0fGsLI2m2S+lLTaLeqTxm65awwzwRaiiAqDl/0+wr0frbyG4Dv4kzgqtBW5LcVPdvx0zyL2ML1QuF/xoSbMtLvS0e/kLkQ9IQr57HojA+/ZLpZtTz+lcQfJR/2mHE1aqpo7YXAMdZJyYS95GZAuzhtH0W8iGwnGsoBefyD8Pvcww0Ne3GURNSGjClG+dnFaHO6O6Qc/11wiJK1I5vs/s59F8Fu6W5Ksif8CuZT5JSF0C5yFix7lgM2ixPWPWoukq6rMLGOoSJtCQIPX4yJQe+pE3gkYWMmQKF8/1+IB6dZCY95/SW18Myk2gVEdouhB7d/Zh2CzrHTh08mi6iWi4nfW3QnILeXTGwYOIqUqv2cvof4fvxOJtBqhToVPlkI3GvzqaYwtUfQaFhryxm2sYPC5ZCWwxwLJF46/2rjBO7IGB6dWKLY7ivzvlHC+dVByf8pPBx9gn5VY+5HBBS0GQAR7cYLl7nAod/9zXs47TfvGN9ZkpAbGMQukS+SdF07SyNCzLEXGGL6hbKc0qA1U6ZtwtdAxu/duh7cOBUnPg08sS7ORnE7VrabxLmOs28E0IVaxnySmYZYwlcEROVggQ2HZfCMG+HYOib+01d6hjDkwdpvQdXWBp8dXj4OsjHNELsXDsl1dXnkrr6S1A4NIF6X7VYhaFOeIvxVbava8gSxCwiJWqTMNb77ZUGN2NqsDS8YfP8e19BJOUhWjMOHMhPUX38PY+aiqyci/dSupzvUnQeZ/hiHeErodv3yPewif+zjcx0KiNKEzHGvLcEpWdArNRP4aJu5oT5wKCe7ok/iJdLr6Ml7yNxDdRugBgpkJB4sAymey2Na2VXpujZI8OEbz9SNYQ1dZJXfkDgR3YEXkARrcOsARmafqV6mG/BDC82zL/1hmrq0k+qQLlmyVTz6kiBzNUMPXj5f4IS1mEGASQsyXHuydh9Nvcg5SedCRAOKqXEY3JTiUhR0IAo/ikFJ3A6Jaed9j1s9+1msd9GDZhU98JCb5Vy/5fFEB4Ew/BsDfCF2q5oPFMUGhPq5ZiROlY+qsAGkj6heyxmJLoVMxxTKVyDAwihP7u95QpfV3ojbCQ6tGFteq8sYgjUYGtK4TaXdIuN3XKMJqmUspAkCmqUuGlESQO3LUEuhZ+MtY4B0SVh8v9rio+1onXNtYLh4c2LUqHYg+0VH5Q3wBMTPdPXmFdce0zBr6Sk7mMq3ET90Utyq5RZ+yCFel4x0FNewGsgIbf2htsxVjOBaSjXg49g0j+MM2P3c6IiL0Xh7mC9Q9VcpwfoR/1ScENlL36EXEhh45gHvWHUp2ayUX0ol2VnaLaH2ci8fB0fpnLPXp94z/paFDoA66SBJNZv5d34Cdl7RECWyTVz8qLzn/3EFcjG4dZA+AL0Pt1ESHUPfgmvLchg82lf9KVXf+MbGd+/ZCYiF8a47e6OXtLRmdhx613Zq58oQBJDoGLCTIhge5mN21i0hEjm7f7hZKo9DiSn2fXtLL6xdBCuhSlrezhXrwTl0KkXMsNFqmTII919A26wpWBr9Z0GSWSefToI2mAi0BwWnZnSSyYwtT1al+uXYO+9AACpLeoQeh3mT2dd+G97jwd0jbq5ruUROZ1KNY0BNOhISw93G02bUgav5CcAsNEuz09j38rgShiGnD1b9LNnpj6nWduSdZpWesl84s/1IS9ssgjhKfISK4PLXcTiL39neYJmRu7XFizmbKhtUI6Eufit0WTOmBjLReLYG+AqyrYH1SIyeZBRyqmxzR61BkUopHJzV7MKQCVFoHRslColllvTQOp4SG9WhM83eaRiQYhIwXhVpbDzhFk5r0Ffe3P9x30MH4h/Wmg8W8deEMV2rqGdiABBziCTnsl/EIFnSRhMXG5GJcSbb/fYJMGTgxO8bQ4ynHzRqrLi9YrmHO1wA5l5Qc8CmebdE4LtGypx66t3ptzs5uqaadKgjtR2MN6OYmKVkU1DNGRgxvYyNAwLacrcyhtuAbKZ+5nF8eaDtEijwHPAsjBg8vO/bbiF/fFBLVHjZbiMsRd17PO43m36CvBfoKq4eoHWoGDr9TZSyiV62xUYca4OMFBO/hYKkv+jwnZvLCXPC52WBnYvP2q11YnC247rvcyMPGTqqFeXa4x9FC1krqFHGii1jmugYQKLYkPtNvQwpDoe91D0u/Yrqqxp2s0Gp1FBYogd6WuOD5sK4P9/P9ci7o2/9BETUTiTiiy2gLKWDICewUyPdOjE2UfhLDLAScLQXu//f8xUMKnTvKBZ6zlZ0BJlLOPuAIfm+9WYhXUI+voz8JoUgWGy0twJKYIJD4epn7ZwKdlEnrjCxS98euFwog3ZPUeILvK6ab1G8wa/KQ1mnza1kCmAfQyC4W0LEebPNuyFIbuO86lBmAsPUTaaBm0Tpbho5JOYd3SxvcPEfHvNGdFTyrjXQOzVsuDwJLi7bOXfogmnhwiDi9gjfGVpVNIoxJb8XxWXsY5k+ZNG1HxYPnTOqNLCuirxdhZiTkx7ro8qFPq+rAj+hUpxU981O3c+iYrUndhFfWi9HvINB7pqk44tZ66U1sEHDXDjijAgFTRKQ2eevD3TbzW4D0X3+2Xrs8tzFp6MrtE1SILPtaUCg/9Hi+y1sjFnVYXdc4Yi67DJ+TtaYjPn35jQdUlGnpECg4kEmbiGc26iPo1wQwJuGR4EjH2hph/gzj7xKRQ/M8jXk7qwj+BVat3T5gZpgAvo4WgnabVIbUOyYpmZAe5c92MaXMZIAgq4NEEymy5d4oERx3yhVxGXyn93K3455SSokFGqgJtDbV+5WOTkDAqCfudl+WsFYkZzzo4zAdJsOP4h76rx7LDVBEF5Evi5auYDnR/at7eJvso63Pomi9uSSHCbgE+DM1lMif0iXMGk+fsFLHdTsH03XvcALTZTpSaQGc9gihpkXrGIMxmIWmZDxqcqEUphlV6mc/5+e45tOekPifYQG4yPS2X5AZz1KHGySnEom7STsZlKOCLep+KFC1Lyt0oaK9em4gV4/NVPfLYZqJpP5WIcZIyr+VuGXlJwMe0l1b9Q+BCx62UDHbYSuBBIUCo2w0iDQLAC6dnx+lGN0cWuCHIm3Jjpb8L5A9W+Iulb4vOn3tSmOwCmH0NLZKTnVglOxrnWM/nAnZfsrny+DEAWfBB7AGTCalnc3qcN40zED8/liVPu8GckTmCpprzGaZYJj17KExnX9jicrvNKq9C1S7Ve7/Xu+JXQNr09HBqodGUmmufYG730meErb+Mns0eRTn4+qJkZYimT7FjudoU2HhSrcmR1S06LesFTL7JXbU+8eBVks0Mptg3xNLp70JP6w33+M0ebwpvlugUt1W0ALGRVEXd11Lmkikbr8Sr4bW5nbZbNVjMdSylktNDgCPyWd7txbIU2ilxC/8m3EyPGpg4mfJPLTJWN212CB9xUHBQ0KbtjjaLE657ehJwrtODu1tHAgFLjfcneu7rKjwKpGXbh9pLMSSk4+uwLEvt6aoiyD9b1MmmCBROlkVCDiv8M04hCStmdXczXuW5ctxQAUX0T6FzTbxjSsipMi7br591gHCCAnNwoQUaCy57rSxEdnZGG0cKQe2WlmO+GcrbnWebuSeQW+WvmZ5t8aSVGdXlZfthCdA7AGA5C5iolvRqOgDWijaIZzFSLXistxPkj9zzJQwiZ1GohQnHGbtVmo65BWR2XW7fotlwFs91EdAkJRK5tH4kr/Hf07P/xjGjcPkFrDBnNctv99OZjgdmsQHOsXI6wxp88Lu9LUc6j4Jn8dqxg37gZ7reELKg6ZWbAovnRCClkiS+kh34iKWXNC0mfp/j6uZ+oddEXsxmrXSvM/nItHftS8oKRYDlw+5/Z4lzAYHzi/2GK8INFlFLtnR7bCUyqW2j4S8rBP6wxNxXSvGoJMmjd400mvJiJlM95fSShehI+rGaKvv1Wk44CGrfukSwyasDQFsdT6xOyWoMqcGnRJuxX/wus6VqEroMvJFrZTUyy6hQ8xN20dHX1fbTlS8w1TMx/TsLj8rKP8TckzF2z79Tx7EYu3a2P1tjVEkzHZV5T0Lstq/beCWi2tBWFSenY9dIenNx+UJNb5RpOY0CJrK+9yerhzT0/N8TPt6cWEMoNvT645aniakbnUI6cpvQfw+JnD1a2W3LFRVusJkWUPg3rQdnqioDD4VwAgFdqjFz1f5b/uLlQEBcIDUXko6DJ6ZyzEiMX4Em91YyBypQVBkzv0qFJiJWDFGMVX90Yw4cmRihzx/oRxj5H8Mv8W1UhLQDfKg9sBuEfVCbWybmhlL0fDZLdGvgHYYg83DjVDFPU2h2gVmTAMdF+5segWUNCyJTiIWcDi2qVhOiqmiI1n+nXmlLzqq9HLF4Y6UQmyIKeeDxCUG6JoHAZUFjjfrdJWU+Y+EPMZ41bAxC+dj/2MoA729yXYDt/07YyERdu5p1uZ7nzZrtJZzZDEMQ3ujIioG6QNiLCpzPPyp83DSbhTpQH2jcyCWPpm8XlHdue1ZzVcpJrUx3SrRBfr3ONojHHvaBblft6wiPKcCUcknte7hwUNVmStZ5BWvPxIWXlGBz7INFjJ/vra5oTc8CcxXa3j1wba5A8Sm6DNOgucHkKXiGAUQAYu1AJtoNpUO9kF3a1GmQpRxb1OZlNRNe+OCG70OWqwZtHQ983J4hpKfxK1pCSIpFQtBJUDcy9/juCauID0aaqTekHlmuy7EPgWVinJ6+wjp3UKJ1Z6fR26XXWryIxN352gyEpHIf49nkzyu+RkGQiY/uxu9cgNkajwDfx2B5d5W0SKzIgsiWMSQg16upZ6XcYUO/C7+SQmjtrrBg4rBHoLNyGsFN+VOx+DbEwNCxpArGNkKiOI4WdyMS5njymWfI+a2YM5dYBRGb/yGc0cr5Kjw9LM8AQIaNCOMN1ov06k5ZwFsoLaJhMoQvK/o5/ogEDOgy3g8GtL9/uaKMw1ihSjjmajbQYC1qOXGHGEd5E1x5710usbDrfuPGe/0zD94EIUCBTslYH2u4LdiaIKNvRHNXxzPtJTtBhBeUSqc6F+3JFKYh8WLt9axl25I6BJtIZajNoyGsfZviSQkv7cAgTJ7WabzW8MBlsS8D4HkfGIn3TRcm8tIUOSOeQzEVxYsJKhje93VUgiHm+dNakeRGT8F3QSkDPY6UJEA/1at4tz2cO5VzQbydCFUuzay9t6o5EiJf/uh99iCa7QkNAwbYuLxRG2QIG2ci+Vu+xAbrVJeuJP28+bZ9KIV1q7+YQF9IWI6wbPfUtjd8KDYw7KxVjnaXxy2HoNibIgT6AaqAQL7Wgxgpm2/v56vAHW9IzKs7x2KsT5qX+anbqU4rYWakC9lK4MubmjAIeG9FL6333YCAJYYu5TyJBTKFMJMwQI9lWouNNvUSVPQ3/R9QNBtAkE2DLtTazdde5OL8xlzkQSEGpzgeGbo+afdmaSdp0cVw+xWpWd8eUByhNZ5BtBs4olYcUlkK+CTVlJr8aTBIBi2Zs3ChXncrEgkqUxBmyr19vqs30MFu9jLbZAMm6BUk3csaQsTRkmVF9v3oTCjcO7Jp8RSPCm7W1mQ3cDpCPOY0FouxzZqvRNaxM07bVHFl07Afwof0t5dRYI9yphwPA8Dng/bsywZ6ghK0nddElXDIRNUml3rrh6zwOi92lU86Wfp6GykJ+ToSaBD/gioMPAKbzhduzlQEs9qYd9NI+cOMEeFXMdT3WD51Q/1ycp7Oxcv/TlUFqld6taQ6eF2rfWWf4EJsyh3V51iaBt+nGvjOkdPUNVMUQ1eS+NXenDuZ7CWcSMpwr1LXW3U93Tbo+2TDh3XICdxuVCTmfxXWjTl6VuRTCnCTmveNWxx1xpUcMDkl/nPwyp3mc58CFO41gtrOuewqeX4cr7iUuGxtmXffeeAKgVzH5dOAvo3degzoZGY6TSBDzjUqlecKpfVTMuzfOZcVQnzxMserFkSDeB/2f9qemb3+LiHNK+0NqHzXQe39oKiIrxD1o3xRnQIsaaLTre6F4SJKEnLpTFE/cd6wNsIUQCR1f+Tc5/4nDy8qDCMRNKOUslqlphV+ukEQzd4x/+APEA8Z4YyV8NMGOAottub3jZUU9Cg4KsCoMr0f8E9qeyJrl6d7EiTsbgDUzkURHhq4trjsbXR09L0Iyu2jXXKKPA5JqAm5E6rNrkLCHLvsxbsOxLiGqKvXkne2NdVOgdJ9Qbll82QZKHtG9R1PfhXaEwz2NnWXfhnr3ZqVdGwwAYlPYzCReq0wSUEPMNU5JAUozMqPm2puKogN3bOsVZ6wHDmTJL9cqDMd5QGt1E2NblcBeoacBWRUeNOfJdHpFd5vnHoZvjTwmLaAnOz25egfqEv9Lv8b9lJWum1QRuD/NHfj9uOCf4J/4rP/Jy80ih8n8XfHEPqVt97Rp2nP/XVPFPouB8FLZpj/4v0u4m3i49HVOXlSuX691hkZZ9ROQiMfav/6huB01w/kZ5e/YTss46qpto9wDRzvyATkc0iAQwAtL21kcOaREhL3sV44CW3H/3f4lyd8wV2AxJfq811ZBHLGR8ybbX+AUe1TfJ1rF6+k5/TVfPi3aXR6n0BhkvRpbXqcsLAjckcD+eoNxcPl0eESoncxBd6yW2YofXEyvqcFvkdF1nVToXqnpBFG0xwneajnzf2oLxjX7UjOEX/+6Kj1vO7jiSudWwgXvSHDDamUcOly5hLwXPZPCu0StK5GZJcjdzcxlyQxNg7zzurdl2jMN4Z4GHx137De2fRgxjOR+xtDmf5r3ZxUnzNB/QyiDJafgTg8tD3QWN1gb4XDnn4xaQPtgi9s6nucj9eZHMTaRVn2RdbNYWbanKdZZL345K6nhch99unA/FkCeC66/aEu++4tlaJOFt4uf9msQmnSGuiSiNoJb0NV387Du196q8JBFn3kV0ZVwvebIGhoqlVNT9hr1WIoxaK5SviaAODNXI6QrztlaaWF5BebuP0ybKY03wpqTrUlVrbZ0c2smHCp7CU0AvEqlsRxTEWoR1LuWxOhW790UaowrVJT1G0BhemPh0iZh57CznhG7j2eRT4zL+fbUzs+Tt5OPk0ulBF6w1nNyqjmnLzXnAXSptzUV/fkalLaOMOrzkuImUW3IVXCBart8BDb/oTNlXy20IxYEsTRXob1/Ea7sQtpnpRiSsnwr2ZFQxvU43+Hc3J2pz06xNwMUWKC8uEcHOYMTFFg0YtV8sNgRqC6lhTWPlFwUjh3iZMsgAhlmm+glgshDh4jKQ0gpSie1nz4oIQ+QEFDud8CJy+xDlIVg0cmT2oerHtR6Ddvv4XJT/sSmbnAZExujVi4xVR2plhhyXqpX5YR78vkzwA7vXp6+oosJWlvnRlGuSGH+0TiBP89JesOq9S/tC/Wwhwz6as3ebbxvUPZOPpLm209wMorR55dto/b4edXoxU9WurEa9SGp1Kl6TdnvdrR2GUWkKO1BvBIGPH0geWsbai6DelLa+AGXeG/brKZgufIwR7T0PGzSsM+hvFGiFiXbNwPBJ7vXe3wQSn5yndxIw2g5IqwnadrJuUefFAfLWI5+7jRfWyoD+r6uluUcCLiS6N2haur15XB6y7798tiDFoH7YglYO6rbfbGvJnaxLBr4uw1KdoZ0Pxzn6lzoU+W8gI/6NCiy2qJL2mSinQLPOCRbJm2SuozntPmaOXuSiMcsazr5cMtT0oHPaPhgDjDPlFJG3BCU4QtWHPUrrLyWvyrq4mE45yZXR15UKO9Oqfz5aEbbQisgFhbTqSZv2ScG7fKFaopRLOJeoldrCc8EKRLN0g82szNjTgj25qWo/RiGhA2Sc1qgN0NoLP7EHWV5GNkdxOkaCPoPMzfn26FRRXkZ2kFitEbGya/FzJTkJH9/TTeG23h1C1EDgsLMMV8TAnFMSvSwEZk8ZnRkzegQ+euCqT5zPuqegJmxfX37X4ftmrg+AGoFIrkurB1SyNyOR555aJA1kh9O4EetieGjRSsmIEgcraj/eHL4kn69sxD9VbIABsJlxgxfTQPf1TajA7nM5LWEAzynibv0uVFYxMfYzkZxysCvRnqnDibcK5XHvVddAV/v4i4kGLHPcB89WFAhcgbLQVXUwVludrgLW9XGht6lqHAHojlP4DQ+w2ssFmo4dGl8OsVymPyU7hl8VucRgh8Cj876Phl7Mt4U+f40Ntdi3YjGPiNG0akn8tVu922rQm30LevpiPINmkeCoS2jsGA14H+ukujnPgboJTi/6zIfZsYA1Zhs16YWS8U+CwPwZvQFYNdm1Ifeg4uSkXKcKALI2aypPVhmZIzUl9jJBr9egGfe8UwqQcNNW4BzVvb6QGZ+CvQqK4xpWsfcR1z8253SoJzGjSfYTJ7d9IBrbFj1YZSTkSiox/PtStEDo7OlBA3ZFJa2pkqaf+kbscWUrOJUij9TPEDvsvRrInFbITX66ZMxUwulT9HaXp6wU6+EeHM8H4wugr7kW3mQvHI/GBgsDW+2Djgou7ktTqLITbO60kno6SWKAVNd36pKgpXuSsSFlkSHdoio4Ef9RucDzLhlxx89boJ2g74tRZqD9y0h2Z5pYHR3IJBWRMN/b6cKnOx7/Huy7SL8+Ll3tDq/WanPSaE+Mlmu7FAiVDe1ElHnur25TQq5iTEMzZsjaUr+NeODilTlxNJQUdq+MQGbpVbAMHmyiQwjIXauhMMUiXGbhMBDCPsi31Z6obHFZkE9XtrEBoIwW1bacLiETQwBzcFsozij4FL9gpKFvZ63H/SSWpCvMVSxrMGeuUIWxL0E5OgKLz/c704ZAXiQ8Ed+p6HfEGAhJl1n55Uh3wymjVTBQbyi8ggRKOZ4vkaq8SSPb5hKX3eW8cyyIRa3mOxixmVs+D4+MU/U18JijCEs53Gz1FfPlAMt1Xel2jFpgKwks8EWEKQO+FxFbsPVp5ssCuEXeFKhJlOvXyA88AU/51PiUueB3aNeaaI4lUMLO0wyERnDovu7t8yMIIXp1yMTvkU1nHEOdRCdIpNgS5CC37oDJ9ExKwETMGMsOAcwFJXWb8qXGw8FTDhs8ZyHmgdwZEWEIXA1iY51KSgCLkDhp1nR6rhsF/xQ2VAs0JyY9ELx9FGYEjoYXTgVZDscelbPT930dM3MJnDZuRWGQMnKqbGJV2k8CuDKuvcJ3NuRA6SWEqN30Isy6+s2TqAgVtl/pN//TaibI+XWL4HQTY8IhYS3mm8JWcMe6R97wDsOHSjMnU9AxecTNTaednpqTgZntMDBac6B2AMC8WCUNtcMed3/AfAvATJ3lIAw+PgNMgKFTYWW2tS+qJxM0gpSjYKkBRDNaROptL3E6I8P9urlIlwbpe6gdUQRQo09JoRJ36CwLH0QvCAu9G2rO8VreI//HJnINMt2XjgF6IfBfooSXuLsR3ew8cHdSjRNFlb/6XGDQC3MdAxqCE8sXv1UPUaOUnkw2k5vS3eHxr9XolLL6pRFXkGPMRzWF3EZfycZL3YeLbd4+X73KpD8OUyaEPBd8TaKGs5wROZrpG3r8ZX316lE2yMRwetaV8/5Knt0hwFzg/vTSPynS1ZejNYRdfwoAgUyN8aplreNTjCxsEZkE1pIwCcgcgQE+ferUERsvoE7DHTAl0p40KBzAowcsso1cQqcA+6tMkDF6wYbnciCINpgoNOUD/INzz1ytZO0Pi8rjnMuFb8oqomks/Wu3enUrYaWl1GWQymqaWK5ZplwMxo4x3u1nvyYiJ6YJO7pY87YDM9xC6dEyYo1LArzjdR9ZoiRiJTXTS3X03HwFVgTrQypVlahp1BuRg6YQg0Gxj1zOfpmoEnqprPzyAYi/sXd6QQeBrq/owKPVkVHCrfz264oTpVolSEt7MmaXcDn8muy07EjyolY8fNCn9rT6EdjFY2ZZBUOsjP4R3Ap0SrDR0hCZkSfe7eEU/29r/1JNaTT0MM/UPVyqe7g0phUNfeC4Xg8vv+0+7DzAX0fdMdv1QFiXxIYWCOxOFgnEDZ6ENTnA8M6T/ADRaFl03JCx/A9VitC7oSzfhBI0tO9UqeWKcruWEl7SssFhjOEfGysj+VuiXuOEVgNnv/zLz/p+e6ycq8UD4UUdXSXE4xePKQCR0tmiusWnOpAXMAdn/GmAVpwM8jqVubWUNOKX1O9IjfMPc9iv9hW+CX7CqZKubJXTqYINrCvLK8uR/db3vxA7Dejw/gaA0qvY4C1C0W8VIPeK76DpwSVtpX/Sm7z4uTpSDbo2HxeOjbn59F7uZk2IpPR8mD96PYbTZP5ljn+wplOwa8rUkHDKRQECDc50j+CNwoCCcCUuFJqyzNpOWx05pG9W/+7BKBQybumtMvpYBtoE8DwftQR1LlRgK3wluiNRxmaG0/qXmsd4NQ1V+mL/74LjnWylje/GfcaAsir26jKjz0M5rfVkhX36x7GosSpVsb/EEv/FdoRvfIEgWP4/loX5/5KmVOt1WU91g4CoyEivE15IUbWpJ2pg6apTZ2pcxxUfIwUnHyHhJpn9ud/YFmKHY/eI04fAiGKpcNbA+ePCxJYNHKMnFaFAafVZH7HSci2qFq9aS2HQxrwByhuS9ndP5oMNz8HKdB5RyccgIBpzV7Hw+8+8I6hFp9pA/MZ98CtmJ8AT8QgOjLhVyX1l/D03WnL9HksRNaz8SFUIKgdzqHtrmypO8z0WVO5vj/yJLT7kXBNW0CS6xkD+G33e8jshn9a0FwuzMMGh/3lSgOlb/T69jQaYvzbq0CKNdheD/eSejb7auV49ZsAS/bdc1N9cxKYNkSe+P0pWzfN+ZmTczqQnXh+uA5SRJZ4XONFLZAymnD1lCXlYiccFMJ+c6y9DfSUosSk7ck7NGwiWGvezl2OubLGloLVgyWgvhiQRSRCQTVZvqA8X7uXBdw9RPsbjUEn2QU+B4OMT3cTJxtaVvS5ykEQQ6RxcmeICATpz6Jal5JOzk4vWZQ4EOzQGvN6dYovquZkbtdB6E2SQo2+DVyu1Ov/EV16STJbPfsw5Dl/p1rM4VyDE9RpNTr5/UTlGZuDQ825UAJg97E/Lz3izh7/RLv6e2Y9yF6FflVzD3h2b7EkRo++ueLAqFqwAj2PGGKMywz6SPTCE0bLwvCowrk2FiZ+E2xLJlqmLhgJzU48g61h57PZQhddDN+0yhotElWDxb9gEUyEe1fgIu/lLFPot7WqxtCQzh+sg1cjkyidDN9zU4f423kYaGRb4njMxyUL3jPWvdj3z5G/s5vNl6gZ08YQY2AQ6LP2taAezvCwuc6kEF30AleWwktxZTenrlOyJF/UHMy6ETd/atlMm96GBWAnEL2mG6SdmCVYTS/FpZG5CHaoTx4wtZ0l+763dX10KITy4bP/Ymfg+on46UsTCuCShwr7d9nrbZp9b2ao9c5TXyPn0+jEsAmZv2fAgozBtXtNGktki61bcNYBZAbDQNLODzz2qzM7qhOBrGoukVLpV8fGmOjwoRlkel7M/Om+Amc0dzJ1mjYvNzCnsok+lrqwU4MLEM4H1O2T2U0ah1/hdu4RZrvQMhZ2DecD5hn23+WFdaoF3xLSKbgw3yCE0U60aerRsu8VL4n14XbHivhUdVD/5qnqr7Oc9vkmfIZk/XsYq++9D7DBTi+dZS5qxCaMNSkIXLPin1z9ExZU7Mux9LldjYjV6qeqpBktEYS5f+LWb5JldTRHd2rhTylzONK+Byd02/ZNpo8TEtiKuX4oxVtHoao8JWAyK4aVgXoRBxpynKBoc+E9Hrpeig33FfrmPYDR6p7W1opPOkUsNwpblcBFWkGW03EmkFbA+KFpo3Tqfdf7vg/b0Klw+PDGSC5tJMP/3RVeJgiRTwmynf5BVX3oESkpHIEbfAHIum5LGRWrZ36y3pkTbwNiUOebXbOXM8QsHH5B7/dbnqVW2fRsu35AbXC5nOcq/t4zh4I/4KGJtdjrxjZgMHFBqvyYfHncFU+GYZ43nFGQ8EVDiCYrZ5lS0sBN9AEcpCuqKiqRglw6z9mQ9DdDOT2PeVhPd57W+1krBqxbOyX/zbZgIOd7rRvLh58tzxhOXGROOIfQHS8zQqV9f7XT7uqn/pwTx8GUAwtES1wx8gP72Z015vv/bovpc6srWCYj8YeaWVxs+ntLoinaYiGfP8l88pZ8fk8QbTbx0QkZsOb4Egejy8cK4ZP5AzZWKapRwtNAKaT6UNwuokWNvd3VeIRmBHfQly957uTf/rqN2d6zm+FREbETNAVsj4zrYdketJ57AAkF4ZXah+WfB7COMlzDwZXzr0brvdx0dSL0jH+ztQajAGywDR36KNaliXrvo1cdTcaZCz5ZzvM3QpuG0pUN6CYZNJPsCPluUFRM35I0aDTlhU4KbGOAQKXTiPUGKc0IuJ942249eYKU9SQmoF4exZlovtdFwA5QZKgl3+/AzzhRj8zLV6j7IcwOxmiJ1p10a4DH2M6jqgK36vPlrZ81MFfJ+XRGdjzCa7N/f0zTDaNIXt6GqTk0jb+6UkiMJFQAbLZrY0VovOYTIzNKV9Oq1NnpcRCG+Rupz7CrsheoBXrdFUEhQ6ZSPaFzQagMyH9GRLd7N/2685XCxmNSc4L2eKLcdIgzX5IIGUQeh8kUR6mOQLwKgIeZjSQR9M0Tb7PSTAZdtUtta84QT7evhLHcO4Zshm9KSv7xJBIT4dNO7nKhA40GNX5epeoikmxbU9OxTFvU2/xGTNZGTiEEn5Xkzp2OTMKzUqst4t6RGysySHTdTtFOW3MsFfP2nlv9N5+sLuRRMHBONSjgEuqhfZT6jLJT4bVA/XVD11DF2umkP4uja6BRhruJXNDT2mQVCBqyFwVnIvvFDkBUwCkiPEse9Zad3QXMYMkgzvuFz4mn2gXTnfXckxRPuudATADnOgYsodLYz0i6vyT+OJI2v0PPHTEpAl/eZj3MVI2GlyjtUcBfTKiKchuYoLNry9uVUIQePMINoGgKVnsYPwljWroqkXc+JqtJDvd9hSqHrBszFH0/CrgXmiVsywZ6ghwyWuKwiD8jxkktoqXDTqi4TWKvXvAFG7D+5Xkg7EBU9cSzeCWOa3VagCDdFZn9uA/ULuorS4KHyI7r0E31dWwI6LcZu8t8TSkuarnkZlNdX0cK6+Ne+7/ovtgDPsekAxb7KVkcTE5a+PiAB9JcxxE2ZCC4LAKM+OAqOYVsu4G7NJzKY2OCKSqMydAa6I2MKw2LOJe61bbs1WyQ8VszGvvcBk4IsJilhKm4JjH2vJXh//4LUqHLStDxg3DqZtimpgLHJLpnXegS+xOSZdwk0Cg/5JS5g5gQ8EWDHbLYVQdZOMyr3N0FhzS8lBQgjzyoDXVkL+mSbLQpFgM74sE2eQwtXL4e/FPfZNUbbEv9ZphIy49rP25y5sWoCuIvi9JqPk4xf287tgFtBmP2kz3UyC/L7hSkY++LCI704vGctcfZbTBs3hSbDZmo+2nEdfiGGpceEwmR0Aa9L/iFQY2qLrD+JnZ9a2wyytxI4xa+ANRZCGLte0KkNEZtuAnduo/8opDL/f5HrtDUu9RTTg92fA+sHur8HZfUNXnQEEbkFcO6GJsss5ZA/wFL8wpfUg5r1Y55CVhF7h05a0xrySFoPi3kLSkEYX9lR1Bz5DuI65UN3aP8U5Htlj0J2E4ON6fc/41rKKT6xqqh+yDoqBHA2pMOk98m/Qt128fE8Tjs2cKjcVF2PS1oqd7RMz81EfkqLnmoVXeq+qui86REcUsoO6gAj1Zxexd7+akBBNR7othQxZE8AGAM6+X8HInoZtzCu0Z3r2BOo9lJP2bDuAAt5WByHgF1MV26wtAZ2fY3Y3DO7z26kTKbn2pjN/bcXU3DpRkNpkyZEypqyNeQ2yT2u5aSbH5oYeyU6yL/WFqCk80kX+Is35mQbssO+GZOu8+nzQjzm38jIHgrs/zjTrA+Dwzig6S9UdiItAVySVe6mEdLGErwEE4+gTE23B1wEDpKDhckGxlYZDlmxcuWRn6Ntpz3Tv2qTmFv8batBo4+JZO+5XwStJhNMiFDr2UmOb8fm0VxBe5YNIFpIONZmxrI//aXPq/Q1MgYQcZ8oQ/y96f8VxmtsWH4UkmXbeH6/GYmZ0anHifeP2fBJxLvPtZUatv1XUNiCnDYLxscjSlTGE9goQ44JknjGgLWqUwH1vBEx8SKjEuGqteDjOX47NyPXwdSQkGQYXPfTy+bZu2APCrRnehTRrWsmwBFmwizYZWcxqgHM7S8krrfTt9jaAtqfzyoORHP5DqC3xhmqvCmdGOCYAb64KezSCUkYigA47HrhREXfllzictWZDK2ktX5PbC+IbZb+BM3pSbaNClMAmAMRUJMGOeZ55B6WMhce9aZ9zNyuDXxRHzPmay6sN9yNtxL26pZZuXgKk90hOagzkwo7uFN9zZU2A5MI6vFSOpy5SLtbUc6h+ISzD0skDzmyenvlIvxFS2qrvD2ZAnelePZzaw/yflao6DhNuxEk3bo+fEdUzcFy6PcT+cgiGYbN//hK3VzzpNfbJRL5ogPHGEBE7l0Kivll1akot59UrVwAJvBlzL326DER+kHdZCdCkZqIkNj1+NzQ+rktklngLEk2dUkYVs6Nc6/X3RgbwqQJB0Orc2xeIDn/1eEMS4sicZwAHMKVvCL8IWvMFsH5+a9gRT0/6go0lD9+04sGBhL0Hr5s7s9jBRb0JdsWH4Mk4AjQbOpGGwJ2asNejRpg4uVjLd86lNRVfKAOS8lZfHW+3ZTUzDu0N0jHY7hAXa3r3NsylIRg8JkOvKWFrnSV6peovJhwxuSIcTJaHyamRqPq0dKGpc4fnpNl+N/BzepAq55LkHjmZ8eRcTySlidRJSyuU/IF1Y8D19p4qIFli16qYBtyTFQgRgBquKsK3KoFB4HygXwZNBirKlDRdbSgz3T8G94Yn9AAmeSwTQeGnVweE7SsKwIkvbgxHzKAuI3YQQvTqajgxfvkT6AZVn/Lo06IY1ENH6v/OVakvu93KvnwgGdOZ/rgLJAo5AB+VrQycSDtwDbD1yqD496WRQS1nyu8T/Px7mMtLAdN+0ezAYkpjmfRQa8elqyBfMDhpePgcZZogtAXWY1c5G2SqIxfdEvo4zjcWJqS6lAWo0zV8aUyJznYGg8xFQbVwRSU77gRgdCZ5d0EekgrNzfjfUV3AGE/wEMjC+AxvTRqxpyBOIgMqsCR/CIX/0zWJiqmej0M2Ox15N/Fw1QjBZ9Qf4aPtw1ZfEiN0+6bRC5RGrcj6P1H06vTe6nFHJZixn4IYsImefTvroKzp/S0AJffxxDDWIUWBFIOaLlR4Xi1/M4HzLsGuY/to4leH8WTM+8N+SonK1oQre4i9IbgWD3aT2rZVxiP1Gpy40zn2ofJybD9RMn7y+58L70dnSIZv0rlm+0+BH4V2SfCENailUovO+o59528xgg7cA3mSdqa1nDn4xDMpahZY8ru6xemIDoEEoGGzaPpr+ygefFf/U4pGe+LLhazDxb+4m0GeVpnWtpk/Sqri8DxoamxTgtyjqegVqJeFQC15wCfQCn5JzZBU0cPIFkNTWaNiO2WCsK4FketbVJeelRqSbRSbuOmVp3A7XTIFNbE722/wrxFYdqy3X0W8WcSg89WH4MflwcFwHtnPHB2W5yMvp05fPSMtJvJpC2IX9FOmY1v1/XN/xDpHzJ19uzzCJ3xT6fq/STPOxxQ58rsqO4h2jDdFrpjRr8Ly364TaMVTs29KSVCuJMVF/yr8UrKQqjaBKxFeqsGJRk4YZZ032Z8JWhC7lx+X1WTCramV0dkttVHlK8a7Ce3GsBuQB7E3BOyQsVK9+rNsIUACcYweiuHRvWVdknI9/ns8YCYjCrLaZvJCtVwWXvnN0bkSq/vGmI9VeJhBVzHBWXibUE0bXsRdWKOluKK95qQxB9UboLRsiP7sfqUn4XVk/I8Mk8KeNxGf627OC+KPUNPlp2Z0ks5elbq+9Lxb4osqYtRIQSlB8iMvZNP4Z0GFuMEfIm3XmOpidHjGyLVZwr5G98/nJMPNgXxV0/Kf5SRYbSMb70RRu/y7KGz0krmfFPoF7Hh+S1tLy8y+c3R3x5ZDQ7hY24iL7oldIbPk8DZusaSgF0qJSZB4GtRKahqJtMyD/VQ3HZNKMrzdfd819aOhNw4kt2sRhSfgfwbFL/gT/g9cyrLeHK/y3xsgwsMV5jzznL2tYtLw0s+cjZVRpSywzVbVIHXevd2lLIYZWgQCw4LSsLI1Ca+UznfDc9sUXp5v+u/H3mW7m1GWFB0am0LxGuw1sT+HQFXC6Uedmwp1sVlBV3hmRtWmdy0aMGqkOi3YSYaCUYg4Wd0oveLaO7Qhlc4lIJ7yCCK1OzuFqJGCzAGYV2Vsmotn9uHKBYfhUXPuTQgLd6xpP69xMGNBXRpM6KSer0CDXKFYEW+u8XPRD1n4/3Ty+baER1nY0CVKl0te09sCr2RfcBw8IMivGuzlzYsRU7F4LzsFgwIFnx9iXP1UhJhBN1cjTpUkdaI9dGUsDh+L8Q64CNBZNx8OhCv8+EV4awNge6ncwgsYHvkG1WkyNvT/vb4GfEBmtA8k9ofOu23vyJmZDq6gW+aiKlXY5YqgmotL5gp1/WMA/t13odUH8lmlEWwA0xyra9JRcgN7Jf2BN1POkmtK3UE+iqYfKDNGLtPITZhWX830A3tMJa0SG5jF0bMZNgp3G7MF8BWaOwndsX/6R6elLt015b1sKpABq0DN6WqCZ/6VasbGjK+6+tEYxffQdcIlKj+pQgMIwWArz3jnJCrbH+FJnqwpw2hJUNh1b0kYMKdVzPnzDsLdKgRu1J0wQUoQA09IH1HnxuuwQHecFxHYoxFYex1Lc2Hs4hd4ez2zXQcXJ8zvsB3t2qstLpjthQopRW21/v+eRdCfEt6+8fSwovpWiLnVq5v/BEkmkSiZWJHa/7e3jhVHEa8r/G47DbYEFUfZW62ngIWZflvDhanPBsGBFtVRoiXN4O3YxKW/4dMenv4JYozABTsAZ93AGuMtsx75jTlYWArPyZ+Kemg78blq+5UaG20lajFwhdKmGiAqceoF9Kp4MaFkBjnmvukhB6iswASHDEWeU9B40ky9lJKWkpa4cFcqezs8LnQDywWiq2HY1y2ZXTwZZ4TNP5F24cKV2NocmZ9/IRXuNaFQo4MrA72FhKZxzJp2F5jofVHhg4YYFYd7By6EZ9k1uNoj/mjt98DCwv+VF0JKcWwwXJMb55L/i9D6yfyd/wpg72Hev4ePyj2CK9IkPt1YcFEaCmqiQTzU8fi36rlFJjwxfvQ5SINrpLuABHBpHdKi3AJP2O3T7XHZPe0X8TpE0cCMlOu4Rk5RXRi+iOHSGXl7VyVgjYqSGQ8X9vBTLawAz+cBLCjPzDPf7ofgn0ASFV/tLFaaty+cMqwUNNi2xdV2kZigUv+NABmP5hgmhsZcrYLhY7+s5+WNz6HG9URluqKaxgXJJPZAoLJWz0KgbI4ya9lhw/W7UaHt9ez9D6lC59aspP+U+rI0NIMMnCOijSIOeDCUh50DsAYHFojnasx7Fve9+aFtT7dHWhOnyIOkrYnRIT7Gf+ZN2kpJJ51qhCIxzpftnSWSvSdCpYhNIkzMXnBhoIpk6BbU4n0tYLXG6F7U/RY+7XPLHX4HsXME0latYQNR98CJZPHbVDg3QXTxhONLucm7jT+TxNDt9qrtRFGAIpKxiHtPPzVbYMz2YvW0WNNMM6mPB3LkfIP6ordDUNeD/Gnkgpwo8/47huDSP0M+GEh2Pef5M3Uylf+yiPIDSC5hzaKBlDTPgJB5HeVDU7QdzM+9mMDY+aFD0fBvvJyqZrwYOXXyBknZDIykPSSb6JCreHlV9vms0KFfCTCypSeAF2vAewGCXwqP/etey9EmZk7OoeHsuKaqV7Gy7UDRyK7f4FzxZqEg9dKfrECoxE0grK3FCMv9Tk/hsWi8PYRGymh7TW8sQrELxbhXvZg6qhIHDNg+M9n5IlZ6COR4zVixCosb3+IUbEkhEWUGys163nQXJD67cGAM5YiU2yZTuQo9wMBZ70XF9YmzCgVKazQMpqop2LZUpBmYcHwhiTOOEgmn3fPYYI6eq6RlDcgyGgJf2vaim7M1+I7ABo7Rg8gSlaPSXh3zHIj5RisQGf3aFan7moDTx9te2tGn3V+9LgcdXcjPi7IwYx2krw6vNdSqboARlbjjKs1GsNoctW1fABRNzVkmP491/jxQait5buZ2omRVRveFutYsO+jeU+iNC/lAf7nXRoTSaRHiVf/PQCoiP0hFlTuBG2kZMvlFUS99hyFTXh0/4VlvFaCIS1aJ686JilLccEIjRby158sKhqNHyoliBE4tBEFRGR35p30sjbg80izxJsmPDNDSr98fV8k3Y1IBY1lhVd6ZW+wO7VQhZsmb2N2vsALTtxajQpHRu9xM1piU2UyzY904yqzMZEKjeZmiQIQ5wxnuvI73MvNcBc2ji4xKaEWI9E63EUKJ4uZvnHMegyjXXvyOiKSPG+r8wBZn6U6GoVl/dr0pLV4Dnuci99ktPB31wtaUB+/QCosZY8SydSNBNlPhifHHXuy8Lj1S87G0ERk2wf4ku0fVdb1/hqtMXVmMde6quFTFK1YP/M3FutUdjvxWZvJvqoLsYBuReu/BJ0bbm5n98eHnPVP+pZ8H3BiO7V5YndzyZrxNHW/TI++7xV8pct/pQ6DzuMykqejqSMY3+CUEKdyDb1TOPr4jRx/jQ8mBq0YNUVI/QdRJ6VFqy7J3CBJEOFG0sgg449gxt5nzvUe+os+uSqWqQrc9Mj5/m6aDKqcdvP1t8Y5LszBL990p2YnJn/FdkViXXPhvGPe62bCQ6xcmKF5t9gWBEMdI1071cIhfN/a44kFcjeC0FNUEDndk3AYXKHlf+TzntnocZGk1HOeiKm7LAHUcBeC40P+E0ysr0G8Xsi+TOMJAIzZ55XqGvrv1hWBdZF9Zd/zFL/WWIj3Hx5+7QAnUtGHw7Nnk+vTeuTreAxL07IoubL5t3ibcp/AWclTKMVAqdJBvpqRKcxJTJkS2Zmb8jNadGEjv3OIwaCz2WbZ5VmrkxwdbPJ4LcWYNZze849cosSEtMUZ7z8DR/rUdAhb8djB7xuZd24hSiV6j1E6gjfstAh3HGczrY1G0AAdlhduVzT+Mk4HuXtmM+2KDz1VWOAqLiNiSUtCC/UNXgvJmMdE/7GlAGOXOsFvDNEHK7fzlBOrCmUBfcw3P0arNQTpUS2blTGyCDttpsYL8sKf+qsfXUMiVW8dBbACF+iNT8ggoTR5/wcAIQrnpsuN/d9lqlVw9LC2x5tolp2sZKzuLG0KOY3Jg5fbjmn+3+2+EonrQDcIptX05Gh5ixv71EU/UV/2DrgWR+Cl4o3sQZaFiN5lBKa8AkJ5xD/nsqGWBJOVVCLpnRC1jZEOrWW9mwG/XEebtUlxvfccSSRodlD8RycvVEtBG/70CQ2QU9b4bsjDrBwAEiHQG7Cmz0CiqE6Gu5GcMqLa5ElwmgLwUcf0AkifwDLDlgnzsug41i+7eew5WbW/Q2NxHThMnGuzF+oxQvmkXFz2ZG45x6ogGptM+ulbASbi3g2al13+OOMpPiUWpb+u1/rYivRrMJ3pnaLk5XhpFUEk94qNnAI9vMX1HOZTz7oDVd4xTPBrpqnLBlRtaRhdB+T1Rs7BQowEEAFAk17okkefvZDXCUZvy7m4NgHVUgQTHtoaUFMfG7Gvu6bJbwwKG9Iw3zlXSksYe/m6RiVkDtkZV03P8/cqy/spzc8OdVEfBJphMhwenB/MdfUxSn3lZWSavW2WBnL5kTfR9x12UVCbSZOiNY8MaAaFP0iW9YMIUcrAi8l6Qwy5Be5B32G3feKLo25Au606wcSif1CglernvgNvsbC3Iejop5BRKdrELrM42CDo93NDGDxGt+C/ZT6Y8RS57V5p7/rQxo5L2Dd+WstEQn2QVWQbHSeDQ8+5kta/XjhXMf4SgsA0LDN1XJ34DnUVP8uE8VK2ZLHDZC7WuV/6M2BrmRpXVaKZ8CLcVSYMrgfimNkvr/XH7TQCIyErIPFXl33jVVAA/t0osz7aL9/Dqz4l3JqNgqoqVbDkNYxKvNj0np+WLUcvqAYEx5Bnrjmj0WDxHw36ja9O4wixPMGKUPOOIfQZLmAdypVwJhKBjL9mXrdgzs9GkeTC0ASH6RBWJVpoUXoiCqYt3Ni06WuGCMtli3N3FEwwO8t/ZD9QEACAVNOOveb/ExhxvavoZvpcvNMSd/PSB9JdU5WCQJ27g3rq6EpgjMX3TKxms6AHv4MgpdwhzoGDANFi7Vsl/EaajO9UcXl02DN7b5HGRRpNJnPAA7Ef0DZ/QMFlvOt7Q0KxibaKn4m/+EsskEgs5bXoN79P+SiK5p4YyZ1p47ofL0egk5Ti2hdyPPk9myPp3qTEVW8sm+CQ6ElHF3rSqzhTGbunrp3t/1kIarL6Yvf1fjFkHzo3ljgdVjXx54OJWO3KX/bfrrmPzl6xFuION40GwcogWJ70kie1UL+VVz1Y/gzoGfWIdCoir6+qq6tdjP/bEEx8Pp7jkZDEsDok4hBnRwazbQKvM/hIGDx34zq20D4CHjbiw/3cuZxxVZFlCAuspkbcEj8lB9kGJsC/ElxMCpKVdfvD5gkRzTjutftYB3h/OrgJuRdA6sjNaM5l3f/dhfMjB2Hq2xlSNWqal0LF5QuUdhMC7HY9kn7CRYqtlg6G5wxD8UXXKlZqPmL+O3eSK/S25JGYXmbKK3TSv11MY4lRk8197vUm30JYWBB2BNhBLdGRhmH8UxmeTkmDfDnx812glQh7nA1/cAvNM7R2on5Ym50RfN6Bd822VSQa8kLFNSnFzcRGcKy0G/PIpgPtNrVDVDGsijk2J4cS1iLENqmmNozvq/i58RDDSgzxOwW2yMqSNqrB+MkJ7dlmde/kkHhS+Gb2jEzi75xCiDc5w9GT8IyErBJS6G6m4Zeuc1heT2V4RGoDq0rPJMo0Q6dKARAB+UrsheaYUVPdgkxvi49yYz7Ze6xeBm10WwmT8452kfRbIJXDllm26hEW7/oJXQVDu1VF/OvPEQdqGAajU35F+ykE8yjfn9ahCFuPia4P/H2aXZeTSkXkY8TcJ3TafdXQLldCcpkocuxsuWJTXMjedwFbH2G4ON+gy5/aY/GCdNA/p59t7AwBpXHdP3ZgDhCceNEHHgx2xQ+kNml/T2Zbg/nfEZ4AAnX2yw2N7OFpBFnzeWChEmVUm8DVgQeOlugwi3w9TRDbQWQiVCQhv0djL9vShz41x1gqowAy6qoCx23QIFXYZlCbDwWupz5CIPO6Is7/kEB3qsX0ph/xu21sjpzSoRZmaV7Z14T75XrUfGYycbBuauTRDvVA+bg4ihdfVMRLkk9DJolnAjrhiwxBecNjtOm6u3y6xUjLpsTpRGGS/AgLaIh1Z+tOjcBQKxh+nWaPpVz9fl6ZoQlFScjlQesy3bX2AdBk7MLOdeXJ426AAviIlcIiox0bqegcjCzAB9+/WhrLhaRAMCiHVmHWBggrf8zDrAzbi+9fjMOIMTBGHZRDO8p5KSGFQdNcCOp3lWbvWpj7bibXD9ZUUir6eNzMWON0Q+3jdsmwhiH4Q6xtueZJLLGiifWrO5XR5mF8MJ6un9Dg0kKsoMG4vngEdfVuX9upZnFW6Rg/HVHR3c/DTkeFvyBbb+aBIRl4pZYtsHarbBs3L6y7GztTBWtBgjW0GLfMP3TW75DG8nOM0S4nC9z9R+Pc6NHFWWpuQw69M7MENzx/kbVi355xLGvZNFHhBg3i+IY40VLlbQ3K/H2cmGnrCm2qVMFByY7LGysAZqOXLQ7XQ7vnJIQFg8G3PLPk8k8hDbVuniz9h4Kr8tqSBjYNKV4pfqNbCmbcUOKTdWBTnHso2KgpyjehD5yYUa8f2r3kkmWYPVHv3QWd87QqwwV3XRWv8UfHHaodQR8olD2N3PmNlKWBtRfxRwWnZImPYtzqJSqIG57xKuBSKWaOzEBzQtKJBO31Dw6UF4vLlO4KqfmgE3bZnMrjA1K9PD/JWLvVUwUOuIo2SrHEaU0NcRumiQFkshLZamVHhJMaPpmTNwDQj5J24Fpn0njbs+AxjMRHMe2yI1K56XAMYzNmOyZQSvKKjPe4NoPmZ3blvvVLmkA2C0BgBZ+/F+cOP0z0osMjUIynK5jTMcB+BIMLis9K3EeNEv8wbdF26ZFbu6QPQER3VRa/Ag5fdIU+AAAOt5fSCn8oVDLcXejWv4RAB2Zh9vVFalRmMeYhEGrHT9wImnmpY1JCjNLc1XoraEqicb2CFBSoaa+46wpkWpfnkBrhZTySYeB1SDQpWMFSpcEt0KA3LA8jVliGUFCfp3O9rPLiE6RzQDe6N9qu4m+oAqOOHSpgqe/d18/AsjEMDmfJqSUpcGdwn2lt/+iPzxKekqdLwgHHyoZFtw30U5MFkhkNlC2N75uO8S1UXj9L72kvn5HiyZXpDYWegI0UzkhyfXWZbtZbnHBgyEz4xiHFCxRhR2Z8ycK49/EQUi4czcOaoAYSlLXwZi9kD3PFcLNxT2nRO35Bkx9xvntHpd31J19ePYsVugtAyvnlc7xa8gLaNEicDTfQSBH1Sss4DaiLP8LnGwXL0j7I6ZUlTt7+0dLuCrmUlUN8T1//oFCeQh13hsztD/WDBv85Z+B0u6qWMle2vRl818+NBHZrOFbXrtJxjzW7lbdJokyHyV7ZF2gvTNFdWZeVXkm31KUh/IP0P5I6UmoTge3dCJaCR7WMHh2jLCCXx6Qb5L2aX9Ap1RH6ICUlwGwKiHWadRQYvRhErrfT4x14ufVSE1U5h0twiXrRwyyM8MD2PBsaUb1uH0S4QMJ00MjcpjNge4pT+eXG/Z9XufqL0jYNdE2DlxCHZG+rGlnNaKPHyyQN7l0QuYRWmqzKGNsrG7hLAvnNgtr1zKqio23bJ5MbPN1uB+RR3y1SyPwH0DA2YxMHw7/sD+hjRlYDLNYlU4/jlMU7nLCYsEJLya/vvHJ++vfDcHLr7GC1WJ0pb0gfsvYDExsEolKdQgF3+XNIcRNmVv38/r9TfwqKHxD9aF57gH7SNMyQtHWa/pP5igJMhguHuawTwzRqv+H1p8brfkWCL4+pxaU4anMCR8r5JqYPcIpxZd8YTa+Rp7ZuwiPNoH2SiqZFX1Vw9nfa++A5pqv8GMl/a6h3E48eRCPNHNmHmK4QXrz/MTyWNIjgNi4TJOQhkqzhhWuwZWa3HsDM+mearL4LnbKl4jLA5VpVfHZZrXOwNx6toqgbksB1buAnyWDINc2J5J2SmZS+HWRewX6cLZJG5yysOcDdBAKgsB0E1dfgxBTednvmXYDzshkE7ZaqVO5Y/pHYQpV5aqt/+lBm4QfzEYqsoAvjz++qSVZikN64da0MaL7OfkvyhCzrMuH1JwmTI9DM/XnBCS6JeFvT3D09Ar1w9cYf2Z6VbUOistvyHdNAGG0RlmSa66OaYEdmD3K5hx67EdPon6tgXmsu1sbAv6ZNXGoGblF6WdBM0DHLQ3BJImsiY75TdWz/7V7HsMey+4lijyVJgSaZlmlHFiFHevyVczZ4fdQGTG7g0vW2xNnuEFTgAx6ar5BWihYJfOqhUm7fjkRN+5NBq/jF6kmyaGAZbf6hoHrj6H0rml2uvFPf1/H5SEMnU4OvRdCHRLebjp4I3AN6ArTsEgAR/T4VZifEL/Xf2Q7zforfvLWPQPZQfR9pYlVpiRknr2Y0QBjpSgPQTPt8+AIcOdMhH+ol6ZyphambzNNbLydmpzfiBiu+/CL3774U6pQF+unlAWjcwqFB4qNczv+iEub5Oa1Qu8yRZjZwzXT5j/9umDdj726YN2Nh1XZ8+XLDm1DrghdLpyB66COk/I310EdJ+RvroIngI/EU7khEMzvbl2B93mqpsGRaeKZXyGRdbmvWGf1YzO9t8+9W02yXg6P+pX8H7568Om8eDYMSP53lgl0GxjFK1G7cCSrh7OS+1VL2mCGoWcbk0yMU3v3pEhuSreE43tlf+bydWlmhvqbjTI45JGnw0evewHNmzx18Cd2ojjOvEPX9z4j9L9rZuba51hzqvh/yb177C3hB7sSDZv4gceTgwAJU91zgA9sj3ZPduexABZJV6YC5G5EwZ+dwASCwuhG3b0920b08kqlTcStlHBy2oSFnMdd8Oxjqi6BSUOh87tRokFdzTSS8+8gLvFp30DiotiVAY47anGHVTqXkS86lYy7eYP6F23c37pDm4ViyrDII1Mwb0H+6+YWwherbBIgT+wY3gvrdCXI+ujkRfoUPyvI9eR68j15HryPPFj39nRB40K7nJyFjnTqztnT+ozuKsKwP+2wzkjKEp8U+W25xezjPom+6Q004Dt/mM8713AdZXlKB+SWueTeDB1SamAkebIJ2eKksBZAzlzRmV0dTKtXl+c/UV0LB04kwsaNSYFyJPTFd3gOLaX3rGTK3vNZDG3tpupbxCNHZG/oMJ0HijQUwyvcvAcx9xXS9TQn/zRPmjB0TzwWkwZj3lX6NEsijMXaZy15A1Hbxkey3wSE7nyWA2nol2mKPTGP0dQ3Xk1WW/ohnl9Z2xTu3bVaE9LZ0jMPOTtx310QU7euIMA6dXIA57RM/rmSaFNM+YCyuCJL0BeXBUhDpu5GWcwCYMnD20kVH6k/HAcTQFYqExAEU4PiMd/hoOH78cVk2iA01gqft6zKF/NptFBUbwlAQRJgkjFZfLvYLdMEMQi5bx9HzjZ81eFv+l9p2nn8kqswYBGqRvU5E4CFoNBvRKwMmHzh0FR8xL6M/n/KJ0jFssG+1DttGv1DP7Cv+y6B5w9pC4UWFOIHgipsa5cMPIla8mQv+93IzzjbxMNyBR4r5lOvIXmirhgzyBwAAAAAAAAAAAAifK6f2evVghotxFfi9R3sNi74AAAAAAA==" alt="Streaming data services on AWS. Sources are website click streams, IoT devices, banking transactions, and metrics and logs. Amazon Kinesis Data Streams and Amazon MSK ingest the data. Amazon Managed Service for Apache Flink, EC2, Lambda, ECS, and EKS process it. Amazon Data Firehose delivers it to destinations such as Amazon S3, Amazon Redshift, and Amazon OpenSearch Service." style="width:100%;max-width:900px;height:auto;display:block;margin:0 auto"></div>
+    <figcaption>Image 1b — Amazon MSK and Amazon Kinesis Data Streams ingest streaming data, other services process it, and Amazon Data Firehose delivers it. (Source: awswithchetan.com.)</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Amazon MSK is managed Apache Kafka.</strong> If the question says that applications must keep their Kafka clients and tools, the answer is MSK.</li>
+      <li>MSK uses <strong>topics and partitions</strong>. Amazon Kinesis Data Streams uses <strong>streams and shards</strong>.</li>
+      <li>The producers and consumers are <strong>your code</strong> or other AWS services. MSK manages the brokers and the metadata nodes.</li>
+      <li>MSK clusters run in your <strong>VPC</strong>, with one subnet in each Availability Zone.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Kafka, managed. AWS runs the brokers, and you run the topics.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Managed Apache Kafka on AWS”<br>→ Amazon MSK</p>
+    <p><strong>Trigger 2:</strong> “Move Kafka to AWS without changing the producers and consumers”<br>→ Amazon MSK</p>
+    <p><strong>Trigger 3:</strong> “Kafka topics and partitions”<br>→ Amazon MSK</p>
+    <p><strong>Trigger 4:</strong> “Alternative to Amazon Kinesis Data Streams that uses Kafka APIs”<br>→ Amazon MSK</p>
+    </div>
+
+  <div class="qbox">
+    <h2>1.5 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company runs Apache Kafka on Amazon EC2 for real-time ingestion, and many applications use Kafka producers and consumers. The company wants a managed service on AWS, and it does not want to change the application code. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Amazon Kinesis Data Streams, with new producer code in each application.</li>
+      <li><strong>B.</strong> An Amazon SQS (lesson 273.3) FIFO queue, with a new consumer library in each application.</li>
+      <li><strong>C.</strong> Amazon MSK, with the existing Kafka clients and tools.</li>
+      <li><strong>D.</strong> Amazon Data Firehose, with a Lambda function that transforms the data.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> Amazon MSK runs open-source Apache Kafka as a managed service, so existing applications, tools, and plugins work without changes to the application code.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Kinesis Data Streams uses its own APIs, so each application needs new producer code.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>SQS is a message queue with its own API. It is not Kafka, and each application would need new code.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>MSK is managed Apache Kafka, and the existing Kafka clients and tools keep working.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Firehose delivers streaming data to destinations. It is not a Kafka service, and it would not run the Kafka clients.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>1.6 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/msk/latest/developerguide/what-is-msk.html" target="_blank" rel="noopener">What Is Amazon MSK?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/msk/faqs/" target="_blank" rel="noopener">Amazon MSK FAQs</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/msk/" target="_blank" rel="noopener">Amazon MSK</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Cluster Types and Availability</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s website traffic is steady, but the marketing campaigns create sudden spikes. The data science team also wants a small Kafka cluster for experiments, and it does not want to size one.</p>
+    <p>The operations team wants the data to survive the loss of a zone, and it wants to copy topics to a second Region for disaster recovery.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose a cluster type for the steady workload and for the spiky workload.</li>
+      <li>Make the cluster survive the loss of a zone.</li>
+      <li>Copy the data to another Region.</li>
+    </ul>
+  </div>
+
+  <h2>2.1 MSK Provisioned: Standard and Express Brokers</h2>
+  <ul>
+    <li><strong>MSK Provisioned</strong> clusters have broker instances that you choose. You pick the broker type, the instance size, and the number of brokers in each Availability Zone.</li>
+    <li>MSK Provisioned offers two broker types, <strong>Standard brokers</strong> and <strong>Express brokers</strong>.</li>
+  </ul>
+  <ul>
+    <li>Standard brokers can also use <strong>tiered storage</strong>, a low-cost tier for older data. It has its own storage and retrieval charges (3.6).</li>
+  </ul>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>Standard brokers</th><th>Express brokers</th></tr></thead>
+    <tbody>
+      <tr><td>Configuration</td><td>The most flexible. You can use custom configurations.</td><td>MSK protects settings that can hurt availability and durability, and it simplifies the configuration.</td></tr>
+      <tr><td>Storage</td><td>You provision the storage, and you can optionally provision storage throughput.</td><td>You do not provision or manage storage. MSK manages the storage layer.</td></tr>
+      <tr><td>Replication</td><td>You can choose a custom replication strategy for each topic.</td><td>MSK always replicates the data across three Availability Zones.</td></tr>
+      <tr><td>Designed for</td><td>Workloads that need control of the configuration and the storage.</td><td>Up to 3 times the throughput per broker and up to 20 times faster scaling than Standard brokers, depending on the instance size.</td></tr>
+      <tr><td>Availability Zones</td><td>Two or three zones. Three is the default and the recommended setup.</td><td>Three zones only.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>2.2 MSK Serverless</h2>
+  <ul>
+    <li><strong>MSK Serverless</strong> is a cluster type that runs Apache Kafka without you managing or scaling the cluster capacity.</li>
+    <li>It automatically provisions and scales capacity and manages the partitions in your topics, so you do not need to right-size the cluster.</li>
+    <li>It is fully compatible with Apache Kafka, so you can use any compatible client to produce and consume data. It also works with AWS PrivateLink, AWS Glue Schema Registry, Amazon Managed Service for Apache Flink, and AWS Lambda.</li>
+    <li>MSK Serverless <strong>requires IAM access control</strong> for every cluster. Apache Kafka access control lists are not supported (3.2).</li>
+    <li>Use it when your applications need streaming capacity on demand that scales up and down, or for a small cluster that you do not want to size.</li>
+    <li>MSK Serverless is available in selected Regions, and it has service quotas. Check the Amazon MSK documentation to confirm that your workload fits.</li>
+  </ul>
+
+  <h2>2.3 Choosing a Cluster Type</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Cluster type</th><th>Capacity</th><th>Best for</th></tr></thead>
+    <tbody>
+      <tr><td>Provisioned, Standard brokers</td><td>You size the brokers and the storage.</td><td>Steady workloads that need full control of the configuration.</td></tr>
+      <tr><td>Provisioned, Express brokers</td><td>You size the brokers. MSK manages the storage.</td><td>High throughput and quick scaling, with less to manage.</td></tr>
+      <tr><td>Serverless</td><td>MSK manages the capacity.</td><td>Variable or unpredictable workloads, and small clusters.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>2.4 High Availability</h2>
+  <ul>
+    <li>You choose two or three Availability Zones for Standard brokers, and three for Express brokers. Each zone has at least one broker. AWS recommends three zones for high availability, and it is the default.</li>
+    <li>MSK uses Apache Kafka <strong>leader-follower replication</strong> to copy the data between brokers. A broker in another zone holds a copy of each partition.</li>
+    <li>With Standard brokers, three zones and one broker in each zone give a cluster of three brokers. Express brokers are only available in a three-zone setup.</li>
+    <li>MSK detects the most common failures and recovers from them automatically, so producers and consumers can continue with minimal impact.</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 860 340" role="img" aria-label="An Amazon MSK cluster in a VPC. Three Availability Zones each hold a subnet with one broker. Leader-follower replication keeps copies of each partition in other zones. MSK manages ZooKeeper nodes or KRaft controllers for the cluster metadata. Producers write to the brokers and consumers read from them."><rect class="sv-box" x="10" y="115" width="110" height="70" rx="6"/><text class="sv-t" x="65" y="146" text-anchor="middle">Producers</text><rect class="sv-dash" x="150" y="10" width="560" height="320" rx="8"/><text class="sv-tb" x="430" y="32" text-anchor="middle">Your VPC</text><rect class="sv-boxb" x="170" y="46" width="160" height="170" rx="6"/><text class="sv-tb" x="250" y="70" text-anchor="middle">Availability Zone A</text><text class="sv-tm" x="250" y="90" text-anchor="middle">Subnet</text><rect class="sv-boxg" x="190" y="108" width="120" height="64" rx="6"/><text class="sv-t" x="250" y="136" text-anchor="middle">Broker 1</text><text class="sv-t" x="250" y="152" text-anchor="middle">Topic partitions</text><rect class="sv-boxb" x="350" y="46" width="160" height="170" rx="6"/><text class="sv-tb" x="430" y="70" text-anchor="middle">Availability Zone B</text><text class="sv-tm" x="430" y="90" text-anchor="middle">Subnet</text><rect class="sv-boxg" x="370" y="108" width="120" height="64" rx="6"/><text class="sv-t" x="430" y="136" text-anchor="middle">Broker 2</text><text class="sv-t" x="430" y="152" text-anchor="middle">Topic partitions</text><rect class="sv-boxb" x="530" y="46" width="160" height="170" rx="6"/><text class="sv-tb" x="610" y="70" text-anchor="middle">Availability Zone C</text><text class="sv-tm" x="610" y="90" text-anchor="middle">Subnet</text><rect class="sv-boxg" x="550" y="108" width="120" height="64" rx="6"/><text class="sv-t" x="610" y="136" text-anchor="middle">Broker 3</text><text class="sv-t" x="610" y="152" text-anchor="middle">Topic partitions</text><text class="sv-tm" x="430" y="238" text-anchor="middle">Leader-follower replication keeps copies of each partition in other zones.</text><rect class="sv-box" x="170" y="256" width="520" height="56" rx="6"/><text class="sv-t" x="430" y="280" text-anchor="middle">ZooKeeper nodes or KRaft controllers</text><text class="sv-t" x="430" y="296" text-anchor="middle">Cluster metadata, managed by MSK</text><rect class="sv-box" x="740" y="115" width="110" height="70" rx="6"/><text class="sv-t" x="795" y="146" text-anchor="middle">Consumers</text><line class="sv-line" x1="120" y1="150" x2="141" y2="150"/><polygon class="sv-arrow" points="150,150 140,145 140,155"/><line class="sv-line" x1="710" y1="150" x2="731" y2="150"/><polygon class="sv-arrow" points="740,150 730,145 730,155"/></svg>
+    </div>
+    <figcaption>Image 2a — An Amazon MSK cluster with a broker in each of three Availability Zones in one VPC (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>2.5 MSK Connect</h2>
+  <ul>
+    <li><strong>Kafka Connect</strong> is an open-source part of Apache Kafka. It connects Kafka with external systems, such as databases, key-value stores, search indexes, and file systems.</li>
+    <li><strong>MSK Connect</strong> runs Kafka Connect connectors as a managed feature. Use it to stream data to and from your Kafka cluster without building the integration yourself.</li>
+  </ul>
+
+  <h2>2.6 MSK Replicator and Schema Registry</h2>
+  <ul>
+    <li><strong>MSK Replicator</strong> replicates data reliably across MSK Provisioned clusters, in the same Region or in different Regions. Use it for disaster recovery and for moving data between clusters.</li>
+    <li>Apache Kafka clients can use the <strong>AWS Glue Schema Registry</strong>, a serverless feature of AWS Glue, at no additional charge. It manages and enforces the schemas of the records.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>MSK Serverless</strong> removes capacity management. <strong>Express brokers</strong> remove storage management and add throughput. <strong>Standard brokers</strong> give the most control.</li>
+      <li>For a copy of Kafka data in <strong>another Region</strong>, use <strong>MSK Replicator</strong>. For a Kafka integration with databases and other systems, use <strong>MSK Connect</strong>.</li>
+      <li>The broker count is per <strong>Availability Zone</strong>: at least one broker in each zone.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Standard to tune, Express to fly, Serverless to forget.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Run Kafka without sizing or managing capacity”<br>→ MSK Serverless</p>
+    <p><strong>Trigger 2:</strong> “Kafka with the most control of configuration and storage”<br>→ MSK Provisioned with Standard brokers</p>
+    <p><strong>Trigger 3:</strong> “Kafka with high throughput, fast scaling, and managed storage”<br>→ MSK Provisioned with Express brokers</p>
+    <p><strong>Trigger 4:</strong> “Replicate Kafka topics to another Region”<br>→ MSK Replicator</p>
+    <p><strong>Trigger 5:</strong> “Move data between Kafka and databases with connectors”<br>→ MSK Connect</p>
+    </div>
+
+  <div class="qbox">
+    <h2>2.7 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company needs Apache Kafka for a workload with sudden, unpredictable spikes. The team does not want to choose broker sizes or manage the cluster capacity. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> MSK Provisioned with Standard brokers, sized for the highest peak.</li>
+      <li><strong>B.</strong> Amazon MSK Serverless.</li>
+      <li><strong>C.</strong> Apache Kafka on EC2 instances in an Auto Scaling group.</li>
+      <li><strong>D.</strong> MSK Provisioned with Express brokers, resized by hand for each spike.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> MSK Serverless runs Apache Kafka without you managing or scaling the cluster capacity. MSK provisions and scales the compute and the storage as the traffic changes.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Sizing Standard brokers for the highest peak means choosing sizes, and it pays for unused capacity between spikes.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>Serverless removes broker sizing and capacity management, and it suits unpredictable workloads.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>Kafka on EC2 returns the work of patching, scaling, and recovery to the team.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Express brokers still need the team to choose the broker size and to resize the cluster by hand.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>2.8 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/msk/latest/developerguide/what-is-msk.html" target="_blank" rel="noopener">What Is Amazon MSK?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/msk/faqs/" target="_blank" rel="noopener">Amazon MSK FAQs</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/blogs/aws/introducing-express-brokers-for-amazon-msk-to-deliver-high-throughput-and-faster-scaling-for-your-kafka-clusters" target="_blank" rel="noopener">Introducing Express Brokers for Amazon MSK</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Security, Monitoring, and Pricing</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s Kafka clients include applications on Amazon EC2, serverless functions, and a partner system. The security team requires that the data is encrypted, that only approved clients can read each topic, and that the cluster cannot be reached from the internet.</p>
+    <p>The finance team also asks which costs it should expect from the cluster.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Control who can connect and what each client can do.</li>
+      <li>Encrypt the data in transit and at rest.</li>
+      <li>Name the cost dimensions of each cluster type.</li>
+    </ul>
+  </div>
+
+  <h2>3.1 Networking</h2>
+  <ul>
+    <li>An MSK cluster runs in your <strong>VPC</strong>, with a subnet in each Availability Zone.</li>
+    <li><strong>Security groups</strong> on the cluster’s network interfaces control who can connect and communicate with the cluster.</li>
+    <li>Public access to the brokers is a setting that you can turn off. Keep it off, and keep the cluster in private subnets.</li>
+    <li>Clients in other VPCs or on premises can connect through VPC peering, AWS Transit Gateway, or the multi-VPC private connectivity of MSK.</li>
+  </ul>
+
+  <h2>3.2 Authentication</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Method</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr><td>IAM access control</td><td>Clients sign in with IAM roles or users, and IAM policies authorize the Kafka actions. It has no additional cost, and it is the simplest option when your clients run on AWS. MSK Serverless requires it.</td></tr>
+      <tr><td>SASL/SCRAM</td><td>Clients use a user name and a password that are stored as secrets, in AWS Secrets Manager.</td></tr>
+      <tr><td>Mutual TLS</td><td>Clients present a certificate. You need an AWS Private CA, in the same account as the cluster or in another account. MSK does not support certificate revocation lists, so use Kafka ACLs and security groups to block a compromised certificate.</td></tr>
+      <tr><td>Unauthenticated</td><td>MSK also has an option for unauthenticated access. Use it only when the network controls are enough.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>3.3 Authorization</h2>
+  <ul>
+    <li>With <strong>IAM access control</strong>, one IAM policy controls both the authentication and the Kafka actions, such as listing topics or writing to a topic. You do not manage Kafka access control lists.</li>
+    <li>With SASL/SCRAM and mutual TLS, you use Apache Kafka <strong>access control lists</strong> to control what each client can do.</li>
+    <li>IAM access control also records Kafka resource changes, such as creating a topic or adding partitions, in AWS CloudTrail (lesson 274.3).</li>
+  </ul>
+
+  <h2>3.4 Encryption</h2>
+  <ul>
+    <li><strong>In transit:</strong> MSK supports TLS between the clients and the brokers, and between the brokers. The client-broker setting can be TLS only, TLS and plaintext, or plaintext. Choose TLS only for sensitive data.</li>
+    <li><strong>At rest:</strong> MSK encrypts the data on the broker volumes with AWS KMS. If you do not specify a key, MSK creates one for you, and you can choose your own key.</li>
+  </ul>
+
+  <h2>3.5 Monitoring</h2>
+  <ul>
+    <li>MSK publishes cluster and broker metrics to Amazon CloudWatch (lesson 274.1).</li>
+    <li>You can deliver the broker logs to Amazon CloudWatch Logs (lesson 274.2), Amazon S3, or Amazon Data Firehose. By default, the logs are at the INFO level. MSK API calls are logged in AWS CloudTrail.</li>
+    <li>Watch the storage use, the broker CPU use, and the lag of the consumers, which shows how far a consumer is behind the newest records.</li>
+  </ul>
+
+  <h2>3.6 MSK Pricing</h2>
+  <p><strong>Prices change often and differ by Region.</strong> Check the current rates on the <a href="https://aws.amazon.com/msk/pricing/" target="_blank" rel="noopener">Amazon MSK pricing</a> page.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Cluster type</th><th>What you pay for</th></tr></thead>
+    <tbody>
+      <tr><td>Provisioned, Standard brokers</td><td>Broker instance hours, the storage that you provision, optional provisioned storage throughput, the low-cost storage tier and its retrieval if you use it, and data transfer.</td></tr>
+      <tr><td>Provisioned, Express brokers</td><td>Broker instance usage, the storage that you use, a per-GB rate for the data that you write, and data transfer.</td></tr>
+      <tr><td>Serverless</td><td>An hourly rate for the cluster, an hourly rate for each partition, a per-GB rate for the data that producers write and consumers read, and the storage that you use.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>MSK Connect is billed by connector worker hours. MSK Replicator is billed by the hour for each Replicator and by the GB that it processes, plus cross-Region data transfer. Private connectivity, powered by AWS PrivateLink, has an hourly charge and a per-GB charge.</li>
+    <li>You are not charged for data transfer for replication between brokers, or between the metadata nodes and the brokers. Standard AWS data transfer charges apply to data that goes in and out of the cluster.</li>
+  </ul>
+
+    <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 534" role="img" aria-label="Layers of protection for Amazon MSK, from Kafka client to MSK cluster: Networking: The cluster runs in your VPC, security groups control access, and public access stays off; Authentication: IAM access control, SASL/SCRAM, or mutual TLS; Authorization: One IAM policy with IAM access control, or Apache Kafka access control lists; Encryption: TLS in transit, and AWS KMS at rest; Monitoring: CloudWatch metrics and logs: storage use, broker CPU use, and consumer lag."><defs><marker id="ar27213" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxb" x="310" y="10" width="300" height="40" rx="6"/><text class="sv-tb" x="460" y="35" text-anchor="middle">Kafka client</text><line class="sv-line" x1="460" y1="50" x2="460" y2="70" marker-end="url(#ar27213)"/><rect class="sv-box" x="60" y="74" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="98">Networking</text><text class="sv-t" x="76" y="118">The cluster runs in your VPC, security groups control access, and public access stays off</text><line class="sv-line" x1="460" y1="132" x2="460" y2="152" marker-end="url(#ar27213)"/><rect class="sv-box" x="60" y="156" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="180">Authentication</text><text class="sv-t" x="76" y="200">IAM access control, SASL/SCRAM, or mutual TLS</text><line class="sv-line" x1="460" y1="214" x2="460" y2="234" marker-end="url(#ar27213)"/><rect class="sv-box" x="60" y="238" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="262">Authorization</text><text class="sv-t" x="76" y="282">One IAM policy with IAM access control, or Apache Kafka access control lists</text><line class="sv-line" x1="460" y1="296" x2="460" y2="316" marker-end="url(#ar27213)"/><rect class="sv-box" x="60" y="320" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="344">Encryption</text><text class="sv-t" x="76" y="364">TLS in transit, and AWS KMS at rest</text><line class="sv-line" x1="460" y1="378" x2="460" y2="398" marker-end="url(#ar27213)"/><rect class="sv-box" x="60" y="402" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="426">Monitoring</text><text class="sv-t" x="76" y="446">CloudWatch metrics and logs: storage use, broker CPU use, and consumer lag</text><line class="sv-line" x1="460" y1="460" x2="460" y2="480" marker-end="url(#ar27213)"/><rect class="sv-boxg" x="310" y="484" width="300" height="40" rx="6"/><text class="sv-tb" x="460" y="509" text-anchor="middle">MSK cluster</text></svg>
+    </div>
+    <figcaption>Image 3a &mdash; Layers of protection for Amazon MSK. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>IAM access control</strong> is the answer when clients should use <strong>IAM roles and policies</strong> and nobody wants to manage credentials or Kafka ACLs.</li>
+      <li><strong>SASL/SCRAM</strong> uses user names and passwords in Secrets Manager. <strong>Mutual TLS</strong> uses client certificates.</li>
+      <li><strong>MSK Serverless</strong> requires <strong>IAM access control</strong>. It does not support Kafka ACLs.</li>
+      <li>MSK encrypts data at rest with <strong>AWS KMS</strong>, and in transit with <strong>TLS</strong>. Plaintext is an option, so choose TLS only for sensitive data.</li>
+      <li>Keep the cluster <strong>private</strong>: private subnets, security groups, and public access turned off.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Private VPC, IAM for who, TLS and KMS for what.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Authenticate Kafka clients with IAM roles”<br>→ MSK IAM access control</p>
+    <p><strong>Trigger 2:</strong> “Kafka clients sign in with a user name and a password”<br>→ SASL/SCRAM with AWS Secrets Manager</p>
+    <p><strong>Trigger 3:</strong> “Kafka clients present a certificate”<br>→ Mutual TLS, with an AWS Private CA</p>
+    <p><strong>Trigger 4:</strong> “Authentication for an MSK Serverless cluster”<br>→ IAM access control</p>
+    <p><strong>Trigger 5:</strong> “Encrypt MSK data at rest”<br>→ AWS KMS</p>
+    <p><strong>Trigger 6:</strong> “Keep an MSK cluster off the internet”<br>→ Private subnets, security groups, and public access turned off</p>
+    </div>
+
+  <div class="qbox">
+    <h2>3.7 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company runs Kafka clients on Amazon EC2 instances and in AWS Lambda functions. The company wants the clients to authenticate and be authorized with IAM roles and policies, with no separate user names, certificates, or Kafka access control lists to manage. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> SASL/SCRAM, with one secret for each user.</li>
+      <li><strong>B.</strong> Mutual TLS, with one client certificate for each application.</li>
+      <li><strong>C.</strong> Unauthenticated access, limited only by security groups.</li>
+      <li><strong>D.</strong> IAM access control for Amazon MSK, with IAM roles for the clients.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: D.</strong> IAM access control for Amazon MSK uses IAM roles and policies for both authentication and authorization of the Kafka actions, so there are no credentials or Kafka access control lists to manage.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>SCRAM needs a user name and a password for each user, which the company wants to avoid.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Mutual TLS needs a certificate for each application, which the company wants to avoid.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>Unauthenticated access gives no identity, so it cannot authorize each client with IAM.</td></tr>
+      <tr><td>D</td><td>Correct</td><td>IAM access control authenticates the clients with IAM roles, and IAM policies authorize the Kafka actions.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>3.8 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/blogs/big-data/securing-apache-kafka-is-easy-and-familiar-with-iam-access-control-for-amazon-msk/" target="_blank" rel="noopener">Securing Apache Kafka Is Easy and Familiar With IAM Access Control for Amazon MSK</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/msk/pricing/" target="_blank" rel="noopener">Amazon MSK Pricing</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/msk/latest/developerguide/what-is-msk.html" target="_blank" rel="noopener">What Is Amazon MSK?</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 4 ============ -->
+<section class="tab" id="tab4" role="tabpanel" aria-labelledby="b4">
+  <h1 class="tabh">4. Comparison &amp; Scenarios</h1>
+
+  <h2>4.1 MSK and Kinesis Data Streams Compared</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>Amazon MSK</th><th>Amazon Kinesis Data Streams</th></tr></thead>
+    <tbody>
+      <tr><td>What it is</td><td>Managed Apache Kafka.</td><td>An AWS-native streaming service.</td></tr>
+      <tr><td>APIs and clients</td><td>Open-source Kafka APIs, clients, and tools.</td><td>Kinesis APIs, with the Kinesis Producer Library, the Kinesis Client Library, and the AWS SDK.</td></tr>
+      <tr><td>Unit of capacity</td><td>Topics with partitions, on brokers.</td><td>Streams with shards.</td></tr>
+      <tr><td>Scaling</td><td>You can only add partitions to a topic. You add brokers, or use Express brokers or Serverless.</td><td>You split and merge shards, or you use on-demand mode.</td></tr>
+      <tr><td>Retention</td><td>Data stays on the broker storage for as long as you configure.</td><td>The default is 24 hours, and the maximum is 365 days. Retention beyond 24 hours has additional charges.</td></tr>
+      <tr><td>Encryption in transit</td><td>TLS, or plaintext if you allow it.</td><td>TLS.</td></tr>
+      <tr><td>Encryption at rest</td><td>AWS KMS.</td><td>AWS KMS.</td></tr>
+      <tr><td>Authentication</td><td>IAM, SASL/SCRAM, or mutual TLS.</td><td>IAM.</td></tr>
+      <tr><td>Best for</td><td>Existing Kafka workloads and the Kafka ecosystem.</td><td>New applications that are built on AWS.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>4.2 When to Use Each Service</h2>
+  <h3>4.2.1 Use Amazon MSK When</h3>
+  <ul>
+    <li>Applications already use Apache Kafka, and you want to keep the clients, the tools, and the code.</li>
+    <li>You want the open-source Kafka ecosystem, such as Kafka Connect.</li>
+    <li>You want portability: the same Kafka APIs on AWS and elsewhere.</li>
+  </ul>
+  <h3>4.2.2 Use Another Service When</h3>
+  <ul>
+    <li><strong>Amazon Kinesis Data Streams:</strong> you are building a new application on AWS and you do not need Kafka compatibility.</li>
+    <li><strong>Amazon SQS or Amazon SNS (lesson 273.3):</strong> you need a simple message queue or notifications, not a replayable stream.</li>
+    <li><strong>Amazon Managed Service for Apache Flink or AWS Glue:</strong> you need to process the stream. MSK ingests it.</li>
+  </ul>
+
+  <h2>4.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Scenario keywords</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Managed Apache Kafka on AWS</td><td>Amazon MSK</td></tr>
+      <tr><td>2</td><td>Move Kafka to AWS without changing the producers and consumers</td><td>Amazon MSK</td></tr>
+      <tr><td>3</td><td>Kafka topics and partitions</td><td>Amazon MSK</td></tr>
+      <tr><td>4</td><td>New AWS-native streaming application with shards</td><td>Amazon Kinesis Data Streams</td></tr>
+      <tr><td>5</td><td>Kafka without managing capacity</td><td>MSK Serverless</td></tr>
+      <tr><td>6</td><td>Kafka with managed storage, high throughput, and fast scaling</td><td>MSK Express brokers</td></tr>
+      <tr><td>7</td><td>Kafka with the most control of the configuration</td><td>MSK Standard brokers</td></tr>
+      <tr><td>8</td><td>Replicate Kafka data to another Region</td><td>MSK Replicator</td></tr>
+      <tr><td>9</td><td>Move data between Kafka and databases or other systems</td><td>MSK Connect</td></tr>
+      <tr><td>10</td><td>Authenticate Kafka clients with IAM roles, or secure an MSK Serverless cluster</td><td>MSK IAM access control</td></tr>
+      <tr><td>11</td><td>Encrypt MSK data at rest</td><td>AWS KMS</td></tr>
+      <tr><td>12</td><td>Process an MSK stream in real time</td><td>Amazon Managed Service for Apache Flink, AWS Lambda, or Glue streaming ETL</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>4.4 Lesson Summary</h2>
+  <p>This lesson covered the following points:</p>
+  <ul>
+    <li>Amazon MSK is a fully managed service that runs open-source Apache Kafka. Applications keep their Kafka clients and tools, and AWS manages the brokers and the metadata nodes.</li>
+    <li>Kafka stores records in topics. Each topic has partitions that spread across brokers and are replicated. Producers write, and consumer groups read at their own rate.</li>
+    <li>MSK Provisioned has Standard brokers for control and Express brokers for throughput and managed storage. MSK Serverless removes capacity management.</li>
+    <li>MSK spreads a cluster across up to three Availability Zones, recovers from common failures, and offers MSK Connect for integrations and MSK Replicator for copying data between clusters.</li>
+    <li>Security uses a VPC with security groups, IAM access control, SASL/SCRAM, or mutual TLS for authentication, TLS in transit, and AWS KMS at rest.</li>
+    <li>Choose MSK for Kafka workloads, and Kinesis Data Streams for new AWS-native streaming applications.</li>
+  </ul>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>If it speaks Kafka, it runs on MSK.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 5 ============ -->
+<section class="tab" id="tab5" role="tabpanel" aria-labelledby="b5">
+  <h1 class="tabh">5. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: Explain what Amazon MSK is, and what stays the same for the applications that already use Apache Kafka.</summary>
+    <p><em>Maps to:</em> Objectives 1 and 2 (Comprehension).</p>
+    <p>Amazon MSK is a fully managed service that runs open-source Apache Kafka. AWS creates and manages the brokers and the metadata nodes, replaces unhealthy brokers, and deploys hardware patches. Because MSK runs open-source Kafka, the existing producers, consumers, tools, and plugins keep working without changes to the application code. The team manages the topics and the applications, and not the servers.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Describe the Apache Kafka concepts of producer, topic, partition, broker, and consumer group, and show how they fit together.</summary>
+    <p><em>Maps to:</em> Objective 1 (Comprehension).</p>
+    <p>A producer writes records to a topic. The topic is split into partitions, and each partition is an ordered log of records. Kafka spreads the partitions across brokers, which are the servers of the cluster, and replicates them on other brokers. Consumers read the records, and consumers in a consumer group share the partitions. Each consumer reads at its own rate.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: Compare MSK Provisioned with Standard brokers, MSK Provisioned with Express brokers, and MSK Serverless, and say when you would choose each one.</summary>
+    <p><em>Maps to:</em> Objective 3 (Analysis).</p>
+    <p>With Standard brokers, you choose the broker size, you provision the storage, and you can use custom configurations. Choose them for steady workloads that need control. With Express brokers, you choose the broker size, MSK manages the storage and always replicates across three Availability Zones, and you get higher throughput and faster scaling. Choose them for demanding workloads with less to manage. With MSK Serverless, MSK manages the capacity and scales the compute and the storage. Choose it for variable workloads and small clusters.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Explain how an MSK cluster stays available when a zone fails, and name the features for copying data to another Region and for connecting Kafka to databases.</summary>
+    <p><em>Maps to:</em> Objective 4 (Comprehension).</p>
+    <p>The cluster has brokers in up to three Availability Zones, and Kafka leader-follower replication keeps copies of each partition on brokers in other zones. MSK detects common failures and replaces an unhealthy broker, and the clients keep using the same broker addresses. MSK Replicator replicates data between MSK Provisioned clusters in the same or different Regions. MSK Connect runs Kafka Connect connectors to stream data to and from databases and other systems.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: FlashCart clients run on Amazon EC2 and AWS Lambda. Describe how you would secure the MSK cluster.</summary>
+    <p><em>Maps to:</em> Objective 5 (Application).</p>
+    <p>Place the cluster in private subnets of a VPC, turn off public access, and use security groups to allow only the client networks. Use IAM access control so that the clients authenticate with IAM roles, and write IAM policies that allow only the topics and actions that each client needs. Set the client-broker encryption to TLS only, and use AWS KMS for encryption at rest. Send the broker logs to Amazon CloudWatch Logs, and watch the metrics in Amazon CloudWatch.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: Differentiate Amazon MSK from Amazon Kinesis Data Streams, and name one requirement that points to each.</summary>
+    <p><em>Maps to:</em> Objectives 6 and 7 (Analysis).</p>
+    <p>MSK is managed Apache Kafka, with Kafka APIs, topics, and partitions. Kinesis Data Streams is an AWS-native service with its own APIs, streams, and shards. MSK supports IAM, SASL/SCRAM, and mutual TLS for authentication, and Kinesis uses IAM. A requirement to keep existing Kafka producers, consumers, and tools points to MSK. A requirement for a new streaming application that is built only on AWS, with no Kafka compatibility needed, points to Kinesis Data Streams.</p>
+  </details>
+
+  <details>
+    <summary>Question 7: Design a streaming ingestion solution for FlashCart that keeps its Kafka applications, processes the events in real time, and stores them for analytics.</summary>
+    <p><em>Maps to:</em> Objective 8 (Synthesis).</p>
+    <p>Create an MSK cluster across three Availability Zones. Use MSK Serverless or Express brokers if the traffic spikes, or Standard brokers if the team needs control. Keep the existing Kafka producers and consumers, and secure them with IAM access control, TLS, and AWS KMS. Process the events with Amazon Managed Service for Apache Flink, an AWS Glue streaming ETL job, or AWS Lambda, and write the results to Amazon S3 for analysis with the services in this module. Use MSK Replicator to copy the topics to a second Region for disaster recovery. Check the pricing page for the current costs.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>

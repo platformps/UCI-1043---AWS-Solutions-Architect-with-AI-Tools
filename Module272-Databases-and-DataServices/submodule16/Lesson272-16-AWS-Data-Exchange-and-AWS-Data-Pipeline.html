@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 272.16 - AWS Data Exchange and AWS Data Pipeline</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">AWS Data Exchange and AWS Data Pipeline</h1>
+  <p>Bring in third-party data with AWS Data Exchange, and understand AWS Data Pipeline, the legacy scheduler that AWS has closed to new customers.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. AWS Data Exchange</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. AWS Data Pipeline</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Comparison &amp; Scenarios</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. Knowledge Check</button></li>
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <h3>AWS Analytics Services</h3>
+  <p>The services in this module so far work on data that you already have. This lesson covers two services at the edges of that work. AWS Data Exchange brings in data that belongs to someone else, such as a market data feed or a weather history. AWS Data Pipeline is an older service that schedules the movement and processing of data between your own systems. Data Exchange is a service to learn for new designs. Data Pipeline is a service to recognize, because it appears in older architectures and in exam questions, and AWS no longer offers it to new customers.</p>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 880 440" role="img" aria-label="Map of AWS analytics services in six groups: ingest and stream, store, catalog and process, govern and orchestrate, query and search, and visualize and share. AWS Data Exchange and AWS Data Pipeline, the topics of this lesson, are highlighted in orange."><rect class="sv-box" x="10" y="10" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="35" text-anchor="middle">Ingest and Stream</text><rect class="sv-boxg" x="30" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="90" y="107" text-anchor="middle">Kinesis</text><rect class="sv-boxg" x="160" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="107" text-anchor="middle">MSK</text><rect class="sv-box" x="450" y="10" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="35" text-anchor="middle">Store</text><rect class="sv-boxg" x="470" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="530" y="107" text-anchor="middle">S3</text><rect class="sv-box" x="10" y="150" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="150" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="175" text-anchor="middle">Catalog and Process</text><rect class="sv-boxg" x="30" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="231" text-anchor="middle">AWS</text><text class="sv-t" x="90" y="247" text-anchor="middle">Glue</text><rect class="sv-boxg" x="160" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="231" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="247" text-anchor="middle">EMR</text><rect class="sv-box" x="450" y="150" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="150" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="175" text-anchor="middle">Govern and Orchestrate</text><rect class="sv-boxg" x="470" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="231" text-anchor="middle">AWS Lake</text><text class="sv-t" x="530" y="247" text-anchor="middle">Formation</text><rect class="sv-boxw" x="600" y="200" width="120" height="68" rx="6" style="stroke-width:3.5"/><text class="sv-t" x="660" y="231" text-anchor="middle">AWS Data</text><text class="sv-t" x="660" y="247" text-anchor="middle">Pipeline</text><rect class="sv-box" x="10" y="290" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="290" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="315" text-anchor="middle">Query and Search</text><rect class="sv-boxg" x="30" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="90" y="387" text-anchor="middle">Athena</text><rect class="sv-boxg" x="160" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="387" text-anchor="middle">Redshift</text><rect class="sv-boxg" x="290" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="350" y="363" text-anchor="middle">Amazon</text><text class="sv-t" x="350" y="379" text-anchor="middle">OpenSearch</text><text class="sv-t" x="350" y="395" text-anchor="middle">Service</text><rect class="sv-box" x="450" y="290" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="290" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="315" text-anchor="middle">Visualize and Share</text><rect class="sv-boxg" x="470" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="530" y="387" text-anchor="middle">Quick</text><rect class="sv-boxw" x="600" y="340" width="120" height="68" rx="6" style="stroke-width:3.5"/><text class="sv-t" x="660" y="371" text-anchor="middle">AWS Data</text><text class="sv-t" x="660" y="387" text-anchor="middle">Exchange</text><rect x="450" y="150" width="420" height="130" rx="6" style="fill:none;stroke:var(--warn-bd);stroke-width:4"/><rect x="450" y="290" width="420" height="130" rx="6" style="fill:none;stroke:var(--warn-bd);stroke-width:4"/></svg>
+    </div>
+    <figcaption>Image 0a — AWS analytics services by stage. AWS Data Exchange and AWS Data Pipeline, the topics of this lesson, are highlighted. (Original diagram for this course.)</figcaption>
+  </figure>
+  <p>This lesson explains what Data Exchange is and how subscribers and providers use it, what Data Pipeline does and why AWS moved it to maintenance mode, which services replace it, and how to choose between them. The last two tabs prepare you for the AWS Certified Solutions Architect – Associate (SAA-C03) exam and check what you learned.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> AWS Data Exchange: data grants and data products, data set types, and the subscriber and provider workflows.</li>
+    <li><strong>Tab 2:</strong> AWS Data Pipeline: its components, how it runs, its pricing, its maintenance mode, and the services that replace it.</li>
+    <li><strong>Tab 3:</strong> a comparison with other services, the SAA-C03 cheat sheet with decision rules, and the lesson summary.</li>
+    <li><strong>Tab 4:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">AWS Data Exchange</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">AWS Data Pipeline</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Introduction</h2>
+  <p>FlashCart Inc. wants its demand forecasts to use data that it does not own: weather history, public holidays, and regional demographics. Today an analyst buys files from vendors and uploads them by hand. FlashCart also inherited a nightly job from an acquired company. It copies a DynamoDB table to Amazon S3 each night and starts a weekly Amazon EMR report, and it runs on AWS Data Pipeline. The team must bring in the outside data in a managed way, and it must decide what to do with the old job.</p>
+  <p>This lesson follows FlashCart through the Problem Statement of each tab. It assumes that you know Amazon S3, Amazon Athena, Amazon Redshift, AWS Glue, Amazon EMR, and AWS Lake Formation from earlier lessons.</p>
+  <p>Use the tab list on the left, or the Previous and Next buttons, to move through the lesson. Each topic tab opens with a Problem Statement and ends with exam traps, keyword triggers, and resource links. The Knowledge Check is the last tab.</p>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define AWS Data Exchange, and identify data sets, revisions, assets, data grants, and data products.</li>
+    <li>Differentiate data grants from AWS Marketplace data products, and name the five types of data sets.</li>
+    <li>Explain how a subscriber finds third-party data, receives it, and automates the delivery of new revisions.</li>
+    <li>Define AWS Data Pipeline, and identify the pipeline definition, data nodes, activities, schedules, preconditions, and Task Runner.</li>
+    <li>Explain why AWS Data Pipeline is in maintenance mode, and name the services that AWS recommends in its place.</li>
+    <li>Choose between AWS Glue, AWS Step Functions, and Amazon Managed Workflows for Apache Airflow for a stated workload.</li>
+    <li>Differentiate AWS Data Exchange from other ways of sharing data on AWS.</li>
+    <li>Design a solution that brings third-party data into a data lake and orchestrates its processing.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>API</td><td>Application Programming Interface</td></tr>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>BYOS</td><td>Bring Your Own Subscription</td></tr>
+      <tr><td>CLI</td><td>Command line interface</td></tr>
+      <tr><td>DAG</td><td>Directed acyclic graph</td></tr>
+      <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+      <tr><td>EMR</td><td>Amazon EMR, formerly Elastic MapReduce</td></tr>
+      <tr><td>ETL</td><td>Extract, transform, and load</td></tr>
+      <tr><td>ID</td><td>Identifier</td></tr>
+      <tr><td>JSON</td><td>JavaScript Object Notation</td></tr>
+      <tr><td>MWAA</td><td>Amazon Managed Workflows for Apache Airflow</td></tr>
+      <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
+      <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SDK</td><td>Software development kit</td></tr>
+      <tr><td>SQS</td><td>Amazon Simple Queue Service</td></tr>
+      </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. AWS Data Exchange</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s forecasting model improves when it uses outside data, such as weather history and holiday calendars. Vendors sell this data, and an analyst currently receives files by email, checks the licence terms, and uploads each file to Amazon S3 by hand.</p>
+    <p>The vendor files change every week, so the manual work repeats. FlashCart also wants to send a daily sales extract to one supplier’s AWS account, without building its own delivery system.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose a service to find, buy, and receive third-party data.</li>
+      <li>Automate the delivery of each new version of the data.</li>
+      <li>Share FlashCart’s own data with one supplier.</li>
+    </ul>
+  </div>
+
+  <h2>1.1 Introduction to AWS Data Exchange</h2>
+  <ul>
+    <li><strong>AWS Data Exchange</strong> is a service that helps AWS customers share and manage data entitlements from other organizations at scale.</li>
+    <li>A data receiver can track and manage all of its data grants and AWS Marketplace data subscriptions in one place.</li>
+    <li>After you have access to a data set, you can use compatible AWS or partner analytics and machine learning services to find insights in it.</li>
+    <li>A data sender does not need to build and maintain any data delivery or entitlement infrastructure. AWS Data Exchange provides it.</li>
+    <li>Anyone, with or without an AWS account, can find and use the public data sets of the <strong>Open Data on AWS</strong> program.</li>
+    <li>Data grants, subscriptions, data sets, revisions, and assets are Region resources, and they are managed in supported Regions.</li>
+  </ul>
+
+  <h2>1.2 Key Terms</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Data set</td><td>A resource that the sender or provider curates. It holds the data assets that a receiver can use after getting access.</td></tr>
+      <tr><td>Revision</td><td>A new version or an incremental change of a data set. Providers update a data set with revisions.</td></tr>
+      <tr><td>Asset</td><td>One piece of data in a revision. An asset can be an Amazon S3 object, an Amazon Redshift datashare, an Amazon API Gateway (lesson 273.2) API, an AWS Lake Formation data permission, or Amazon S3 data access.</td></tr>
+      <tr><td>Data grant</td><td>The unit of exchange for sharing data directly. A sender creates it to give a receiver access to a data set.</td></tr>
+      <tr><td>Data product</td><td>The unit of exchange in AWS Marketplace. It includes one or more data sets, and subscribers buy it.</td></tr>
+      <tr><td>Entitlement</td><td>The right to use a data set, which a subscriber or receiver gets through a subscription or an accepted data grant.</td></tr>
+      <tr><td>Job</td><td>An asynchronous operation that imports assets into a revision or exports assets out of one.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>1.3 Data Grants and Data Products</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>Data grant</th><th>AWS Marketplace data product</th></tr></thead>
+    <tbody>
+      <tr><td>Who can send it</td><td>Anyone with an AWS account.</td><td>A provider that is registered as an AWS Marketplace seller and meets the publishing guidelines.</td></tr>
+      <tr><td>How it reaches the receiver</td><td>A grant request goes to the receiver’s AWS account. The receiver accepts it.</td><td>A subscriber finds the product in the AWS Marketplace catalog and subscribes.</td></tr>
+      <tr><td>Terms</td><td>A name and description, the receiver’s AWS account ID, and how long the receiver has access.</td><td>An offer with the price, the duration, the data subscription agreement, and the refund policy. Providers can also make private offers.</td></tr>
+      <tr><td>Good for</td><td>Sharing data with one known organization.</td><td>Selling or buying data in a public catalog.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>AWS Marketplace reviews a data product against its guidelines before it is listed, and it restricts data types that are not permitted.</li>
+    <li>A subscriber can also use a <strong>Bring Your Own Subscription (BYOS)</strong> offer, which brings an existing agreement into AWS Data Exchange.</li>
+  </ul>
+
+  <h2>1.4 Types of Data Sets</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Type</th><th>What the receiver gets</th></tr></thead>
+    <tbody>
+      <tr><td>Files</td><td>Data files that the provider imports as Amazon S3 objects. The receiver exports them to the receiver’s own Amazon S3 bucket.</td></tr>
+      <tr><td>API</td><td>An Amazon API Gateway API. The receiver calls it from code or from the console, or downloads its OpenAPI specification.</td></tr>
+      <tr><td>Amazon Redshift</td><td>A datashare that gives read-only access to query the data, without extracting, transforming, and loading it.</td></tr>
+      <tr><td>Amazon S3</td><td>Direct access to the provider’s Amazon S3 buckets.</td></tr>
+      <tr><td>AWS Lake Formation (Preview)</td><td>Access to data in the provider’s data lake, which the receiver can query and share from its own Lake Formation.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>1.5 The Subscriber Workflow</h2>
+  <ol>
+    <li>Find a data product in the AWS Marketplace catalog, or accept a data grant that a sender made.</li>
+    <li>Review the offer, which has the price, the duration, and the data subscription agreement, and subscribe.</li>
+    <li>The data sets that you are entitled to appear in the AWS Data Exchange console.</li>
+    <li>Export the assets of a revision to Amazon S3, in the console, with an API call, or with a job.</li>
+    <li>Analyze the data with services such as Amazon Athena, Amazon Redshift, Amazon EMR, AWS Glue, AWS Lake Formation, and Amazon SageMaker.</li>
+  </ol>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 880 310" role="img" aria-label="How AWS Data Exchange moves data. A provider creates a data set with revisions that hold assets. The provider shares it through a data grant sent to one AWS account, or through an AWS Marketplace product that subscribers buy. The subscriber gets an entitled data set, exports it to Amazon S3, and analyzes it with services such as Amazon Athena and Amazon Redshift. Amazon EventBridge events announce each new revision."><text class="sv-tb" x="440" y="28" text-anchor="middle">Two ways to share: a data grant, or a Marketplace product</text><rect class="sv-box" x="10" y="70" width="170" height="130" rx="6"/><text class="sv-t" x="95" y="108" text-anchor="middle">Data provider</text><text class="sv-t" x="95" y="124" text-anchor="middle"></text><text class="sv-t" x="95" y="140" text-anchor="middle">Data set</text><text class="sv-t" x="95" y="156" text-anchor="middle">Revisions and</text><text class="sv-t" x="95" y="172" text-anchor="middle">assets</text><rect class="sv-boxb" x="250" y="70" width="200" height="130" rx="6"/><text class="sv-t" x="350" y="112" text-anchor="middle">AWS Data Exchange</text><text class="sv-t" x="350" y="128" text-anchor="middle"></text><text class="sv-t" x="350" y="144" text-anchor="middle">Data grant</text><text class="sv-t" x="350" y="160" text-anchor="middle">or Marketplace product</text><text class="sv-t" x="350" y="176" text-anchor="middle">and subscription</text><rect class="sv-boxw" x="520" y="70" width="150" height="130" rx="6"/><text class="sv-t" x="595" y="120" text-anchor="middle">Subscriber or</text><text class="sv-t" x="595" y="136" text-anchor="middle">data receiver</text><text class="sv-t" x="595" y="152" text-anchor="middle"></text><text class="sv-t" x="595" y="168" text-anchor="middle">Entitled</text><text class="sv-t" x="595" y="184" text-anchor="middle">data set</text><rect class="sv-boxg" x="730" y="70" width="140" height="130" rx="6"/><text class="sv-t" x="800" y="112" text-anchor="middle">Amazon S3</text><text class="sv-t" x="800" y="128" text-anchor="middle"></text><text class="sv-t" x="800" y="144" text-anchor="middle">Athena, Redshift,</text><text class="sv-t" x="800" y="160" text-anchor="middle">EMR, SageMaker</text><line class="sv-line" x1="180" y1="135" x2="241" y2="135"/><polygon class="sv-arrow" points="250,135 240,130 240,140"/><line class="sv-line" x1="450" y1="135" x2="511" y2="135"/><polygon class="sv-arrow" points="520,135 510,130 510,140"/><line class="sv-line" x1="670" y1="135" x2="721" y2="135"/><polygon class="sv-arrow" points="730,135 720,130 720,140"/><text class="sv-tm" x="700" y="124" text-anchor="middle">Export</text><text class="sv-tm" x="440" y="250" text-anchor="middle">Amazon EventBridge announces each new revision, so the export to Amazon S3 can run automatically.</text></svg>
+    </div>
+    <figcaption>Image 1a — A provider shares a data set, and a subscriber exports it to Amazon S3 for analysis (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>1.6 Automating New Revisions</h2>
+  <ul>
+    <li>Providers publish new revisions on a schedule, such as a new file every day.</li>
+    <li>AWS Data Exchange is integrated with <strong>Amazon EventBridge (lesson 273.3)</strong>. A subscriber with an active subscription receives an event each time the provider publishes a new revision or adds a data set to the product.</li>
+    <li>An EventBridge rule can start an AWS Lambda function (lesson 273.1) that creates an export job. The new revision then lands in your Amazon S3 bucket without any manual step.</li>
+    <li>AWS delivers these events on a best effort basis.</li>
+  </ul>
+
+  <h2>1.7 The Provider Workflow</h2>
+  <ol>
+    <li>Create a data set, and import assets into a revision, for example from your Amazon S3 buckets.</li>
+    <li>Share it with a data grant to a receiver’s AWS account, or publish it as a data product in AWS Marketplace with a public offer.</li>
+    <li>Add a new revision each time the data changes. Subscribers receive an event.</li>
+  </ol>
+  <ul>
+    <li>You can also work programmatically with the AWS Data Exchange API, and with the AWS Marketplace Catalog API for products.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>AWS Data Exchange</strong> is the answer for <strong>finding, subscribing to, and receiving third-party data</strong> in AWS.</li>
+      <li>A <strong>data grant</strong> shares data with a specific AWS account. A <strong>data product</strong> is sold in <strong>AWS Marketplace</strong>.</li>
+      <li>New data arrives as <strong>revisions</strong>. Use <strong>EventBridge</strong> to export each one to Amazon S3 automatically.</li>
+      <li>Data Exchange <strong>delivers</strong> the data. It does not analyze it. Use Athena, Redshift, or EMR for that.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Subscribe once, and every revision arrives.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Subscribe to third-party data products in AWS”<br>→ AWS Data Exchange</p>
+    <p><strong>Trigger 2:</strong> “Receive new versions of a vendor data set automatically in Amazon S3”<br>→ AWS Data Exchange, EventBridge, and an export job</p>
+    <p><strong>Trigger 3:</strong> “Share a data set with one specific AWS account”<br>→ An AWS Data Exchange data grant</p>
+    <p><strong>Trigger 4:</strong> “Query a provider’s data in Redshift without ETL”<br>→ An AWS Data Exchange Amazon Redshift data set</p>
+    </div>
+
+  <div class="qbox">
+    <h2>1.8 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company subscribes to a vendor’s daily market data. The vendor publishes a new set of files every day. The company wants the new files in its Amazon S3 bucket every day with no manual work. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Create an Amazon Kinesis (lesson 273.6) data stream, and ask the vendor to write to it.</li>
+      <li><strong>B.</strong> Run AWS DataSync on a schedule against the vendor’s file server.</li>
+      <li><strong>C.</strong> Subscribe to the product in AWS Data Exchange, and use an Amazon EventBridge rule to start an export of each new revision to Amazon S3.</li>
+      <li><strong>D.</strong> Subscribe to the product in AWS Data Exchange, and download each file by hand.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> AWS Data Exchange sends an event when the vendor publishes a new revision. An EventBridge rule can start an export job that copies the revision to Amazon S3, with no manual work.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>A Kinesis stream would need the vendor to change how it delivers data, and the data is not in AWS Data Exchange.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>DataSync copies from storage that you can reach, and the data would not come through the subscription.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>The event and the export job deliver every new revision automatically.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Downloading by hand does not meet the requirement of no manual work.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>1.9 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/data-exchange/latest/userguide/what-is.html" target="_blank" rel="noopener">What Is AWS Data Exchange?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/data-exchange/latest/userguide/cloudwatch-events.html" target="_blank" rel="noopener">Amazon EventBridge Events for AWS Data Exchange</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/data-exchange/features/" target="_blank" rel="noopener">AWS Data Exchange Features</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/blogs/big-data/find-and-acquire-new-data-sets-and-retrieve-new-updates-automatically-using-aws-data-exchange" target="_blank" rel="noopener">Find and Acquire New Data Sets and Retrieve Updates Automatically</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. AWS Data Pipeline</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s acquired company left a job that copies a DynamoDB table to Amazon S3 every night and starts a weekly Amazon EMR cluster to build a report. It runs on AWS Data Pipeline, and nobody on the team has used the service.</p>
+    <p>A new project needs a similar scheduled workflow. The team wants to know whether to build it on Data Pipeline, and what to do about the old job.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Explain what the old job does and which parts of Data Pipeline run it.</li>
+      <li>Decide whether a new project should use Data Pipeline.</li>
+      <li>Choose a replacement for the old job.</li>
+    </ul>
+  </div>
+
+  <h2>2.1 Introduction to AWS Data Pipeline</h2>
+  <ul>
+    <li><strong>AWS Data Pipeline</strong> is a web service that automates the movement and transformation of data.</li>
+    <li>You define data-driven workflows, so that a task depends on the successful completion of the tasks before it. Data Pipeline enforces the logic that you set up.</li>
+    <li>It was launched in 2012. AWS now says that it is in <strong>maintenance mode</strong>, with no new features or Region expansions planned.</li>
+    <li>It is <strong>no longer available to new customers</strong>. Existing customers can continue to use it as normal.</li>
+    <li>You can use the AWS Management Console, the AWS CLI, the AWS SDKs, or the Query API to manage pipelines.</li>
+  </ul>
+
+  <h2>2.2 Components</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Component</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Pipeline definition</td><td>States the business logic: the data sources, the activities, the schedule, the resources, the preconditions, and the alerts.</td></tr>
+      <tr><td>Data node</td><td>The location of the input data for a task, or the location where the output goes.</td></tr>
+      <tr><td>Activity</td><td>The work to do on a schedule, with a computing resource, usually between input and output data nodes.</td></tr>
+      <tr><td>Schedule</td><td>When the activities run, and how often.</td></tr>
+      <tr><td>Precondition</td><td>A condition that must be true before an activity can start, such as the final day’s data being in Amazon S3.</td></tr>
+      <tr><td>Resource</td><td>The computing resource that does the work, such as an Amazon EC2 instance or an Amazon EMR cluster that the pipeline creates.</td></tr>
+      <tr><td>Task Runner</td><td>The application that polls Data Pipeline for tasks, performs them, and reports the status back.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>2.3 How It Works</h2>
+  <ol>
+    <li>Write a pipeline definition, in the console, in a definition file, or with the API.</li>
+    <li>Create a pipeline, upload the definition, and activate the pipeline.</li>
+    <li>Data Pipeline works out the tasks from the definition, schedules them, and creates the resources that run them.</li>
+    <li>Task Runner polls for tasks and performs them, for example copying log files to Amazon S3 or launching an Amazon EMR cluster.</li>
+    <li>If a task fails, Data Pipeline retries it according to your instructions, and it can reassign it to another task runner. If the task keeps failing, the pipeline can notify you.</li>
+  </ol>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 880 300" role="img" aria-label="How AWS Data Pipeline works. A pipeline definition lists data nodes, activities, a schedule, resources, and preconditions. AWS Data Pipeline schedules the tasks and checks the preconditions. It creates a resource such as an Amazon EC2 instance, where Task Runner polls for tasks and performs them. The tasks read and write data nodes such as Amazon S3, DynamoDB, and databases."><rect class="sv-box" x="10" y="60" width="180" height="130" rx="6"/><text class="sv-t" x="100" y="88" text-anchor="middle">Pipeline definition</text><text class="sv-t" x="100" y="104" text-anchor="middle"></text><text class="sv-t" x="100" y="120" text-anchor="middle">Data nodes, activities,</text><text class="sv-t" x="100" y="136" text-anchor="middle">schedule, resources,</text><text class="sv-t" x="100" y="152" text-anchor="middle">preconditions</text><rect class="sv-boxw" x="250" y="60" width="180" height="130" rx="6"/><text class="sv-t" x="340" y="100" text-anchor="middle">AWS Data Pipeline</text><text class="sv-t" x="340" y="116" text-anchor="middle"></text><text class="sv-t" x="340" y="132" text-anchor="middle">Schedules tasks and</text><text class="sv-t" x="340" y="148" text-anchor="middle">checks preconditions</text><text class="sv-t" x="340" y="164" text-anchor="middle">Retries failed tasks</text><rect class="sv-boxg" x="490" y="60" width="180" height="130" rx="6"/><text class="sv-t" x="580" y="100" text-anchor="middle">Resource</text><text class="sv-t" x="580" y="116" text-anchor="middle">Amazon EC2 or EMR</text><text class="sv-t" x="580" y="132" text-anchor="middle"></text><text class="sv-t" x="580" y="148" text-anchor="middle">Task Runner polls</text><text class="sv-t" x="580" y="164" text-anchor="middle">and performs tasks</text><rect class="sv-box" x="730" y="60" width="140" height="130" rx="6"/><text class="sv-t" x="800" y="98" text-anchor="middle">Data nodes</text><text class="sv-t" x="800" y="114" text-anchor="middle"></text><text class="sv-t" x="800" y="130" text-anchor="middle">Amazon S3,</text><text class="sv-t" x="800" y="146" text-anchor="middle">DynamoDB, and</text><text class="sv-t" x="800" y="162" text-anchor="middle">databases</text><line class="sv-line" x1="190" y1="125" x2="241" y2="125"/><polygon class="sv-arrow" points="250,125 240,120 240,130"/><line class="sv-line" x1="430" y1="125" x2="481" y2="125"/><polygon class="sv-arrow" points="490,125 480,120 480,130"/><line class="sv-line" x1="670" y1="125" x2="721" y2="125"/><polygon class="sv-arrow" points="730,125 720,120 720,130"/><text class="sv-tm" x="440" y="240" text-anchor="middle">Upload the definition, activate the pipeline, and Data Pipeline runs it on the schedule.</text></svg>
+    </div>
+    <figcaption>Image 2a — A pipeline definition drives scheduled tasks that Task Runner performs on a resource (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>AWS gives this example: archive the web server logs to Amazon S3 each day, then run a weekly Amazon EMR cluster over them. Data Pipeline makes the cluster wait for the last day’s data, even if the upload is late.</li>
+  </ul>
+
+  <h2>2.4 Pricing</h2>
+  <p><strong>Prices change often and differ by Region.</strong> Check the current rates on the <a href="https://aws.amazon.com/datapipeline/pricing/" target="_blank" rel="noopener">AWS Data Pipeline pricing</a> page.</p>
+  <ul>
+    <li>You pay for a pipeline based on how often its activities and preconditions are scheduled to run, and where they run.</li>
+    <li>Accounts that are less than 12 months old have a free tier of three low-frequency preconditions and five low-frequency activities each month.</li>
+  </ul>
+
+  <h2>2.5 Migrating From Data Pipeline</h2>
+  <p>AWS says that other services now give customers a better experience, and it describes three targets for migration.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Service</th><th>Choose it when</th></tr></thead>
+    <tbody>
+      <tr><td>AWS Glue</td><td>The workload fits Glue workflows, Python or Spark jobs, and crawlers. The old pipeline came from a console template, such as exporting a DynamoDB table to Amazon S3. The workload does not depend on Apache Hive, and it does not need to orchestrate on-premises servers.</td></tr>
+      <tr><td>AWS Step Functions (lesson 273.4)</td><td>You orchestrate tasks across several AWS services, such as Amazon EMR, AWS Lambda, AWS Glue, and DynamoDB. You want a serverless, low-code, visual design with the workflow written in JSON.</td></tr>
+      <tr><td>Amazon MWAA</td><td>You want managed Apache Airflow, with workflows written in Python as directed acyclic graphs. Portability and a rich user interface matter to you.</td></tr>
+      </tbody>
+  </table></div>
+  <div class="tw"><table>
+    <thead><tr><th>Data Pipeline</th><th>AWS Glue</th><th>AWS Step Functions</th><th>Amazon MWAA</th></tr></thead>
+    <tbody>
+      <tr><td>Pipeline</td><td>Workflow</td><td>Workflow</td><td>DAG</td></tr>
+      <tr><td>Activity</td><td>Job</td><td>State and task</td><td>Task (operator or sensor)</td></tr>
+      <tr><td>Schedule</td><td>Schedule trigger</td><td>Amazon EventBridge Scheduler</td><td>Cron or timetable</td></tr>
+      <tr><td>Attempts</td><td>Retry attempts</td><td>Catchers and retriers</td><td>Retries</td></tr>
+      </tbody>
+  </table></div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>AWS Data Pipeline is in maintenance mode and is closed to new customers.</strong> For a new design, choose <strong>AWS Glue, AWS Step Functions, or Amazon MWAA</strong>.</li>
+      <li>If a question describes <strong>scheduled data movement with preconditions, Task Runner, and EC2 or EMR resources</strong>, the service is Data Pipeline.</li>
+      <li>A <strong>precondition</strong> must be true before an activity runs. A <strong>schedule</strong> decides when it runs.</li>
+      <li>A <strong>serverless, low-code orchestration across many AWS services</strong> points to <strong>Step Functions</strong>.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Data Pipeline moves, but the future flows through Glue, Step Functions, and MWAA.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Legacy scheduled data movement with preconditions and Task Runner”<br>→ AWS Data Pipeline</p>
+    <p><strong>Trigger 2:</strong> “Serverless, low-code orchestration across EMR, Lambda, Glue, and DynamoDB”<br>→ AWS Step Functions</p>
+    <p><strong>Trigger 3:</strong> “Managed Apache Airflow workflows in Python”<br>→ Amazon MWAA</p>
+    <p><strong>Trigger 4:</strong> “Replace a Data Pipeline template that exports DynamoDB to Amazon S3”<br>→ AWS Glue</p>
+    </div>
+
+  <div class="qbox">
+    <h2>2.6 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company is starting a new project. A daily workflow must run an AWS Glue job, then an AWS Lambda function, then an Amazon EMR step, and then write to Amazon DynamoDB. The company wants a serverless, low-code way to orchestrate the steps with a visual designer. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> AWS Data Pipeline, with an activity for each step.</li>
+      <li><strong>B.</strong> AWS Step Functions, with a state for each step.</li>
+      <li><strong>C.</strong> A cron job on an Amazon EC2 instance that calls each service.</li>
+      <li><strong>D.</strong> Amazon SQS (lesson 273.3), with one queue for each step.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> AWS Step Functions is a serverless orchestration service with a visual designer. It integrates with AWS Glue, AWS Lambda, Amazon EMR, and DynamoDB.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Data Pipeline is in maintenance mode and is not available to new customers.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>Step Functions orchestrates tasks across many AWS services with a low-code visual designer, and it needs no servers.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>A cron job on EC2 is a server that the company must manage, and it is not low-code.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>SQS passes messages. It does not orchestrate a sequence of services with error handling.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>2.7 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/what-is-datapipeline.html" target="_blank" rel="noopener">What Is AWS Data Pipeline?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/dp-how-pipeline-definition.html" target="_blank" rel="noopener">Pipeline Definition</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/migration.html" target="_blank" rel="noopener">Migrating Workloads From AWS Data Pipeline</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/blogs/big-data/migrate-workloads-from-aws-data-pipeline/" target="_blank" rel="noopener">Migrate Workloads From AWS Data Pipeline</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Comparison &amp; Scenarios</h1>
+
+  <h2>3.1 Sharing and Receiving Data Compared</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Requirement</th><th>Best fit</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Subscribe to commercial third-party data in AWS</td><td>AWS Data Exchange</td><td>It lists data products in AWS Marketplace and manages the subscription and the entitlement.</td></tr>
+      <tr><td>Send a data set to one specific AWS account</td><td>AWS Data Exchange data grant</td><td>The sender creates a grant, and the receiver accepts it.</td></tr>
+      <tr><td>Query a provider’s data in Amazon Redshift with no ETL</td><td>AWS Data Exchange Amazon Redshift data set</td><td>The receiver gets read-only access to the provider’s datashare.</td></tr>
+      <tr><td>Share governed tables with another account that you manage</td><td>AWS Lake Formation cross-account sharing</td><td>It applies Lake Formation permissions to the shared tables.</td></tr>
+      <tr><td>Use public data with no AWS account</td><td>Open Data on AWS</td><td>Anyone can find and use the public data sets.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>3.2 Orchestration Compared</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Requirement</th><th>Best fit</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Run an existing legacy pipeline</td><td>AWS Data Pipeline</td><td>Existing customers can continue to use it. It is closed to new customers.</td></tr>
+      <tr><td>Serverless ETL with crawlers, Spark jobs, and workflows</td><td>AWS Glue</td><td>It is a serverless data integration service with built-in orchestration.</td></tr>
+      <tr><td>Orchestrate many AWS services with low code</td><td>AWS Step Functions</td><td>It has a visual designer and many service integrations.</td></tr>
+      <tr><td>Managed Apache Airflow in Python</td><td>Amazon MWAA</td><td>It runs Airflow without infrastructure to manage.</td></tr>
+      <tr><td>Start something on a schedule</td><td>Amazon EventBridge Scheduler</td><td>It is the scheduler that Step Functions workflows can use.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>3.3 When to Use Each Service</h2>
+  <h3>3.3.1 Use AWS Data Exchange When</h3>
+  <ul>
+    <li>You need data from outside your organization, and you want a managed subscription, entitlement, and delivery.</li>
+    <li>You are a provider who wants to sell data, or to send data to a customer, without building delivery systems.</li>
+  </ul>
+  <h3>3.3.2 Use AWS Data Pipeline When</h3>
+  <ul>
+    <li>You already run pipelines on it. Plan a migration to AWS Glue, AWS Step Functions, or Amazon MWAA.</li>
+    <li>A question describes a legacy design. Recognize it, and do not choose it for a new one.</li>
+  </ul>
+
+  <h2>3.4 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Scenario keywords</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Subscribe to third-party data in AWS</td><td>AWS Data Exchange</td></tr>
+      <tr><td>2</td><td>Data from AWS Marketplace delivered to Amazon S3</td><td>AWS Data Exchange</td></tr>
+      <tr><td>3</td><td>Receive each new vendor revision automatically</td><td>AWS Data Exchange, Amazon EventBridge, and an export job</td></tr>
+      <tr><td>4</td><td>Share a data set with one AWS account</td><td>AWS Data Exchange data grant</td></tr>
+      <tr><td>5</td><td>Query a provider’s data in Redshift with no ETL</td><td>AWS Data Exchange Amazon Redshift data set</td></tr>
+      <tr><td>6</td><td>Public data sets, no AWS account needed</td><td>Open Data on AWS</td></tr>
+      <tr><td>7</td><td>Legacy scheduled data movement with preconditions and Task Runner</td><td>AWS Data Pipeline</td></tr>
+      <tr><td>8</td><td>Data Pipeline for a new project</td><td>No. It is closed to new customers.</td></tr>
+      <tr><td>9</td><td>Serverless, low-code orchestration across AWS services</td><td>AWS Step Functions</td></tr>
+      <tr><td>10</td><td>Managed Apache Airflow</td><td>Amazon MWAA</td></tr>
+      <tr><td>11</td><td>Serverless ETL with Spark jobs and crawlers</td><td>AWS Glue</td></tr>
+      <tr><td>12</td><td>Analyze purchased data after export</td><td>Amazon Athena, Amazon Redshift, or Amazon EMR</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>3.5 Lesson Summary</h2>
+  <p>This lesson covered the following points:</p>
+  <ul>
+    <li>AWS Data Exchange helps you share and receive data entitlements. A data set holds assets, and providers update it with revisions.</li>
+    <li>A data grant shares data with a specific AWS account. A data product is sold in AWS Marketplace with an offer that sets the price and the terms.</li>
+    <li>There are five data set types: files, API, Amazon Redshift, Amazon S3, and AWS Lake Formation (Preview).</li>
+    <li>EventBridge events announce each new revision, so a subscriber can export it to Amazon S3 automatically and analyze it with Athena, Redshift, EMR, Glue, or SageMaker.</li>
+    <li>AWS Data Pipeline automates scheduled data movement with a pipeline definition, preconditions, and Task Runner. It is in maintenance mode and closed to new customers.</li>
+    <li>AWS recommends AWS Glue, AWS Step Functions, or Amazon MWAA instead, depending on the workload.</li>
+  </ul>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Exchange brings data in, and the modern services run it.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 4 ============ -->
+<section class="tab" id="tab4" role="tabpanel" aria-labelledby="b4">
+  <h1 class="tabh">4. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: Explain what AWS Data Exchange is, and describe the difference between a data grant and a data product.</summary>
+    <p><em>Maps to:</em> Objectives 1 and 2 (Comprehension).</p>
+    <p>AWS Data Exchange helps customers share and manage data entitlements from other organizations at scale. A data grant is created by a sender to give one receiver’s AWS account access to a data set, and the receiver accepts it. A data product is the unit of exchange in AWS Marketplace. A registered seller publishes it after AWS reviews it, and subscribers buy it under an offer that sets the price, the duration, the data subscription agreement, and the refund policy.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Describe a data set, a revision, and an asset, and name the five types of data sets.</summary>
+    <p><em>Maps to:</em> Objective 2 (Comprehension).</p>
+    <p>A data set is a resource that the provider curates and that holds the data a receiver gets. A revision is a new version or an incremental change of the data set. An asset is one piece of data in a revision. The five data set types are files, API, Amazon Redshift, Amazon S3, and AWS Lake Formation, which is in preview.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: FlashCart subscribes to a daily weather product. Describe how the new files reach the data lake automatically.</summary>
+    <p><em>Maps to:</em> Objective 3 (Application).</p>
+    <p>The provider publishes a new revision each day. AWS Data Exchange sends an Amazon EventBridge event to the subscriber. An EventBridge rule starts an AWS Lambda function that creates an export job, which copies the revision’s assets to the FlashCart Amazon S3 bucket. The team then queries them with Amazon Athena or loads them into Amazon Redshift. Events are delivered on a best effort basis.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Describe the main components of AWS Data Pipeline and what each one does.</summary>
+    <p><em>Maps to:</em> Objective 4 (Comprehension).</p>
+    <p>The pipeline definition states the business logic. Data nodes are the input and output locations. Activities are the work, run on a schedule. Preconditions must be true before an activity can start. Resources, such as Amazon EC2 instances or Amazon EMR clusters, do the work. Task Runner polls Data Pipeline for tasks, performs them, and reports the status back. Data Pipeline retries failed tasks and can notify you.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: Explain the status of AWS Data Pipeline today, and what a team should do about an existing pipeline.</summary>
+    <p><em>Maps to:</em> Objective 5 (Comprehension).</p>
+    <p>AWS Data Pipeline is in maintenance mode, with no new features or Region expansions planned, and it is no longer available to new customers. Existing customers can keep using it as normal. A team with an existing pipeline should plan to migrate it, because AWS describes migration paths to AWS Glue, AWS Step Functions, and Amazon MWAA.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: FlashCart’s old job exports a DynamoDB table to Amazon S3 each night and runs a weekly Amazon EMR report. Compare the three migration options and choose one.</summary>
+    <p><em>Maps to:</em> Objective 6 (Analysis).</p>
+    <p>AWS Glue suits a workload that was built from a console template, such as exporting DynamoDB to Amazon S3, and it is serverless, but it is a weaker fit when the work depends on Apache Hive or needs on-premises servers. AWS Step Functions suits orchestrating several AWS services, such as DynamoDB and EMR, with a low-code visual designer. Amazon MWAA suits teams that want managed Apache Airflow in Python. For this job, a Step Functions workflow on an EventBridge schedule is a good choice, because it can combine the DynamoDB export and the EMR step in one workflow.</p>
+  </details>
+
+  <details>
+    <summary>Question 7: Design a solution for FlashCart that brings in third-party weather data and orchestrates its processing each day.</summary>
+    <p><em>Maps to:</em> Objective 8 (Synthesis).</p>
+    <p>Subscribe to the weather product in AWS Data Exchange. Use an EventBridge rule to export each new revision to an Amazon S3 bucket in the data lake. Let an AWS Glue crawler catalog the files, and query them with Amazon Athena. Use AWS Step Functions on an EventBridge schedule to run the Glue job and any follow-up steps, with retries and error handling. Feed the results to the forecasting model and to AWS Quick Sight. Do not build the orchestration on AWS Data Pipeline, because it is closed to new customers.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>

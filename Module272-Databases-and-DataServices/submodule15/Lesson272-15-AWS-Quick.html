@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 272.15 - AWS Quick</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">AWS Quick</h1>
+  <p>Turn data into dashboards: how AWS Quick Sight connects to data, uses SPICE and direct query, controls access, and compares with the other analytics services.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. Introduction to AWS Quick</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Datasets, SPICE, and Dashboards</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Security, Users, and Pricing</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. Comparison &amp; Scenarios</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab5" id="b5">5. Knowledge Check</button></li>
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <h3>AWS Analytics Services</h3>
+  <p>Every service in this module so far moves, stores, or queries data. The last step is to show the data to the people who decide. Executives do not write SQL, and they do not read raw files. They need charts that they can filter, and dashboards that update. This lesson covers the AWS capability that does that work: AWS Quick Sight, the business intelligence part of AWS Quick.</p>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 880 440" role="img" aria-label="Map of AWS analytics services in six groups: ingest and stream, store, catalog and process, govern and orchestrate, query and search, and visualize and share. AWS Quick, the topic of this lesson, is highlighted in orange."><rect class="sv-box" x="10" y="10" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="35" text-anchor="middle">Ingest and Stream</text><rect class="sv-boxg" x="30" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="90" y="107" text-anchor="middle">Kinesis</text><rect class="sv-boxg" x="160" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="107" text-anchor="middle">MSK</text><rect class="sv-box" x="450" y="10" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="35" text-anchor="middle">Store</text><rect class="sv-boxg" x="470" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="530" y="107" text-anchor="middle">S3</text><rect class="sv-box" x="10" y="150" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="150" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="175" text-anchor="middle">Catalog and Process</text><rect class="sv-boxg" x="30" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="231" text-anchor="middle">AWS</text><text class="sv-t" x="90" y="247" text-anchor="middle">Glue</text><rect class="sv-boxg" x="160" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="231" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="247" text-anchor="middle">EMR</text><rect class="sv-box" x="450" y="150" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="150" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="175" text-anchor="middle">Govern and Orchestrate</text><rect class="sv-boxg" x="470" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="231" text-anchor="middle">AWS Lake</text><text class="sv-t" x="530" y="247" text-anchor="middle">Formation</text><rect class="sv-boxg" x="600" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="660" y="231" text-anchor="middle">AWS Data</text><text class="sv-t" x="660" y="247" text-anchor="middle">Pipeline</text><rect class="sv-box" x="10" y="290" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="290" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="315" text-anchor="middle">Query and Search</text><rect class="sv-boxg" x="30" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="90" y="387" text-anchor="middle">Athena</text><rect class="sv-boxg" x="160" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="387" text-anchor="middle">Redshift</text><rect class="sv-boxg" x="290" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="350" y="363" text-anchor="middle">Amazon</text><text class="sv-t" x="350" y="379" text-anchor="middle">OpenSearch</text><text class="sv-t" x="350" y="395" text-anchor="middle">Service</text><rect class="sv-box" x="450" y="290" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="290" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="315" text-anchor="middle">Visualize and Share</text><rect class="sv-boxw" x="470" y="340" width="120" height="68" rx="6" style="stroke-width:3.5"/><text class="sv-t" x="530" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="530" y="387" text-anchor="middle">Quick</text><rect class="sv-boxg" x="600" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="660" y="371" text-anchor="middle">AWS Data</text><text class="sv-t" x="660" y="387" text-anchor="middle">Exchange</text><rect x="450" y="290" width="420" height="130" rx="6" style="fill:none;stroke:var(--warn-bd);stroke-width:4"/></svg>
+    </div>
+    <figcaption>Image 0a — AWS analytics services by stage. AWS Quick, the topic of this lesson, is highlighted. (Original diagram for this course.)</figcaption>
+  </figure>
+  <p>Quick Sight connects to your data, lets authors build interactive visuals and dashboards, and shares them with readers. It is serverless, so there are no servers to run. This lesson explains what AWS Quick and Quick Sight are, how data gets into a dataset, the difference between SPICE and direct query, how security and sharing work, and how Quick Sight compares with the other services that you know. The last two tabs prepare you for the AWS Certified Solutions Architect – Associate (SAA-C03) exam and check what you learned.</p>
+  <p>A note on names: older AWS pages and exam material call the business intelligence service Amazon QuickSight, and some pages call the wider product Amazon Quick Suite. Pages from before November 9, 2026 call them Amazon Quick and Amazon Quick Sight. The current names are AWS Quick and AWS Quick Sight.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> an introduction to AWS Quick and Quick Sight, the key terms, the data sources, and the path from a data lake to a dashboard.</li>
+    <li><strong>Tab 2:</strong> datasets, SPICE and direct query, refreshing data, analyses, dashboards, and insights.</li>
+    <li><strong>Tab 3:</strong> roles, identity, sharing, row-level and column-level security, networking, encryption, and pricing.</li>
+    <li><strong>Tab 4:</strong> a comparison with other services, the SAA-C03 cheat sheet with decision rules, and the lesson summary.</li>
+    <li><strong>Tab 5:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Introduction to AWS Quick</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Datasets, SPICE, and Dashboards</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Security, Users, and Pricing</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="5" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Introduction</h2>
+  <p>FlashCart Inc. now has orders in an Amazon S3 data lake, a catalog in AWS Glue, and SQL access through Amazon Athena. The leadership team still gets its sales numbers from a spreadsheet that an analyst exports once a week. Leaders want charts that they can filter by region and product, and they want the numbers to be current. AWS Quick Sight turns the data that FlashCart already has into dashboards, and the team does not have to run a server.</p>
+  <p>This lesson follows FlashCart through the Problem Statement of each tab. It assumes that you know Amazon S3, AWS Glue, Amazon Athena, and Amazon Redshift from earlier lessons.</p>
+  <p>Use the tab list on the left, or the Previous and Next buttons, to move through the lesson. Each topic tab opens with a Problem Statement and ends with exam traps, keyword triggers, and resource links. The Knowledge Check is the last tab.</p>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define business intelligence, and identify AWS Quick Sight as the business intelligence capability of AWS Quick.</li>
+    <li>Describe the data sources that Quick Sight supports, and the path from a data lake to a dashboard.</li>
+    <li>Differentiate SPICE datasets from direct query datasets, and choose one for a stated requirement.</li>
+    <li>Explain how analyses, dashboards, and sharing work, and how SPICE data is refreshed.</li>
+    <li>Explain the Quick Sight roles, the identity options, row-level and column-level security, and the network and encryption controls.</li>
+    <li>Differentiate Quick Sight from Amazon Athena, Amazon Redshift, and OpenSearch Dashboards for a stated requirement.</li>
+    <li>Design a business intelligence solution that uses Quick Sight.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>AI</td><td>Artificial intelligence</td></tr>
+      <tr><td>API</td><td>Application Programming Interface</td></tr>
+      <tr><td>APAC</td><td>Asia Pacific</td></tr>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>BI</td><td>Business intelligence</td></tr>
+      <tr><td>CLF</td><td>Common log format</td></tr>
+      <tr><td>CLS</td><td>Column-level security</td></tr>
+      <tr><td>CSV</td><td>Comma-separated values</td></tr>
+      <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+      <tr><td>ELF</td><td>Extended log format</td></tr>
+      <tr><td>EMEA</td><td>Europe, the Middle East, and Africa</td></tr>
+      <tr><td>EMR</td><td>Amazon EMR, formerly Elastic MapReduce</td></tr>
+      <tr><td>ETL</td><td>Extract, transform, and load</td></tr>
+      <tr><td>GB</td><td>Gigabyte</td></tr>
+      <tr><td>IAM</td><td>AWS Identity and Access Management</td></tr>
+      <tr><td>ID</td><td>Identity, as in Microsoft Entra ID</td></tr>
+      <tr><td>JSON</td><td>JavaScript Object Notation</td></tr>
+      <tr><td>KMS</td><td>AWS Key Management Service</td></tr>
+      <tr><td>ML</td><td>Machine learning</td></tr>
+      <tr><td>NA</td><td>North America</td></tr>
+      <tr><td>OAuth</td><td>Open Authorization</td></tr>
+      <tr><td>RDS</td><td>Amazon Relational Database Service</td></tr>
+      <tr><td>RLS</td><td>Row-level security</td></tr>
+      <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
+      <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SaaS</td><td>Software as a service</td></tr>
+      <tr><td>SPICE</td><td>Super-fast, Parallel, In-memory Calculation Engine</td></tr>
+      <tr><td>SQL</td><td>Structured Query Language</td></tr>
+      <tr><td>TLS</td><td>Transport Layer Security</td></tr>
+      <tr><td>TSV</td><td>Tab-separated values</td></tr>
+      <tr><td>VPC</td><td>Amazon Virtual Private Cloud</td></tr>
+      <tr><td>XLSX</td><td>Microsoft Excel workbook file</td></tr>
+      </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. Introduction to AWS Quick</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s sales data lives in several places. The orders are files in Amazon S3, a warehouse in Amazon Redshift holds the finance data, and the product search runs on Amazon OpenSearch Service. An analyst exports numbers into a spreadsheet each week, and the leadership team reads it on Monday.</p>
+    <p>The leaders want interactive dashboards that they can filter themselves, on current data, on any device. The company does not want to manage servers for this.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose a service that builds dashboards on data from several sources.</li>
+      <li>Explain how data flows from the data lake to a dashboard.</li>
+      <li>Name the terms that authors and readers use.</li>
+    </ul>
+  </div>
+
+  <h2>1.1 Introduction to AWS Quick</h2>
+  <ul>
+    <li><strong>AWS Quick</strong> is an AI-powered workplace service with six integrated capabilities: AWS Quick Sight for data visualization and business intelligence, AWS Quick Flows for workflow automation, AWS Quick Automate for business process automation, AWS Quick Index for data discovery, AWS Quick Research for in-depth research, and Apps in Quick.</li>
+    <li>Chat is the main interface of Quick, and spaces organize the context that the chat uses.</li>
+    <li>This lesson focuses on <strong>AWS Quick Sight</strong>, the business intelligence capability. It is the part that the SAA-C03 exam asks about.</li>
+    <li>Quick Sight dashboards and Quick Automate are available in accounts that you provision through the AWS Management Console. They are not available in the Free and Plus accounts that you create at aws.com/quick.</li>
+    <li>Older AWS pages call the product Amazon Quick Suite or, before November 9, 2026, Amazon Quick, and older exam material calls the business intelligence service Amazon QuickSight. They all point to the same service.</li>
+  </ul>
+
+  <h2>1.2 AWS Quick Sight</h2>
+  <ul>
+    <li><strong>Business intelligence (BI)</strong> is the practice of turning data into charts, reports, and dashboards that help people decide.</li>
+    <li>Quick Sight is a scalable, serverless, machine learning (ML)-powered BI service. It is fast, automatically scalable, and embeddable, and readers can be billed per session.</li>
+    <li>Authors use it to build visualizations and run ad hoc analysis. Readers use the published dashboards to get business insights on any device.</li>
+    <li>It scales to hundreds of thousands of users, and it uses an in-memory engine called SPICE for fast, responsive queries (Tab 2).</li>
+    <li>Common uses are self-service business intelligence, executive dashboards, and embedded analytics in websites and applications.</li>
+  </ul>
+
+  <h2>1.3 Key Terms</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Data source</td><td>The connection to where the data lives, such as Amazon Athena, Amazon Redshift, or a file in Amazon S3.</td></tr>
+      <tr><td>Dataset</td><td>The prepared data that you build on a data source. You shape it once, and you reuse it in many analyses.</td></tr>
+      <tr><td>Analysis</td><td>The workspace where an author builds visuals. An analysis can have several pages, called sheets.</td></tr>
+      <tr><td>Visual</td><td>One chart, table, or graph in an analysis.</td></tr>
+      <tr><td>Dashboard</td><td>The published version of an analysis. You share it so that other people can use it, even when they do not use the analysis.</td></tr>
+      <tr><td>SPICE</td><td>The Super-fast, Parallel, In-memory Calculation Engine that stores a snapshot of a dataset.</td></tr>
+      <tr><td>Author and reader</td><td>An author prepares datasets, builds analyses, and publishes dashboards. A reader interacts with published dashboards.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>1.4 Supported Data Sources</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Group</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td>AWS data stores</td><td>Amazon Athena, Amazon Aurora, Amazon Redshift, Amazon RDS, Amazon S3, Amazon OpenSearch Service, Amazon Timestream, and the AWS Glue Data Catalog through compatible services such as Athena.</td></tr>
+      <tr><td>Other databases</td><td>MySQL, PostgreSQL, Microsoft SQL Server, Oracle, Snowflake, Teradata, and Databricks, among others.</td></tr>
+      <tr><td>Files</td><td>CSV and TSV, JSON, XLSX, and ELF and CLF log files. They can be in Amazon S3 or uploaded from your computer.</td></tr>
+      <tr><td>Software as a service</td><td>Jira and ServiceNow by direct connection. Salesforce, GitHub, and Adobe Analytics through OAuth.</td></tr>
+      <tr><td>On-premises data</td><td>Databases in your own data center, reached through a VPC connection (Tab 3).</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>Amazon Redshift clusters, Amazon Athena databases, and Amazon RDS instances must be in AWS. Other databases can be on Amazon EC2, on premises, or anywhere that is reachable on the internet.</li>
+    <li>Files in Amazon S3 that are compressed with zip or gzip can be imported as they are.</li>
+  </ul>
+
+  <h2>1.5 From a Data Lake to a Dashboard</h2>
+  <ul>
+    <li>A common pipeline stores raw files in Amazon S3, catalogs them with an AWS Glue crawler, and queries them with Amazon Athena.</li>
+    <li>Quick Sight then uses Athena as a data source, and an author builds a dataset, an analysis, and a dashboard on it.</li>
+    <li>The pipeline reuses the services that you learned in this module. Quick Sight is the last step, which shows the results.</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 880 260" role="img" aria-label="From a data lake to a dashboard. Raw data files sit in Amazon S3. An AWS Glue crawler adds them to the Data Catalog. Amazon Athena queries them with SQL. AWS Quick Sight uses Athena as a data source for a dataset and an analysis. Readers then use the published dashboard."><text class="sv-tb" x="80" y="52" text-anchor="middle">Store</text><rect class="sv-box" x="10" y="64" width="140" height="96" rx="6"/><text class="sv-t" x="80" y="100" text-anchor="middle">Amazon S3</text><text class="sv-t" x="80" y="116" text-anchor="middle">Raw data files</text><line class="sv-line" x1="150" y1="112" x2="181" y2="112"/><polygon class="sv-arrow" points="190,112 180,107 180,117"/><text class="sv-tb" x="260" y="52" text-anchor="middle">Catalog</text><rect class="sv-box" x="190" y="64" width="140" height="96" rx="6"/><text class="sv-t" x="260" y="92" text-anchor="middle">AWS Glue</text><text class="sv-t" x="260" y="108" text-anchor="middle">Crawler and</text><text class="sv-t" x="260" y="124" text-anchor="middle">Data Catalog</text><line class="sv-line" x1="330" y1="112" x2="361" y2="112"/><polygon class="sv-arrow" points="370,112 360,107 360,117"/><text class="sv-tb" x="440" y="52" text-anchor="middle">Query</text><rect class="sv-box" x="370" y="64" width="140" height="96" rx="6"/><text class="sv-t" x="440" y="100" text-anchor="middle">Amazon Athena</text><text class="sv-t" x="440" y="116" text-anchor="middle">SQL queries</text><line class="sv-line" x1="510" y1="112" x2="541" y2="112"/><polygon class="sv-arrow" points="550,112 540,107 540,117"/><text class="sv-tb" x="620" y="52" text-anchor="middle">Visualize</text><rect class="sv-boxw" x="550" y="64" width="140" height="96" rx="6"/><text class="sv-t" x="620" y="92" text-anchor="middle">AWS Quick Sight</text><text class="sv-t" x="620" y="108" text-anchor="middle">Dataset and</text><text class="sv-t" x="620" y="124" text-anchor="middle">analysis</text><line class="sv-line" x1="690" y1="112" x2="721" y2="112"/><polygon class="sv-arrow" points="730,112 720,107 720,117"/><text class="sv-tb" x="800" y="52" text-anchor="middle">Share</text><rect class="sv-box" x="730" y="64" width="140" height="96" rx="6"/><text class="sv-t" x="800" y="100" text-anchor="middle">Dashboard</text><text class="sv-t" x="800" y="116" text-anchor="middle">readers</text><text class="sv-tm" x="440" y="210" text-anchor="middle">Quick Sight can also connect directly to Amazon Redshift, Amazon RDS, Amazon Aurora, and Amazon OpenSearch Service.</text></svg>
+    </div>
+    <figcaption>Image 1a — A data lake pipeline that ends in a Quick Sight dashboard (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Quick Sight is the AWS business intelligence service.</strong> Dashboards for business users, on data from many sources, with no servers, point to Quick Sight.</li>
+      <li>Quick Sight <strong>reads</strong> data from other services. It does not store your data lake or run your ETL jobs.</li>
+      <li>The names changed: <strong>QuickSight</strong> on older material is <strong>AWS Quick Sight</strong>, part of <strong>AWS Quick</strong>.</li>
+      <li><strong>OpenSearch Dashboards</strong> visualizes data in OpenSearch. Quick Sight visualizes data from many sources, including OpenSearch.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Athena asks, Glue remembers, Quick Sight shows.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Serverless business intelligence with interactive dashboards”<br>→ AWS Quick Sight</p>
+    <p><strong>Trigger 2:</strong> “Dashboards for business users on data in Athena, Redshift, and Amazon S3”<br>→ AWS Quick Sight</p>
+    <p><strong>Trigger 3:</strong> “Embed dashboards in an application”<br>→ AWS Quick Sight embedded analytics</p>
+    <p><strong>Trigger 4:</strong> “ML-powered insights, such as forecasting and anomaly detection, in a dashboard”<br>→ AWS Quick Sight Enterprise edition</p>
+    </div>
+
+  <div class="qbox">
+    <h2>1.6 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company keeps its sales data as files in Amazon S3 and in an Amazon Redshift data warehouse. Business users want to build interactive dashboards and filter them themselves. The company does not want to manage any servers. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Amazon OpenSearch Service with OpenSearch Dashboards.</li>
+      <li><strong>B.</strong> AWS Glue ETL jobs that write charts to Amazon S3 each night.</li>
+      <li><strong>C.</strong> AWS Quick Sight with the S3 files and the Redshift cluster as data sources.</li>
+      <li><strong>D.</strong> An Amazon EMR cluster that runs a charting library for each request.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> AWS Quick Sight is a serverless business intelligence service. It connects to Amazon S3 and Amazon Redshift, and it lets authors build interactive dashboards that readers can filter.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>OpenSearch Dashboards visualizes data that is in OpenSearch. It is not the service for Redshift and S3 business dashboards.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Glue ETL jobs transform data. They do not build interactive dashboards for business users.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>Quick Sight is built for this, and it needs no servers.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>An EMR cluster must be managed, and it would not give business users interactive dashboards.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>1.7 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/quick/latest/userguide/how-quicksuite-works.html" target="_blank" rel="noopener">How AWS Quick Works</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/quick/latest/userguide/supported-data-sources.html" target="_blank" rel="noopener">Supported Data Sources</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/quick/latest/userguide/working-with-data.html" target="_blank" rel="noopener">Connecting to Data in AWS Quick Sight</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/quicksuite/quicksight/faqs/" target="_blank" rel="noopener">AWS Quick Sight FAQs</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Datasets, SPICE, and Dashboards</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s sales dashboard is slow every morning at nine, because 300 people open it at once and each visual queries the Amazon Redshift cluster. The data loads each night, so the numbers do not change during the day.</p>
+    <p>The operations team also wants one page that shows live order counts. The team must share the dashboard with the right people and keep it up to date.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose between SPICE and direct query for each page.</li>
+      <li>Keep the SPICE data current after the nightly load.</li>
+      <li>Publish and share the dashboard.</li>
+    </ul>
+  </div>
+
+  <h2>2.1 From Data to Dashboard</h2>
+  <ol>
+    <li>Connect to a data source, such as Amazon Athena or Amazon Redshift.</li>
+    <li>Create a dataset. Shape it with field formatting, hierarchies, data type conversions, and calculations.</li>
+    <li>Create an analysis from the dataset.</li>
+    <li>Add visuals, and add more sheets and datasets if you need them.</li>
+    <li>Make the visuals interactive with parameters, controls, filters, and custom actions.</li>
+    <li>Publish the analysis as a dashboard.</li>
+    <li>Share the dashboard with the people who need it.</li>
+  </ol>
+
+  <h2>2.2 SPICE</h2>
+  <ul>
+    <li><strong>SPICE</strong> is an in-memory calculation engine that is built into Quick Sight. It uses columnar storage, in-memory technology, and machine code generation to answer queries on large datasets quickly.</li>
+    <li>A SPICE dataset is a <strong>snapshot</strong> of the source data. After the data is imported, Quick Sight answers the queries from the snapshot and does not connect to the source.</li>
+    <li>That spares the data source from repeated queries, and it makes dashboards faster.</li>
+    <li>You do not provision or manage any infrastructure for SPICE. It scales automatically when many people use the same dataset.</li>
+    <li>SPICE is billed by the gigabytes of capacity that you buy. Using the data in any number of dashboards and by any number of users does not add charges.</li>
+    <li>Each author license includes 10 GB of SPICE capacity, and you can buy more for the account.</li>
+    <li>The data in SPICE is encrypted at rest, with a key that AWS manages by default, or with your own AWS KMS key. Data in transit uses TLS.</li>
+  </ul>
+
+  <h2>2.3 Direct Query</h2>
+  <ul>
+    <li>With <strong>direct query</strong>, Quick Sight sends the queries to the data source every time a visual loads.</li>
+    <li>The data is near real time, because every request reads the source.</li>
+    <li>There is no row or size limit for the dataset, so it suits data that is larger than the SPICE limits.</li>
+    <li>The speed depends on the data source. A slow source gives a slow dashboard, and many readers can overwhelm it.</li>
+    <li>Quick Sight allows two minutes to generate a visual. A longer query times out.</li>
+  </ul>
+
+  <h2>2.4 SPICE and Direct Query Compared</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>SPICE</th><th>Direct query</th></tr></thead>
+    <tbody>
+      <tr><td>Where the data is read</td><td>From a snapshot inside Quick Sight.</td><td>From the data source, every time.</td></tr>
+      <tr><td>Freshness</td><td>As fresh as the last refresh.</td><td>Near real time.</td></tr>
+      <tr><td>Speed</td><td>Fast, and consistent for many readers.</td><td>Depends on the data source.</td></tr>
+      <tr><td>Load on the source</td><td>Low. The source is queried only during a refresh.</td><td>High when many readers open dashboards.</td></tr>
+      <tr><td>Size limits</td><td>Per-dataset limits on rows and size. Check the quotas page.</td><td>No row or size limit for the dataset.</td></tr>
+      <tr><td>Cost</td><td>Billed by the SPICE capacity.</td><td>No SPICE capacity. The data source bears the query cost.</td></tr>
+      <tr><td>Best for</td><td>Dashboards that need speed, on data that changes daily or hourly.</td><td>Business-critical data that must always be current.</td></tr>
+      </tbody>
+  </table></div>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 880 330" role="img" aria-label="Two query modes in AWS Quick Sight. With SPICE, data is copied from the data source into a snapshot in Quick Sight on a schedule, on demand, or through the API, and the dashboard reads the snapshot. With direct query, the dashboard sends a query to the data source every time it loads."><text class="sv-tb" x="440" y="28" text-anchor="middle">SPICE: a refreshable snapshot</text><rect class="sv-box" x="20" y="44" width="180" height="76" rx="6"/><text class="sv-t" x="110" y="78" text-anchor="middle">Data source</text><rect class="sv-boxg" x="350" y="44" width="180" height="76" rx="6"/><text class="sv-t" x="440" y="70" text-anchor="middle">SPICE snapshot</text><text class="sv-t" x="440" y="86" text-anchor="middle">in Quick Sight</text><rect class="sv-boxw" x="680" y="44" width="180" height="76" rx="6"/><text class="sv-t" x="770" y="78" text-anchor="middle">Dashboard</text><line class="sv-line" x1="200" y1="82" x2="341" y2="82"/><polygon class="sv-arrow" points="350,82 340,77 340,87"/><line class="sv-line" x1="530" y1="82" x2="671" y2="82"/><polygon class="sv-arrow" points="680,82 670,77 670,87"/><text class="sv-tm" x="275" y="56" text-anchor="middle">Refresh: schedule,</text><text class="sv-tm" x="275" y="70" text-anchor="middle">on demand, or API</text><text class="sv-tm" x="605" y="62" text-anchor="middle">Reads the</text><text class="sv-tm" x="605" y="76" text-anchor="middle">snapshot</text><text class="sv-tb" x="440" y="168" text-anchor="middle">Direct query: a live query every time</text><rect class="sv-boxw" x="20" y="184" width="180" height="76" rx="6"/><text class="sv-t" x="110" y="218" text-anchor="middle">Dashboard</text><rect class="sv-box" x="680" y="184" width="180" height="76" rx="6"/><text class="sv-t" x="770" y="218" text-anchor="middle">Data source</text><line class="sv-line" x1="200" y1="222" x2="671" y2="222"/><polygon class="sv-arrow" points="680,222 670,217 670,227"/><text class="sv-tm" x="440" y="212" text-anchor="middle">Query sent each time the dashboard loads</text><text class="sv-tm" x="440" y="300" text-anchor="middle">SPICE is fast and spares the source. Direct query is always current, and its speed depends on the source.</text></svg>
+    </div>
+    <figcaption>Image 2a — SPICE reads a refreshable snapshot, and direct query asks the data source every time (Original diagram for this course.)</figcaption>
+  </figure>
+  <ul>
+    <li>You can mix both modes. One dashboard can use a SPICE dataset for the daily summary page and a direct query dataset for a live page.</li>
+  </ul>
+
+  <h2>2.5 Refreshing SPICE Data</h2>
+  <ul>
+    <li>Refresh a SPICE dataset on a <strong>schedule</strong>, <strong>on demand</strong> in the console, or with the <strong>API</strong>.</li>
+    <li>A common pattern calls the API when the ETL job finishes, so that the dashboard refreshes right after the new data lands.</li>
+    <li>An <strong>incremental refresh</strong> adds only the new records, and it suits data that is mostly appended. A full refresh reloads everything.</li>
+    <li>Enterprise edition can refresh imported datasets every hour. Incremental refreshes can run as often as every 15 minutes.</li>
+    <li>While a refresh runs, the dashboards keep showing the previous snapshot, so readers are not interrupted.</li>
+    <li>There are daily limits on on-demand refreshes for each dataset. Check the data source quotas page.</li>
+  </ul>
+
+  <h2>2.6 Insights and Reports</h2>
+  <ul>
+    <li>Enterprise edition adds ML-powered insights: forecasting, anomaly and outlier detection, and key driver identification.</li>
+    <li>Narrative insights describe the data in text, with calculations that update.</li>
+    <li>Authors can also build paginated reports, set threshold alerts, and ask natural language questions about their data.</li>
+    <li>Enterprise edition can email dashboard reports to readers.</li>
+    <li>You can embed interactive dashboards in websites and applications, and manage datasets and dashboards with API operations.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>SPICE</strong> is for <strong>speed</strong> and for sparing the data source. <strong>Direct query</strong> is for <strong>live data</strong>.</li>
+      <li>A SPICE dataset is a <strong>snapshot</strong>. It is only as current as its last <strong>refresh</strong>.</li>
+      <li>To refresh after an ETL job, call the <strong>refresh API</strong>. To refresh at fixed times, use a <strong>schedule</strong>.</li>
+      <li>SPICE is billed by <strong>capacity</strong>. More readers do not add SPICE charges.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>SPICE for speed, direct query for live.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Faster dashboards and less load on the data source”<br>→ SPICE</p>
+    <p><strong>Trigger 2:</strong> “Always the latest data, with no copy”<br>→ Direct query</p>
+    <p><strong>Trigger 3:</strong> “Refresh the dashboard data after the ETL job finishes”<br>→ The Quick Sight refresh API</p>
+    <p><strong>Trigger 4:</strong> “Data bigger than the SPICE dataset limits”<br>→ Direct query</p>
+    </div>
+
+  <div class="qbox">
+    <h2>2.7 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company’s AWS Quick Sight dashboard queries an Amazon Redshift cluster directly. Hundreds of users open the dashboard each morning, the dashboard is slow, and the cluster is overloaded. The data changes only once each night. Which solution meets the requirements with the least change?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Switch to direct query on a larger Redshift cluster.</li>
+      <li><strong>B.</strong> Import the dataset into SPICE, and refresh it after the nightly load.</li>
+      <li><strong>C.</strong> Ask users to export the data and open it in spreadsheets.</li>
+      <li><strong>D.</strong> Add more Amazon EC2 instances to run Quick Sight.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> A SPICE dataset serves the queries from a snapshot, which makes the dashboard fast and removes the load from Redshift. Refreshing after the nightly load keeps the data current.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>A larger cluster costs more, and direct query would still send every visual to the cluster.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>SPICE answers from a snapshot, and one refresh after the nightly load matches how often the data changes.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>Exports are manual, and they remove the benefits of a dashboard.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Quick Sight is serverless. You cannot add EC2 instances for it.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>2.8 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/blogs/business-intelligence/best-practices-for-amazon-quicksight-spice-and-direct-query-mode/" target="_blank" rel="noopener">Best Practices for Amazon QuickSight SPICE and Direct Query Mode</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/quick/latest/userguide/working-with-data.html" target="_blank" rel="noopener">Connecting to Data in AWS Quick Sight</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/quicksuite/quicksight/faqs/" target="_blank" rel="noopener">AWS Quick Sight FAQs</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Security, Users, and Pricing</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s regional managers must see only the orders of their own region, and only the finance team may see the margin column. The dashboards also have to reach managers who sign in with the company login.</p>
+    <p>Some data sits in a private VPC, and the finance team asks what Quick Sight will cost, because most people only read dashboards.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Give each person the right role and the right data.</li>
+      <li>Reach data in a private VPC.</li>
+      <li>Name the cost dimensions.</li>
+    </ul>
+  </div>
+
+  <h2>3.1 Roles</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Role</th><th>What the role does</th></tr></thead>
+    <tbody>
+      <tr><td>Admin</td><td>Manages users, billing, and settings for the Quick account, and can do everything that an author does.</td></tr>
+      <tr><td>Author</td><td>Prepares datasets, builds analyses, and publishes dashboards.</td></tr>
+      <tr><td>Reader</td><td>Views and interacts with published dashboards. Readers can be billed per session.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>The Pro roles, such as Author Pro and Reader Pro, add the generative AI capabilities of AWS Quick.</li>
+    <li>Quick Sight keeps its own users and groups, with these roles. Access to the data inside Quick Sight is managed in Quick Sight, with sharing and with row-level and column-level security.</li>
+  </ul>
+
+  <h2>3.2 Identity</h2>
+  <ul>
+    <li>In Enterprise edition, people can sign in through <strong>AWS IAM Identity Center</strong> or <strong>AWS Directory Service for Microsoft Active Directory</strong>.</li>
+    <li>IAM Identity Center can hold the identities itself, or it can connect to your own identity provider, such as Microsoft Active Directory, Okta, or Microsoft Entra ID.</li>
+    <li>Map the groups of the identity provider to the Admin, Author, and Reader roles, and manage access by group.</li>
+    <li>You cannot remap users or groups from one identity store to another. You would unsubscribe and subscribe again.</li>
+  </ul>
+
+  <h2>3.3 Sharing</h2>
+  <ul>
+    <li>Publish an analysis as a dashboard, and share the dashboard with <strong>specific users or groups</strong>, with <strong>everyone in the account</strong>, or with <strong>anyone on the internet</strong>.</li>
+    <li>Sharing with anyone on the internet works only after an administrator turns on public sharing for the account.</li>
+    <li>Readers can interact with a dashboard, with filters and controls, without changing the analysis.</li>
+    <li>Shared folders organize the dashboards, analyses, and datasets of a team, and manage the access of the team.</li>
+  </ul>
+
+  <h2>3.4 Row-Level and Column-Level Security</h2>
+  <ul>
+    <li><strong>Row-level security (RLS)</strong> controls which rows of a dataset each user or group can see. <strong>Column-level security (CLS)</strong> controls which columns they can see.</li>
+    <li>Both are available in Enterprise edition, and you set them on the dataset.</li>
+    <li>RLS uses rules that map each user to the values that the user may see. The next tables show the idea.</li>
+  </ul>
+  <div class="tw"><table>
+    <thead><tr><th>Dataset: Region</th><th>Revenue</th></tr></thead>
+    <tbody>
+      <tr><td>APAC</td><td>500</td></tr>
+      <tr><td>EMEA</td><td>300</td></tr>
+      <tr><td>NA</td><td>450</td></tr>
+      <tr><td>APAC</td><td>700</td></tr>
+    </tbody>
+  </table></div>
+  <div class="tw"><table>
+    <thead><tr><th>RLS rule: User</th><th>Region they can see</th></tr></thead>
+    <tbody>
+      <tr><td>Alice</td><td>EMEA</td></tr>
+      <tr><td>Bob</td><td>APAC</td></tr>
+      <tr><td>Carol</td><td>NA</td></tr>
+      <tr><td>Dirk</td><td>EMEA and APAC</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li>With these rules, all four people open the same dashboard. Alice sees only the EMEA row, and Dirk sees the EMEA row and both APAC rows.</li>
+  </ul>
+
+  <h2>3.5 Network and Encryption</h2>
+  <ul>
+    <li>In Enterprise edition, you can add Quick Sight to your <strong>VPC</strong>, so it can reach data sources in a VPC and on premises.</li>
+    <li>To connect to on-premises data, add the data sources and a Quick-specific network interface to the VPC.</li>
+    <li>Quick Sight needs permission to read your AWS data sources, such as Amazon S3 and Amazon Athena. Grant the access that each source needs, and no more.</li>
+    <li>SPICE data is encrypted at rest, and you can use your own AWS KMS key. Data in transit uses TLS.</li>
+  </ul>
+
+  <h2>3.6 Quick Sight Pricing</h2>
+  <p><strong>Prices change often and differ by Region.</strong> Check the current rates on the <a href="https://aws.amazon.com/quicksight/pricing/" target="_blank" rel="noopener">AWS Quick Sight pricing</a> page.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Dimension</th><th>How you are billed</th></tr></thead>
+    <tbody>
+      <tr><td>Authors and admins</td><td>A monthly subscription for each user. The Pro roles cost more and add the AI capabilities.</td></tr>
+      <tr><td>Readers</td><td>A monthly subscription for each user, or pay per session with reader capacity pricing.</td></tr>
+      <tr><td>SPICE</td><td>By the gigabytes of capacity. Each author license includes 10 GB, and you can buy more.</td></tr>
+      <tr><td>Editions</td><td>Standard and Enterprise. Enterprise adds VPC access, row-level and column-level security, hourly refresh, and ML insights.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>Pay-per-session reader pricing suits many people who open dashboards only now and then.</li>
+  </ul>
+
+    <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 534" role="img" aria-label="Layers of protection for AWS Quick Sight, from Person to Dashboard and data: Identity: IAM Identity Center, AWS Directory Service, or Quick Sight users and groups; Role: Admin, Author, or Reader, and the Pro roles add generative AI capabilities; Sharing: Publish a dashboard, and share it with specific users or groups; Data security: Row-level and column-level security on the dataset, in Enterprise edition; Network and encryption: An optional VPC connection, TLS in transit, and SPICE data encrypted at rest."><defs><marker id="ar27215" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxb" x="310" y="10" width="300" height="40" rx="6"/><text class="sv-tb" x="460" y="35" text-anchor="middle">Person</text><line class="sv-line" x1="460" y1="50" x2="460" y2="70" marker-end="url(#ar27215)"/><rect class="sv-box" x="60" y="74" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="98">Identity</text><text class="sv-t" x="76" y="118">IAM Identity Center, AWS Directory Service, or Quick Sight users and groups</text><line class="sv-line" x1="460" y1="132" x2="460" y2="152" marker-end="url(#ar27215)"/><rect class="sv-box" x="60" y="156" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="180">Role</text><text class="sv-t" x="76" y="200">Admin, Author, or Reader, and the Pro roles add generative AI capabilities</text><line class="sv-line" x1="460" y1="214" x2="460" y2="234" marker-end="url(#ar27215)"/><rect class="sv-box" x="60" y="238" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="262">Sharing</text><text class="sv-t" x="76" y="282">Publish a dashboard, and share it with specific users or groups</text><line class="sv-line" x1="460" y1="296" x2="460" y2="316" marker-end="url(#ar27215)"/><rect class="sv-box" x="60" y="320" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="344">Data security</text><text class="sv-t" x="76" y="364">Row-level and column-level security on the dataset, in Enterprise edition</text><line class="sv-line" x1="460" y1="378" x2="460" y2="398" marker-end="url(#ar27215)"/><rect class="sv-box" x="60" y="402" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="426">Network and encryption</text><text class="sv-t" x="76" y="446">An optional VPC connection, TLS in transit, and SPICE data encrypted at rest</text><line class="sv-line" x1="460" y1="460" x2="460" y2="480" marker-end="url(#ar27215)"/><rect class="sv-boxg" x="310" y="484" width="300" height="40" rx="6"/><text class="sv-tb" x="460" y="509" text-anchor="middle">Dashboard and data</text></svg>
+    </div>
+    <figcaption>Image 3a &mdash; Layers of protection for AWS Quick Sight. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Row-level security</strong> is the answer when <strong>each user must see different rows</strong> of the same dataset. It needs <strong>Enterprise edition</strong>.</li>
+      <li><strong>Column-level security</strong> hides <strong>columns</strong>, such as a margin field, from some users.</li>
+      <li>To reach data in a <strong>VPC or on premises</strong>, add Quick Sight to the <strong>VPC</strong> (Enterprise edition).</li>
+      <li><strong>Reader capacity pricing</strong> (per session) suits many occasional readers.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Roles decide who builds, security decides who sees.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Each manager sees only their own rows in one dashboard”<br>→ Row-level security (Enterprise edition)</p>
+    <p><strong>Trigger 2:</strong> “Hide a column from some users”<br>→ Column-level security</p>
+    <p><strong>Trigger 3:</strong> “Reach on-premises or VPC data from Quick Sight”<br>→ Add Quick Sight to the VPC</p>
+    <p><strong>Trigger 4:</strong> “Many occasional readers with the lowest cost”<br>→ Reader capacity (pay-per-session) pricing</p>
+    </div>
+
+  <div class="qbox">
+    <h2>3.7 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company shares one AWS Quick Sight dashboard with regional managers. Each manager must see only the rows for their own region in the same dashboard, and the company does not want to build a copy of the dashboard for each region. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Create a separate dashboard for each region, and share each one by hand.</li>
+      <li><strong>B.</strong> Use IAM policies to limit each manager to one prefix in Amazon S3.</li>
+      <li><strong>C.</strong> Use Standard edition, and put each manager in a different group.</li>
+      <li><strong>D.</strong> Use Enterprise edition, and add row-level security rules to the dataset.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: D.</strong> Row-level security in Enterprise edition filters the rows of a dataset for each user or group, so all the managers use the same dashboard and see only their own rows.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Separate dashboards are manual to build and to keep in step.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>S3 prefixes do not filter the rows that Quick Sight shows in one dataset, and the data may not come from S3.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>Groups alone do not filter rows, and row-level security is an Enterprise edition feature.</td></tr>
+      <tr><td>D</td><td>Correct</td><td>Row-level security rules map each user to the rows that the user may see in the same dataset.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>3.8 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/quick/latest/userguide/user-types.html" target="_blank" rel="noopener">AWS Quick User Types</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/quick/latest/userguide/share-a-dashboard-grant-access-users.html" target="_blank" rel="noopener">Granting Users and Groups Access to a Dashboard</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/quick/latest/userguide/working-with-data.html" target="_blank" rel="noopener">Connecting to Data in AWS Quick Sight</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/quicksight/pricing/" target="_blank" rel="noopener">AWS Quick Sight Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 4 ============ -->
+<section class="tab" id="tab4" role="tabpanel" aria-labelledby="b4">
+  <h1 class="tabh">4. Comparison &amp; Scenarios</h1>
+
+  <h2>4.1 Quick Sight and Related Services Compared</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Requirement</th><th>Best fit</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Interactive dashboards for business users, from many data sources</td><td>AWS Quick Sight</td><td>It is a serverless business intelligence service that readers use with filters.</td></tr>
+      <tr><td>Ad hoc SQL queries on files in Amazon S3</td><td>Amazon Athena</td><td>It queries the data in place. Quick Sight can then visualize the results.</td></tr>
+      <tr><td>A data warehouse for complex analytic queries</td><td>Amazon Redshift</td><td>It stores and queries the data. Quick Sight reads from it.</td></tr>
+      <tr><td>Search and log analytics with built-in dashboards</td><td>OpenSearch Service and OpenSearch Dashboards</td><td>Dashboards visualizes the data that is in the OpenSearch domain.</td></tr>
+      <tr><td>Transform data before analysis</td><td>AWS Glue</td><td>It extracts, transforms, and loads the data. Quick Sight does not.</td></tr>
+      <tr><td>Embed interactive analytics in an application</td><td>AWS Quick Sight</td><td>It supports embedded dashboards.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>4.2 When to Use Quick Sight</h2>
+  <h3>4.2.1 Use It When</h3>
+  <ul>
+    <li>Business users need interactive dashboards on data from AWS services, other databases, files, or SaaS sources.</li>
+    <li>You want no servers to run, and you want the service to scale with the number of readers.</li>
+    <li>You need row-level or column-level security, ML insights, or embedded analytics.</li>
+  </ul>
+  <h3>4.2.2 Use Another Service When</h3>
+  <ul>
+    <li><strong>Amazon Athena or Amazon Redshift:</strong> you need to query or store the data. Quick Sight only visualizes it.</li>
+    <li><strong>AWS Glue:</strong> you need to clean and transform the data first.</li>
+    <li><strong>OpenSearch Dashboards:</strong> the data is only in OpenSearch, and the audience is the operations team.</li>
+  </ul>
+
+  <h2>4.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Scenario keywords</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Serverless BI, interactive dashboards for business users</td><td>AWS Quick Sight</td></tr>
+      <tr><td>2</td><td>Dashboards on data from Athena, Redshift, and Amazon S3</td><td>AWS Quick Sight</td></tr>
+      <tr><td>3</td><td>Faster dashboards, less load on the data source</td><td>SPICE dataset</td></tr>
+      <tr><td>4</td><td>Always the latest data, no copy</td><td>Direct query dataset</td></tr>
+      <tr><td>5</td><td>Refresh the SPICE data after an ETL job</td><td>The Quick Sight refresh API</td></tr>
+      <tr><td>6</td><td>Each user sees different rows in one dashboard</td><td>Row-level security (Enterprise edition)</td></tr>
+      <tr><td>7</td><td>Hide a column from some users</td><td>Column-level security</td></tr>
+      <tr><td>8</td><td>Reach on-premises or VPC data</td><td>Add Quick Sight to the VPC (Enterprise edition)</td></tr>
+      <tr><td>9</td><td>Many occasional readers, lowest cost</td><td>Reader capacity (pay-per-session) pricing</td></tr>
+      <tr><td>10</td><td>ML forecasting and anomaly detection in dashboards</td><td>Quick Sight Enterprise edition insights</td></tr>
+      <tr><td>11</td><td>Embed dashboards in a web application</td><td>Quick Sight embedded analytics</td></tr>
+      <tr><td>12</td><td>Sign in with the company identity provider</td><td>AWS IAM Identity Center</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>4.4 Lesson Summary</h2>
+  <p>This lesson covered the following points:</p>
+  <ul>
+    <li>AWS Quick is a workplace service, and AWS Quick Sight is its serverless business intelligence capability. Older material calls it Amazon QuickSight.</li>
+    <li>Quick Sight reads data from AWS stores, other databases, files, and SaaS sources. A data lake pipeline ends in a Quick Sight dashboard through Athena.</li>
+    <li>A dataset uses SPICE, a refreshable in-memory snapshot, or direct query, which asks the source every time.</li>
+    <li>Authors build analyses and publish dashboards. Readers interact with them. Admins manage the account.</li>
+    <li>Row-level and column-level security, VPC connections, hourly refresh, and ML insights are Enterprise edition features.</li>
+    <li>Pricing combines user subscriptions, optional per-session reader pricing, and SPICE capacity.</li>
+  </ul>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>If leaders need to see it, Quick Sight shows it.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 5 ============ -->
+<section class="tab" id="tab5" role="tabpanel" aria-labelledby="b5">
+  <h1 class="tabh">5. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: Explain what AWS Quick Sight is, how it relates to AWS Quick, and why older material uses a different name.</summary>
+    <p><em>Maps to:</em> Objective 1 (Comprehension).</p>
+    <p>AWS Quick Sight is a serverless, machine learning-powered business intelligence service. It connects to data sources, lets authors build visualizations and dashboards, and lets readers use them. It is the business intelligence capability of AWS Quick, which also includes Quick Flows, Quick Automate, Quick Index, Quick Research, and Apps in Quick. Older AWS pages and exam material call the same service Amazon QuickSight, and some pages call the wider product Amazon Quick Suite or, before November 9, 2026, Amazon Quick.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Describe the path from raw files in Amazon S3 to a Quick Sight dashboard for FlashCart.</summary>
+    <p><em>Maps to:</em> Objective 2 (Application).</p>
+    <p>Store the raw files in Amazon S3. Run an AWS Glue crawler to add the files to the Data Catalog. Use Amazon Athena to query the tables with SQL. In Quick Sight, connect Athena as a data source, create a dataset, build an analysis with visuals, and publish it as a dashboard. Share the dashboard with the leadership team.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: Compare SPICE and direct query, and choose a mode for a daily summary page and for a live order count page.</summary>
+    <p><em>Maps to:</em> Objective 3 (Analysis).</p>
+    <p>SPICE keeps a refreshable snapshot of the data in Quick Sight. It is fast, it spares the data source, and it is only as current as the last refresh. Direct query asks the data source every time, so the data is near real time, and the speed depends on the source. Use SPICE for the daily summary page, because the data changes once a day and many people open it. Use direct query for the live order count page, because it must always be current. One dashboard can use both.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Explain how you would keep a SPICE dataset current after a nightly ETL job, and what readers see during the refresh.</summary>
+    <p><em>Maps to:</em> Objective 4 (Comprehension).</p>
+    <p>Call the Quick Sight refresh API when the ETL job finishes, or schedule a refresh for a time after the job usually ends. For data that is mostly appended, use an incremental refresh instead of a full refresh. While the refresh runs, the dashboards keep showing the previous snapshot, so readers are not interrupted.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: FlashCart’s regional managers must see only their own region, and only finance may see the margin column. Describe how you would configure Quick Sight.</summary>
+    <p><em>Maps to:</em> Objective 5 (Application).</p>
+    <p>Use Enterprise edition. On the dataset, add row-level security rules that map each manager to the region that the manager may see, and add column-level security that allows the margin column only for the finance group. Sign people in with AWS IAM Identity Center, map the groups to the Author and Reader roles, and share the dashboard with the groups. All managers then use the same dashboard and see different rows.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: Differentiate Quick Sight from Amazon Athena, Amazon Redshift, and OpenSearch Dashboards.</summary>
+    <p><em>Maps to:</em> Objective 6 (Analysis).</p>
+    <p>Athena runs SQL queries on data in Amazon S3, and Redshift stores and queries a data warehouse. Both produce results, and Quick Sight visualizes those results in dashboards for business users. OpenSearch Dashboards visualizes the data that is in an OpenSearch domain, mainly for search and log analytics. Quick Sight can also read from OpenSearch Service, and from many other sources.</p>
+  </details>
+
+  <details>
+    <summary>Question 7: Design a business intelligence solution for FlashCart that serves 300 readers, reaches data in a private VPC, and controls cost.</summary>
+    <p><em>Maps to:</em> Objective 7 (Synthesis).</p>
+    <p>Add Quick Sight to the VPC with Enterprise edition, so it can reach the private data sources. Import the main datasets into SPICE and refresh them with the API after each ETL job, so the dashboards are fast and the data sources are spared. Use a direct query dataset only for the live page. Give a small team the Author role, and give the 300 readers the Reader role with reader capacity pricing, since they open dashboards only now and then. Add row-level security for the regions. Check the pricing page for the current costs.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>

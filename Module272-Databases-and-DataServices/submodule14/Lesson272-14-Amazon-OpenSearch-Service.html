@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 272.14 - Amazon OpenSearch Service</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">Amazon OpenSearch Service</h1>
+  <p>Search any field and analyze logs: how Amazon OpenSearch Service works, how data gets in, its deployment choices, its security, and how it compares with the services that you know.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. Introduction to OpenSearch Service</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Loading Data and Integrations</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Domains, Serverless, and Availability</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. Security, Monitoring, and Pricing</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab5" id="b5">5. Comparison &amp; Scenarios</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab6" id="b6">6. Knowledge Check</button></li>
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <h3>AWS Analytics Services</h3>
+  <p>A database answers the questions that you plan for, such as “find order 1001.” People also ask questions that you cannot plan for, such as “show me blue running shoes under a given price,” or “find every error from the last hour across all services.” Those questions need a search engine. This lesson covers the AWS service that provides one: Amazon OpenSearch Service.</p>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 880 440" role="img" aria-label="Map of AWS analytics services in six groups: ingest and stream, store, catalog and process, govern and orchestrate, query and search, and visualize and share. Amazon OpenSearch Service, the topic of this lesson, is highlighted in orange."><rect class="sv-box" x="10" y="10" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="35" text-anchor="middle">Ingest and Stream</text><rect class="sv-boxg" x="30" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="90" y="107" text-anchor="middle">Kinesis</text><rect class="sv-boxg" x="160" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="107" text-anchor="middle">MSK</text><rect class="sv-box" x="450" y="10" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="10" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="35" text-anchor="middle">Store</text><rect class="sv-boxg" x="470" y="60" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="91" text-anchor="middle">Amazon</text><text class="sv-t" x="530" y="107" text-anchor="middle">S3</text><rect class="sv-box" x="10" y="150" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="150" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="175" text-anchor="middle">Catalog and Process</text><rect class="sv-boxg" x="30" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="231" text-anchor="middle">AWS</text><text class="sv-t" x="90" y="247" text-anchor="middle">Glue</text><rect class="sv-boxg" x="160" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="231" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="247" text-anchor="middle">EMR</text><rect class="sv-box" x="450" y="150" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="150" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="175" text-anchor="middle">Govern and Orchestrate</text><rect class="sv-boxg" x="470" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="231" text-anchor="middle">AWS Lake</text><text class="sv-t" x="530" y="247" text-anchor="middle">Formation</text><rect class="sv-boxg" x="600" y="200" width="120" height="68" rx="6"/><text class="sv-t" x="660" y="231" text-anchor="middle">AWS Data</text><text class="sv-t" x="660" y="247" text-anchor="middle">Pipeline</text><rect class="sv-box" x="10" y="290" width="420" height="130" rx="4"/><rect class="sv-boxb" x="10" y="290" width="420" height="38" rx="4"/><text class="sv-tb" x="220" y="315" text-anchor="middle">Query and Search</text><rect class="sv-boxg" x="30" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="90" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="90" y="387" text-anchor="middle">Athena</text><rect class="sv-boxg" x="160" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="220" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="220" y="387" text-anchor="middle">Redshift</text><rect class="sv-boxw" x="290" y="340" width="120" height="68" rx="6" style="stroke-width:3.5"/><text class="sv-t" x="350" y="363" text-anchor="middle">Amazon</text><text class="sv-t" x="350" y="379" text-anchor="middle">OpenSearch</text><text class="sv-t" x="350" y="395" text-anchor="middle">Service</text><rect class="sv-box" x="450" y="290" width="420" height="130" rx="4"/><rect class="sv-boxb" x="450" y="290" width="420" height="38" rx="4"/><text class="sv-tb" x="660" y="315" text-anchor="middle">Visualize and Share</text><rect class="sv-boxg" x="470" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="530" y="371" text-anchor="middle">Amazon</text><text class="sv-t" x="530" y="387" text-anchor="middle">Quick</text><rect class="sv-boxg" x="600" y="340" width="120" height="68" rx="6"/><text class="sv-t" x="660" y="371" text-anchor="middle">AWS Data</text><text class="sv-t" x="660" y="387" text-anchor="middle">Exchange</text><rect x="10" y="290" width="420" height="130" rx="6" style="fill:none;stroke:var(--warn-bd);stroke-width:4"/></svg>
+    </div>
+    <figcaption>Image 0a — AWS analytics services by stage. Amazon OpenSearch Service, the topic of this lesson, is highlighted. (Original diagram for this course.)</figcaption>
+  </figure>
+  <p>Amazon OpenSearch Service is a managed service that runs OpenSearch, an open-source search and analytics engine. You load documents, and you search them by any field, including partial matches. You also analyze logs and view the results in OpenSearch Dashboards. This lesson explains the search concepts that you need, how data gets in, the deployment choices, the security controls, and how the service compares with the other services that you know. The last two tabs prepare you for the AWS Certified Solutions Architect – Associate (SAA-C03) exam and check what you learned.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> an introduction to OpenSearch Service, the search concepts, the use cases, and the pairing with DynamoDB.</li>
+    <li><strong>Tab 2:</strong> the ways to load data from DynamoDB, CloudWatch Logs, Kinesis, and Amazon S3, and how to query and visualize it.</li>
+    <li><strong>Tab 3:</strong> domains, OpenSearch Serverless, high availability, storage tiers, snapshots, and versions.</li>
+    <li><strong>Tab 4:</strong> networking, access control, encryption, monitoring, and pricing.</li>
+    <li><strong>Tab 5:</strong> a comparison with other services, the SAA-C03 cheat sheet with decision rules, and the lesson summary.</li>
+    <li><strong>Tab 6:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Introduction to OpenSearch Service</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Loading Data and Integrations</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Domains, Serverless, and Availability</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Security, Monitoring, and Pricing</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="5" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="6" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Introduction</h2>
+  <p>FlashCart Inc. keeps its product catalog in Amazon DynamoDB, and the table answers key lookups in milliseconds. Shoppers do not search by key, however. They type a few words and expect ranked results from the name, the brand, and the description. The operations team has a second need: when something fails, it must search the logs of many services at once. Amazon OpenSearch Service handles both needs and leaves DynamoDB as the system of record.</p>
+  <p>This lesson follows FlashCart through the Problem Statement of each tab. It assumes that you know Amazon DynamoDB, Amazon S3, and Amazon Athena from earlier lessons. Amazon Data Firehose and Amazon Kinesis Data Streams are covered in Lesson 273.6, which comes later in the course.</p>
+  <p>Use the tab list on the left, or the Previous and Next buttons, to move through the lesson. Each topic tab opens with a Problem Statement and ends with exam traps, keyword triggers, and resource links. The Knowledge Check is the last tab.</p>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define OpenSearch and Amazon OpenSearch Service, and identify the concepts of index, document, shard, and replica.</li>
+    <li>Describe the use cases of OpenSearch Service: full-text search, log analytics, and vector search, with OpenSearch Dashboards.</li>
+    <li>Explain how data reaches OpenSearch Service from Amazon DynamoDB, Amazon CloudWatch Logs, Amazon Kinesis, and Amazon S3.</li>
+    <li>Differentiate OpenSearch Service domains from Amazon OpenSearch Serverless collections.</li>
+    <li>Explain how Multi-AZ, dedicated master nodes, storage tiers, and snapshots provide availability and control cost.</li>
+    <li>Use the security controls of OpenSearch Service: networking, access control, fine-grained access control, and encryption.</li>
+    <li>Differentiate OpenSearch Service from Amazon DynamoDB, Amazon Athena, and CloudWatch Logs Insights for a stated requirement.</li>
+    <li>Design a search and log analytics solution that uses OpenSearch Service.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>AI</td><td>Artificial intelligence</td></tr>
+      <tr><td>API</td><td>Application Programming Interface</td></tr>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>AZ</td><td>Availability Zone, as in Multi-AZ</td></tr>
+      <tr><td>CLI</td><td>Command line interface</td></tr>
+      <tr><td>EBS</td><td>Amazon Elastic Block Store</td></tr>
+      <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+      <tr><td>HTTP</td><td>Hypertext Transfer Protocol</td></tr>
+      <tr><td>HTTPS</td><td>Hypertext Transfer Protocol Secure</td></tr>
+      <tr><td>IAM</td><td>AWS Identity and Access Management</td></tr>
+      <tr><td>JSON</td><td>JavaScript Object Notation</td></tr>
+      <tr><td>KMS</td><td>AWS Key Management Service</td></tr>
+      <tr><td>NAT</td><td>Network address translation</td></tr>
+      <tr><td>OCU</td><td>OpenSearch Compute Unit</td></tr>
+      <tr><td>PB</td><td>Petabyte</td></tr>
+      <tr><td>RDS</td><td>Amazon Relational Database Service</td></tr>
+      <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
+      <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SAML</td><td>Security Assertion Markup Language</td></tr>
+      <tr><td>SDK</td><td>Software development kit</td></tr>
+      <tr><td>SNS</td><td>Amazon Simple Notification Service</td></tr>
+      <tr><td>SQL</td><td>Structured Query Language</td></tr>
+      <tr><td>SQS</td><td>Amazon Simple Queue Service</td></tr>
+      <tr><td>TLS</td><td>Transport Layer Security</td></tr>
+      <tr><td>VPC</td><td>Amazon Virtual Private Cloud</td></tr>
+      </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. Introduction to OpenSearch Service</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart stores its products in a DynamoDB table. DynamoDB finds an item fast when the query uses the primary key or an index. Shoppers, however, type partial words, and they expect matches in the name, the brand, and the description.</p>
+    <p>The engineering team must not move the catalog out of DynamoDB. It needs a way to search the same data by any field.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose a service for full-text search.</li>
+      <li>Explain how the search service relates to the DynamoDB table.</li>
+      <li>Name the other kinds of work that the same service can do.</li>
+    </ul>
+  </div>
+
+  <h2>1.1 Introduction to Amazon OpenSearch Service</h2>
+  <ul>
+    <li><strong>OpenSearch</strong> is an open-source search and analytics engine, derived from Elasticsearch. It is used for log analytics, real-time application monitoring, and clickstream analysis.</li>
+    <li><strong>Amazon OpenSearch Service</strong> is a managed service that deploys, operates, and scales OpenSearch clusters in the AWS Cloud. It is the successor to Amazon Elasticsearch Service.</li>
+    <li>A <strong>domain</strong> is the unit that you create. A domain is the same thing as an OpenSearch cluster, and each Amazon EC2 instance in it is one node.</li>
+    <li>OpenSearch Service provisions the resources, launches the cluster, and automatically detects and replaces failed nodes. You can scale the cluster with one API call or a few clicks.</li>
+    <li>It supports OpenSearch and the legacy open-source versions of Elasticsearch, up to 7.10.</li>
+    <li>You create and manage domains with the AWS Management Console, the AWS CLI, the AWS SDKs, or Terraform.</li>
+  </ul>
+
+  <h2>1.2 Search Concepts</h2>
+  <ul>
+    <li>A <strong>document</strong> is one record, written as JSON, such as one product.</li>
+    <li>An <strong>index</strong> is a collection of documents that belong together, such as all the products.</li>
+    <li>A <strong>shard</strong> is a piece of an index. OpenSearch splits an index into shards and spreads them across the nodes, so the work runs in parallel.</li>
+    <li>A <strong>replica</strong> is a copy of a shard on a different node. It protects the data, and it can serve search requests.</li>
+    <li>A search can look at <strong>any field</strong>, including partial matches. A database that queries only by key or index cannot do that.</li>
+    <li>You query with the OpenSearch query language, which uses JSON. OpenSearch Service also supports SQL, for integration with business intelligence applications.</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 860 300" role="img" aria-label="An OpenSearch index named products. JSON documents are added to the index. The index is split into three primary shards, and each shard has a replica on a different node. A search request runs on all the shards, and the results are combined."><rect class="sv-box" x="10" y="100" width="120" height="84" rx="6"/><text class="sv-t" x="70" y="138" text-anchor="middle">Documents</text><text class="sv-t" x="70" y="154" text-anchor="middle">(JSON)</text><rect class="sv-dash" x="175" y="14" width="520" height="272" rx="8"/><text class="sv-tb" x="435" y="38" text-anchor="middle">Index: products</text><rect class="sv-boxb" x="195" y="52" width="150" height="224" rx="6"/><text class="sv-tb" x="270" y="76" text-anchor="middle">Node 1</text><rect class="sv-boxg" x="210" y="92" width="120" height="56" rx="6"/><text class="sv-t" x="270" y="116" text-anchor="middle">Primary shard 0</text><text class="sv-t" x="270" y="132" text-anchor="middle">holds documents</text><rect class="sv-box" x="210" y="170" width="120" height="56" rx="6"/><text class="sv-t" x="270" y="194" text-anchor="middle">Replica of shard 2</text><text class="sv-t" x="270" y="210" text-anchor="middle">copy for safety</text><text class="sv-tm" x="270" y="256" text-anchor="middle"></text><rect class="sv-boxb" x="365" y="52" width="150" height="224" rx="6"/><text class="sv-tb" x="440" y="76" text-anchor="middle">Node 2</text><rect class="sv-boxg" x="380" y="92" width="120" height="56" rx="6"/><text class="sv-t" x="440" y="116" text-anchor="middle">Primary shard 1</text><text class="sv-t" x="440" y="132" text-anchor="middle">holds documents</text><rect class="sv-box" x="380" y="170" width="120" height="56" rx="6"/><text class="sv-t" x="440" y="194" text-anchor="middle">Replica of shard 0</text><text class="sv-t" x="440" y="210" text-anchor="middle">copy for safety</text><text class="sv-tm" x="440" y="256" text-anchor="middle"></text><rect class="sv-boxb" x="535" y="52" width="150" height="224" rx="6"/><text class="sv-tb" x="610" y="76" text-anchor="middle">Node 3</text><rect class="sv-boxg" x="550" y="92" width="120" height="56" rx="6"/><text class="sv-t" x="610" y="116" text-anchor="middle">Primary shard 2</text><text class="sv-t" x="610" y="132" text-anchor="middle">holds documents</text><rect class="sv-box" x="550" y="170" width="120" height="56" rx="6"/><text class="sv-t" x="610" y="194" text-anchor="middle">Replica of shard 1</text><text class="sv-t" x="610" y="210" text-anchor="middle">copy for safety</text><text class="sv-tm" x="610" y="256" text-anchor="middle"></text><rect class="sv-boxw" x="730" y="100" width="120" height="84" rx="6"/><text class="sv-t" x="790" y="130" text-anchor="middle">Search request</text><text class="sv-t" x="790" y="145" text-anchor="middle">runs on all</text><text class="sv-t" x="790" y="160" text-anchor="middle">shards</text><line class="sv-line" x1="130" y1="142" x2="166" y2="142"/><polygon class="sv-arrow" points="175,142 165,137 165,147"/><line class="sv-line" x1="695" y1="142" x2="721" y2="142"/><polygon class="sv-arrow" points="730,142 720,137 720,147"/></svg>
+    </div>
+    <figcaption>Image 1a — An index is split into shards that spread across nodes, and replicas keep copies on other nodes (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>1.3 Use Cases</h2>
+  <ul>
+    <li><strong>Full-text search:</strong> website and application search, such as a product search box.</li>
+    <li><strong>Log analytics and monitoring:</strong> searching and analyzing the logs and metrics of applications and infrastructure in near real time.</li>
+    <li><strong>Clickstream analysis:</strong> studying what shoppers view and click.</li>
+    <li><strong>Security analytics:</strong> managing security and event information.</li>
+    <li><strong>Vector search:</strong> semantic search on vector embeddings, which supports generative AI applications such as chatbots.</li>
+  </ul>
+
+  <h2>1.4 OpenSearch Dashboards</h2>
+  <ul>
+    <li><strong>OpenSearch Dashboards</strong> is the visualization tool that comes with OpenSearch Service. You build charts and dashboards from the data in an index.</li>
+    <li>You can also visualize data from OpenSearch Service with AWS Quick (lesson 272.15).</li>
+  </ul>
+
+  <h2>1.5 OpenSearch and DynamoDB Together</h2>
+  <ul>
+    <li>DynamoDB queries only by primary key or index. OpenSearch searches any field, including partial matches.</li>
+    <li>OpenSearch is commonly used as a <strong>complement</strong> to another database. It is not the system of record.</li>
+    <li>A common pattern copies the changes of a DynamoDB table to OpenSearch Service. The application calls DynamoDB to retrieve items, and it calls OpenSearch to search for them.</li>
+  </ul>
+  <div class="tw"><table>
+    <thead><tr><th>Need</th><th>DynamoDB</th><th>OpenSearch Service</th></tr></thead>
+    <tbody>
+      <tr><td>Read or write one item by key</td><td>Yes. This is its purpose.</td><td>Not the best choice.</td></tr>
+      <tr><td>Search any field, with partial matches</td><td>No. Queries use the key or an index.</td><td>Yes. This is its purpose.</td></tr>
+      <tr><td>Act as the system of record</td><td>Yes.</td><td>No. Keep a database as the source.</td></tr>
+      <tr><td>Analyze logs and build dashboards</td><td>No.</td><td>Yes, with OpenSearch Dashboards.</td></tr>
+      </tbody>
+  </table></div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>OpenSearch is not a system of record.</strong> Keep the data in DynamoDB or another database, and copy it to OpenSearch for search.</li>
+      <li>When DynamoDB queries must use <strong>any field</strong> or <strong>partial matches</strong>, add OpenSearch Service.</li>
+      <li>A question that says <strong>Elasticsearch</strong> on AWS points to Amazon OpenSearch Service, its successor.</li>
+      <li>A <strong>domain</strong> is a cluster. A <strong>collection</strong> is the unit of OpenSearch Serverless (Tab 3).</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>A database finds by key. A search engine finds by meaning.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Full-text search”<br>→ Amazon OpenSearch Service</p>
+    <p><strong>Trigger 2:</strong> “Search any field, including partial matches”<br>→ Amazon OpenSearch Service</p>
+    <p><strong>Trigger 3:</strong> “Managed Elasticsearch on AWS”<br>→ Amazon OpenSearch Service</p>
+    <p><strong>Trigger 4:</strong> “Log analytics with dashboards”<br>→ OpenSearch Service and OpenSearch Dashboards</p>
+    </div>
+
+  <div class="qbox">
+    <h2>1.6 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> An online retailer stores its product catalog in Amazon DynamoDB. Shoppers type partial words into a search box, and the retailer wants matches from any attribute, such as the name, the brand, and the description. DynamoDB must remain the system of record. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Create a global secondary index on every attribute, and query each index with exact keys.</li>
+      <li><strong>B.</strong> Run a Scan with a filter expression for every search.</li>
+      <li><strong>C.</strong> Copy the items to Amazon OpenSearch Service, and send the search queries to it.</li>
+      <li><strong>D.</strong> Export the table to Amazon S3 for every search, and query the export with Amazon Athena.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> Amazon OpenSearch Service searches any field, including partial matches. DynamoDB stays the system of record, and the application sends the search queries to OpenSearch.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>An index needs an exact key, so it cannot match partial words, and indexes on every attribute are costly.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>A Scan with a filter reads the whole table for every search. It is slow and expensive, and it does not rank results.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>OpenSearch Service is a search engine for this purpose, and DynamoDB keeps the data.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>An export for every search is slow, and Athena runs SQL queries. It is not built for ranked search results.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>1.7 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html" target="_blank" rel="noopener">What Is Amazon OpenSearch Service?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/integrations-dynamodb.html" target="_blank" rel="noopener">Loading Streaming Data From Amazon DynamoDB</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/opensearch-service/pricing/" target="_blank" rel="noopener">Amazon OpenSearch Service Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Loading Data and Integrations</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s logs arrive in several places. The application functions and the API write their logs to a central log service, the orders live in DynamoDB, and a clickstream flows through a stream. The operations team wants all of it searchable within seconds or minutes.</p>
+    <p>The team also wants to add the loading without changing the applications that write the data.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose a loading path for each source.</li>
+      <li>Decide when a delivery service is enough and when code is needed.</li>
+      <li>Explain how an application in a VPC reaches the domain.</li>
+    </ul>
+  </div>
+
+  <h2>2.1 Ways to Load Data</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Source</th><th>Loading path</th></tr></thead>
+    <tbody>
+      <tr><td>Amazon DynamoDB</td><td>Turn on DynamoDB Streams, and use an AWS Lambda function (lesson 273.1) to write each change to OpenSearch Service.</td></tr>
+      <tr><td>Amazon CloudWatch Logs (lesson 274.2)</td><td>Create a subscription filter. Send the logs to a Lambda function for real-time loading, or to Amazon Data Firehose (lesson 273.6) for near-real-time loading.</td></tr>
+      <tr><td>Amazon Kinesis Data Streams</td><td>Use a Lambda function that reads the stream and writes to OpenSearch Service.</td></tr>
+      <tr><td>Amazon Data Firehose</td><td>Firehose delivers streaming data directly to OpenSearch Service as a destination.</td></tr>
+      <tr><td>Amazon S3</td><td>Use a Lambda function that runs when an object arrives, and writes its contents to OpenSearch Service.</td></tr>
+      <tr><td>Many sources</td><td>Use OpenSearch Ingestion, a managed pipeline service (2.3).</td></tr>
+      </tbody>
+  </table></div>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 880 330" role="img" aria-label="Three ways to load data into Amazon OpenSearch Service. DynamoDB uses DynamoDB Streams and AWS Lambda. CloudWatch Logs uses a subscription filter and Amazon Data Firehose or Lambda. Kinesis Data Streams or Amazon S3 use Lambda or OpenSearch Ingestion. Applications and OpenSearch Dashboards then search the data."><rect class="sv-box" x="10" y="24" width="190" height="68" rx="6"/><text class="sv-t" x="105" y="54" text-anchor="middle">Amazon DynamoDB</text><text class="sv-t" x="105" y="70" text-anchor="middle">(with DynamoDB Streams)</text><rect class="sv-boxg" x="270" y="24" width="170" height="68" rx="6"/><text class="sv-t" x="355" y="54" text-anchor="middle">AWS Lambda</text><line class="sv-line" x1="200" y1="58" x2="261" y2="58"/><polygon class="sv-arrow" points="270,58 260,53 260,63"/><line class="sv-line" x1="440" y1="58" x2="511" y2="58"/><polygon class="sv-arrow" points="520,58 510,53 510,63"/><rect class="sv-box" x="10" y="120" width="190" height="68" rx="6"/><text class="sv-t" x="105" y="150" text-anchor="middle">Amazon CloudWatch Logs</text><text class="sv-t" x="105" y="166" text-anchor="middle">(subscription filter)</text><rect class="sv-boxg" x="270" y="120" width="170" height="68" rx="6"/><text class="sv-t" x="355" y="150" text-anchor="middle">Amazon Data Firehose</text><text class="sv-t" x="355" y="166" text-anchor="middle">(or AWS Lambda)</text><line class="sv-line" x1="200" y1="154" x2="261" y2="154"/><polygon class="sv-arrow" points="270,154 260,149 260,159"/><line class="sv-line" x1="440" y1="154" x2="511" y2="154"/><polygon class="sv-arrow" points="520,154 510,149 510,159"/><rect class="sv-box" x="10" y="216" width="190" height="68" rx="6"/><text class="sv-t" x="105" y="246" text-anchor="middle">Amazon Kinesis</text><text class="sv-t" x="105" y="262" text-anchor="middle">Data Streams or S3</text><rect class="sv-boxg" x="270" y="216" width="170" height="68" rx="6"/><text class="sv-t" x="355" y="246" text-anchor="middle">AWS Lambda or</text><text class="sv-t" x="355" y="262" text-anchor="middle">OpenSearch Ingestion</text><line class="sv-line" x1="200" y1="250" x2="261" y2="250"/><polygon class="sv-arrow" points="270,250 260,245 260,255"/><line class="sv-line" x1="440" y1="250" x2="511" y2="250"/><polygon class="sv-arrow" points="520,250 510,245 510,255"/><rect class="sv-boxb" x="520" y="14" width="160" height="290" rx="8"/><text class="sv-tb" x="600" y="150" text-anchor="middle">Amazon</text><text class="sv-tb" x="600" y="166" text-anchor="middle">OpenSearch</text><text class="sv-tb" x="600" y="182" text-anchor="middle">Service</text><rect class="sv-boxw" x="730" y="112" width="140" height="94" rx="6"/><text class="sv-t" x="800" y="146" text-anchor="middle">Applications</text><text class="sv-t" x="800" y="161" text-anchor="middle">and OpenSearch</text><text class="sv-t" x="800" y="176" text-anchor="middle">Dashboards</text><line class="sv-line" x1="680" y1="158" x2="721" y2="158"/><polygon class="sv-arrow" points="730,158 720,153 720,163"/></svg>
+    </div>
+    <figcaption>Image 2a — Three common paths that load data into Amazon OpenSearch Service (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>2.2 Amazon Data Firehose to OpenSearch Service</h2>
+  <ul>
+    <li><strong>Amazon Data Firehose</strong> delivers streaming data to destinations such as Amazon S3, Amazon Redshift, Amazon OpenSearch Service, and HTTP endpoints.</li>
+    <li>It buffers the records by size and by time, so the delivery is near real time and not instant.</li>
+    <li>It can run a Lambda function to transform the records before delivery.</li>
+    <li>It can back up the failed deliveries, the failed transformations, and all the source records to an Amazon S3 bucket.</li>
+    <li>A common use case sends operational logs to OpenSearch Service for search and visualization.</li>
+  </ul>
+
+  <h2>2.3 OpenSearch Ingestion</h2>
+  <ul>
+    <li><strong>Amazon OpenSearch Ingestion</strong> is a managed service for pipelines that ingest, transform, and route data. Use it when you do not want to write and run your own loading code.</li>
+    <li>The compute capacity of a pipeline is measured in OpenSearch Compute Units (OCUs). You pay for the OCUs that the pipeline uses, billed by the hour with per-minute granularity.</li>
+    <li>You can set a minimum and a maximum number of OCUs for a pipeline, and you can pause a pipeline that you do not use.</li>
+  </ul>
+
+  <h2>2.4 Querying and Visualizing</h2>
+  <ul>
+    <li>Applications send search requests to the domain endpoint, with the OpenSearch API.</li>
+    <li>OpenSearch Dashboards turns the data into charts and dashboards for the operations team.</li>
+    <li>AWS Quick can read data from OpenSearch Service for business dashboards.</li>
+    <li>SQL support lets business intelligence tools query OpenSearch Service.</li>
+  </ul>
+
+  <h2>2.5 Reaching a Domain in a VPC</h2>
+  <ul>
+    <li>A Lambda function runs outside your VPC by default, so it cannot reach a private resource in a VPC.</li>
+    <li>To let the function reach a domain in a VPC, configure the function to run in the VPC. Lambda creates a network interface in the subnet, and the VPC controls apply to it: security groups and route tables.</li>
+    <li>If the function must also reach the internet, add a NAT gateway and a route for the subnet.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Firehose is near real time</strong>, because it buffers. A <strong>Lambda function</strong> on a stream or a subscription filter loads in real time.</li>
+      <li>For <strong>DynamoDB</strong>, the loading path is <strong>DynamoDB Streams and Lambda</strong>.</li>
+      <li>A Lambda function that writes to a domain in a <strong>VPC</strong> must be configured to run <strong>in the VPC</strong>.</li>
+      <li>Firehose can send failed deliveries to <strong>Amazon S3</strong>, so no records are lost.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Stream in, search out.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Search DynamoDB items by any attribute”<br>→ DynamoDB Streams, Lambda, and OpenSearch Service</p>
+    <p><strong>Trigger 2:</strong> “Subscription filter on CloudWatch Logs”<br>→ Lambda or Amazon Data Firehose, then OpenSearch Service</p>
+    <p><strong>Trigger 3:</strong> “Near-real-time delivery of logs to OpenSearch”<br>→ Amazon Data Firehose</p>
+    <p><strong>Trigger 4:</strong> “Managed pipeline that ingests, transforms, and routes data into OpenSearch”<br>→ OpenSearch Ingestion</p>
+    </div>
+
+  <div class="qbox">
+    <h2>2.6 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company sends application logs to Amazon CloudWatch Logs. The operations team needs to search the logs within minutes and view them on dashboards. The company wants to avoid writing loading code. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Export the logs to Amazon S3 once a day, and load them into Amazon Redshift.</li>
+      <li><strong>B.</strong> Create a CloudWatch Logs subscription filter that sends the logs to Amazon Data Firehose, which delivers them to Amazon OpenSearch Service. Use OpenSearch Dashboards.</li>
+      <li><strong>C.</strong> Run a cron job on an Amazon EC2 instance that reads the logs and writes them to DynamoDB.</li>
+      <li><strong>D.</strong> Send the logs to an Amazon SQS (lesson 273.3) queue, and have the team poll the queue to read them.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> A subscription filter streams the logs to Firehose, and Firehose delivers them to OpenSearch Service in near real time with no custom code. OpenSearch Dashboards then shows them.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>A daily export is not within minutes, and Redshift is not a search engine for logs.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>The subscription filter and Firehose load the logs without code, and OpenSearch Dashboards gives the dashboards.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>A cron job is custom code, and DynamoDB does not offer search over log text or dashboards.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>SQS holds messages. It does not search or visualize them.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>2.7 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/integrations-cloudwatch.html" target="_blank" rel="noopener">Loading Streaming Data From Amazon CloudWatch</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/integrations-fh.html" target="_blank" rel="noopener">Loading Streaming Data From Amazon Data Firehose</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/integrations-kinesis.html" target="_blank" rel="noopener">Loading Streaming Data From Amazon Kinesis Data Streams</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/integrations-s3-lambda.html" target="_blank" rel="noopener">Loading Streaming Data From Amazon S3</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Domains, Serverless, and Availability</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s search must stay up when an Availability Zone fails. The log indexes are large, and the team rarely searches logs older than a few weeks, but it must keep a year of them and still be able to search them.</p>
+    <p>The team also has no OpenSearch specialists, so it wants as little cluster work as possible.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose between a domain and a serverless collection.</li>
+      <li>Make the search survive the loss of a zone.</li>
+      <li>Keep old logs searchable at a lower cost.</li>
+    </ul>
+  </div>
+
+  <h2>3.1 Domains</h2>
+  <ul>
+    <li>A <strong>domain</strong> is a cluster with the settings, instance types, instance counts, and storage that you specify.</li>
+    <li>You choose the instance types, including cost-effective Graviton instances. A domain can have up to 1002 data nodes and up to 25 PB of attached storage. Check the quotas page for the current limits.</li>
+    <li><strong>Data nodes</strong> hold the shards and run the indexing and search.</li>
+    <li><strong>Dedicated master nodes</strong> manage the cluster, so the data nodes can focus on the data. Three is the recommended number, because it gives a quorum of two. Never choose an even number.</li>
+    <li>You pay for the instance hours and the storage, so you must choose sizes and watch the capacity.</li>
+  </ul>
+
+  <h2>3.2 Amazon OpenSearch Serverless</h2>
+  <ul>
+    <li><strong>Amazon OpenSearch Serverless</strong> is an on-demand option that removes the work of provisioning, configuring, and tuning clusters.</li>
+    <li>The unit is a <strong>collection</strong>, a group of indexes that support one workload.</li>
+    <li>It separates indexing from search, with Amazon S3 as the primary storage. Compute is measured in OCUs, provisioned separately for indexing and for search. It adds OCUs when needed and scales back down.</li>
+    <li>You choose one of three collection types when you create the collection, and you cannot change it afterward: <strong>time series</strong> for log analytics, <strong>search</strong> for full-text search, and <strong>vector search</strong> for semantic search.</li>
+    <li>It is compatible with open-source OpenSearch, and it supports OpenSearch Dashboards. All communication with its endpoints uses TLS 1.2.</li>
+  </ul>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>Domain</th><th>OpenSearch Serverless</th></tr></thead>
+    <tbody>
+      <tr><td>Unit</td><td>A cluster of nodes.</td><td>A collection of indexes.</td></tr>
+      <tr><td>Capacity</td><td>You choose the instance types and the node count.</td><td>Automatic. Measured in OCUs.</td></tr>
+      <tr><td>Storage</td><td>EBS volumes on data nodes, plus UltraWarm and cold storage.</td><td>Amazon S3 as the primary storage.</td></tr>
+      <tr><td>Snapshots</td><td>Automated and manual snapshots.</td><td>Automated snapshots only.</td></tr>
+      <tr><td>Access across accounts</td><td>Controlled with access policies.</td><td>Cross-account access to collections is not supported.</td></tr>
+      <tr><td>Regions</td><td>All Regions where OpenSearch Service is available.</td><td>A subset of those Regions.</td></tr>
+      <tr><td>Best for</td><td>Workloads that need control of the cluster.</td><td>Teams that want no cluster work.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>There is no automatic migration from a domain to a collection. You must reindex the data.</li>
+  </ul>
+
+  <h2>3.3 High Availability</h2>
+  <ul>
+    <li><strong>Multi-AZ</strong> spreads the nodes of a domain across two or three Availability Zones in the same Region.</li>
+    <li>Without standby, a Multi-AZ domain offers 99.9% availability. Create at least one replica for each index, because replicas are how the data reaches another zone.</li>
+    <li><strong>Multi-AZ with Standby</strong> offers 99.99% availability. It uses three zones, with two active and one on standby. It requires three dedicated master nodes and a multiple of three data nodes.</li>
+    <li>Each zone holds a full copy of the data, and the standby nodes do not serve search requests. If a zone fails, OpenSearch Service promotes the standby nodes to active.</li>
+    <li>OpenSearch Service replaces failed nodes automatically.</li>
+  </ul>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 880 380" role="img" aria-label="An Amazon OpenSearch Service domain with Multi-AZ with Standby in one VPC. Three Availability Zones each hold data nodes and a dedicated master node. Two zones are active and one zone is on standby. UltraWarm and cold storage nodes keep older read-only data in Amazon S3."><rect class="sv-box" x="10" y="130" width="120" height="84" rx="6"/><text class="sv-t" x="70" y="166" text-anchor="middle">Applications</text><text class="sv-t" x="70" y="182" text-anchor="middle">and Dashboards</text><rect class="sv-dash" x="150" y="10" width="720" height="360" rx="8"/><text class="sv-tb" x="510" y="32" text-anchor="middle">Your VPC: OpenSearch Service domain</text><rect class="sv-boxb" x="170" y="46" width="215" height="200" rx="6"/><text class="sv-tb" x="277" y="70" text-anchor="middle">Availability Zone A</text><text class="sv-tm" x="277" y="90" text-anchor="middle">(active)</text><rect class="sv-boxg" x="192" y="106" width="171" height="56" rx="6"/><text class="sv-t" x="277" y="130" text-anchor="middle">Data nodes</text><text class="sv-t" x="277" y="146" text-anchor="middle">Shards and replicas</text><rect class="sv-boxw" x="192" y="176" width="171" height="52" rx="6"/><text class="sv-t" x="277" y="198" text-anchor="middle">Dedicated</text><text class="sv-t" x="277" y="214" text-anchor="middle">master node</text><rect class="sv-boxb" x="405" y="46" width="215" height="200" rx="6"/><text class="sv-tb" x="512" y="70" text-anchor="middle">Availability Zone B</text><text class="sv-tm" x="512" y="90" text-anchor="middle">(active)</text><rect class="sv-boxg" x="427" y="106" width="171" height="56" rx="6"/><text class="sv-t" x="512" y="130" text-anchor="middle">Data nodes</text><text class="sv-t" x="512" y="146" text-anchor="middle">Shards and replicas</text><rect class="sv-boxw" x="427" y="176" width="171" height="52" rx="6"/><text class="sv-t" x="512" y="198" text-anchor="middle">Dedicated</text><text class="sv-t" x="512" y="214" text-anchor="middle">master node</text><rect class="sv-dash" x="640" y="46" width="215" height="200" rx="6"/><text class="sv-tb" x="747" y="70" text-anchor="middle">Availability Zone C</text><text class="sv-tm" x="747" y="90" text-anchor="middle">(standby)</text><rect class="sv-boxg" x="662" y="106" width="171" height="56" rx="6"/><text class="sv-t" x="747" y="130" text-anchor="middle">Data nodes</text><text class="sv-t" x="747" y="146" text-anchor="middle">Shards and replicas</text><rect class="sv-boxw" x="662" y="176" width="171" height="52" rx="6"/><text class="sv-t" x="747" y="198" text-anchor="middle">Dedicated</text><text class="sv-t" x="747" y="214" text-anchor="middle">master node</text><rect class="sv-box" x="170" y="266" width="685" height="84" rx="6"/><text class="sv-t" x="512" y="296" text-anchor="middle">UltraWarm and cold storage</text><text class="sv-t" x="512" y="312" text-anchor="middle">Older, read-only data is kept in Amazon S3</text><line class="sv-line" x1="130" y1="172" x2="141" y2="172"/><polygon class="sv-arrow" points="150,172 140,167 140,177"/></svg>
+    </div>
+    <figcaption>Image 3a — A Multi-AZ with Standby domain: two active zones, one standby zone, and storage tiers in Amazon S3 (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>3.4 Storage Tiers</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Tier</th><th>Where the data lives</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><td>Hot</td><td>On the data nodes.</td><td>Data that you index, update, and search often. This is the fastest access.</td></tr>
+      <tr><td>UltraWarm</td><td>In Amazon S3, read through UltraWarm nodes that cache and pre-fetch the data.</td><td>Older data that you search less often. The data is read-only.</td></tr>
+      <tr><td>Cold storage</td><td>In Amazon S3, detached from the UltraWarm nodes.</td><td>Rarely used data that you keep and can attach again when needed.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>Moving older indexes to UltraWarm and cold storage lowers the cost of keeping a long history.</li>
+    <li>OpenSearch Service does not bill for the data transfer between UltraWarm or cold nodes and Amazon S3.</li>
+  </ul>
+
+  <h2>3.5 Snapshots and Versions</h2>
+  <ul>
+    <li><strong>Automated snapshots</strong> back up a domain to Amazon S3 at no additional charge. They run hourly and are kept for 14 days. You can also take manual snapshots of a domain.</li>
+    <li>OpenSearch Service supports many versions of OpenSearch and legacy Elasticsearch. Older versions leave standard support on set dates.</li>
+    <li>A domain on a version that is no longer in standard support pays <strong>extended support</strong> charges automatically. Upgrade to the latest OpenSearch version to avoid them, and check the dates on the documentation page.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>99.99% availability</strong> means <strong>Multi-AZ with Standby</strong>: three zones, two active and one standby, three dedicated master nodes.</li>
+      <li>A Multi-AZ domain <strong>without standby</strong> needs <strong>replicas</strong> to have copies in other zones.</li>
+      <li><strong>UltraWarm</strong> data is <strong>read-only</strong> and lives in Amazon S3. Use it with cold storage to keep a long history cheaply.</li>
+      <li><strong>OpenSearch Serverless</strong> is for no cluster work. A domain is for control. Serverless does not allow manual snapshots or cross-account access.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Hot to search, warm to keep, cold to archive.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Search without managing clusters”<br>→ Amazon OpenSearch Serverless</p>
+    <p><strong>Trigger 2:</strong> “99.99% availability for a domain”<br>→ Multi-AZ with Standby</p>
+    <p><strong>Trigger 3:</strong> “Keep older logs searchable at a lower cost”<br>→ UltraWarm and cold storage</p>
+    <p><strong>Trigger 4:</strong> “Recommended number of dedicated master nodes”<br>→ Three</p>
+    </div>
+
+  <div class="qbox">
+    <h2>3.6 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company stores one year of application logs in an Amazon OpenSearch Service domain. The team searches only the last month often, but it must keep the rest searchable. The company wants to lower the storage cost without deleting data. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Keep all the indexes on the hot data nodes, and add larger EBS volumes.</li>
+      <li><strong>B.</strong> Delete the indexes that are older than 30 days, and recreate them from Amazon S3 when needed.</li>
+      <li><strong>C.</strong> Add more dedicated master nodes to hold the older indexes.</li>
+      <li><strong>D.</strong> Move the older indexes to UltraWarm storage, and to cold storage when they are rarely searched.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: D.</strong> UltraWarm and cold storage keep older data in Amazon S3 at a lower cost, and the data stays searchable. Recent data stays on the hot data nodes.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Larger EBS volumes on the hot tier cost the most for data that is rarely searched.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Deleting and recreating the indexes removes the searchable data and adds manual work.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>Dedicated master nodes manage the cluster. They do not store the data of the indexes.</td></tr>
+      <tr><td>D</td><td>Correct</td><td>UltraWarm and cold storage lower the cost and keep the data searchable.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>3.7 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-overview.html" target="_blank" rel="noopener">What Is Amazon OpenSearch Serverless?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-multiaz.html" target="_blank" rel="noopener">Configuring a Multi-AZ Domain in Amazon OpenSearch Service</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ultrawarm.html" target="_blank" rel="noopener">UltraWarm Storage for Amazon OpenSearch Service</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/blogs/big-data/amazon-opensearch-service-now-supports-99-99-availability-using-multi-az-with-standby" target="_blank" rel="noopener">Amazon OpenSearch Service Now Supports 99.99% Availability</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 4 ============ -->
+<section class="tab" id="tab4" role="tabpanel" aria-labelledby="b4">
+  <h1 class="tabh">4. Security, Monitoring, and Pricing</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s support agents must search orders, but they must not see the customer email field. The operations team signs in to dashboards with the company login. The domain must not be reachable from the internet.</p>
+    <p>The finance team also asks which costs it should expect.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Keep the domain private.</li>
+      <li>Control who can see which data, down to the field.</li>
+      <li>Name the cost dimensions of each deployment.</li>
+    </ul>
+  </div>
+
+  <h2>4.1 Networking</h2>
+  <ul>
+    <li>You can place a domain <strong>in a VPC</strong>. Domains in a VPC are logically isolated and are not reachable through a public endpoint.</li>
+    <li>VPC security groups control which clients can connect.</li>
+    <li>A Lambda function or an application that connects to the domain must run in the VPC, or have a network path to it (2.5).</li>
+  </ul>
+
+  <h2>4.2 Access Control</h2>
+  <ul>
+    <li><strong>IAM</strong> and domain access policies control who can call the domain and its APIs.</li>
+    <li><strong>Fine-grained access control</strong> provides security at the cluster, index, document, and field levels. AWS strongly recommends turning it on.</li>
+    <li>You must turn on node-to-node encryption and encryption at rest to use fine-grained access control.</li>
+    <li>Without fine-grained access control, you can still limit access by placing the domain in a VPC, applying a restrictive access policy, or both.</li>
+  </ul>
+
+  <h2>4.3 Signing In to Dashboards</h2>
+  <ul>
+    <li>OpenSearch Dashboards supports Amazon Cognito (lesson 273.2), HTTP basic, and SAML authentication.</li>
+    <li>Use <strong>SAML</strong> or <strong>Amazon Cognito</strong> to connect the dashboards to the company login. Dashboards multi-tenancy keeps the saved work of teams apart.</li>
+  </ul>
+
+  <h2>4.4 Encryption</h2>
+  <ul>
+    <li><strong>At rest:</strong> OpenSearch Service encrypts the data of a domain with AWS KMS keys. You can choose your own key.</li>
+    <li><strong>Node-to-node:</strong> encrypts the traffic between the nodes of the domain.</li>
+    <li><strong>In transit:</strong> clients connect over HTTPS. OpenSearch Serverless endpoints require TLS 1.2.</li>
+  </ul>
+
+  <h2>4.5 Monitoring and Auditing</h2>
+  <ul>
+    <li>OpenSearch Service sends domain metrics to Amazon CloudWatch (lesson 274.1) automatically, so you can watch the health and the performance of a domain and set alarms.</li>
+    <li>AWS CloudTrail (lesson 274.3) records the configuration API calls to OpenSearch Service.</li>
+    <li>Audit logs record the activity of users in the domain.</li>
+    <li>Amazon SNS (lesson 273.3) can send alerts when the data passes a threshold.</li>
+  </ul>
+
+  <h2>4.6 Pricing</h2>
+  <p><strong>Prices change often and differ by Region.</strong> Check the current rates on the <a href="https://aws.amazon.com/opensearch-service/pricing/" target="_blank" rel="noopener">Amazon OpenSearch Service pricing</a> page.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Deployment</th><th>What you pay for</th></tr></thead>
+    <tbody>
+      <tr><td>Domain</td><td>The instance hours of every node, the EBS storage attached to the nodes, and standard AWS data transfer.</td></tr>
+      <tr><td>UltraWarm and cold storage</td><td>The UltraWarm nodes and the managed storage that you use.</td></tr>
+      <tr><td>OpenSearch Serverless</td><td>OCU hours, billed separately for indexing and for search, and the storage that you use.</td></tr>
+      <tr><td>OpenSearch Ingestion</td><td>The OCU hours of the pipelines.</td></tr>
+      <tr><td>Old versions</td><td>Extended support charges, when a domain runs a version that is no longer in standard support.</td></tr>
+      </tbody>
+  </table></div>
+  <ul>
+    <li>In a Multi-AZ domain, OpenSearch Service does not bill for the traffic between zones or for the traffic of shard allocation and rebalancing.</li>
+    <li>It does not bill for the data transfer between UltraWarm or cold nodes and Amazon S3.</li>
+  </ul>
+
+    <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 534" role="img" aria-label="Layers of protection for Amazon OpenSearch Service, from Client or user to OpenSearch Service domain: Networking: Place the domain in a VPC, and use security groups to control which clients connect; Access control: IAM and domain access policies, and fine-grained access control down to the field level; Dashboards sign-in: Amazon Cognito, SAML, or HTTP basic authentication; Encryption: AWS KMS at rest, node-to-node encryption, and HTTPS in transit; Monitoring and auditing: CloudWatch metrics, CloudTrail for API calls, and audit logs."><defs><marker id="ar27214" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxb" x="310" y="10" width="300" height="40" rx="6"/><text class="sv-tb" x="460" y="35" text-anchor="middle">Client or user</text><line class="sv-line" x1="460" y1="50" x2="460" y2="70" marker-end="url(#ar27214)"/><rect class="sv-box" x="60" y="74" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="98">Networking</text><text class="sv-t" x="76" y="118">Place the domain in a VPC, and use security groups to control which clients connect</text><line class="sv-line" x1="460" y1="132" x2="460" y2="152" marker-end="url(#ar27214)"/><rect class="sv-box" x="60" y="156" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="180">Access control</text><text class="sv-t" x="76" y="200">IAM and domain access policies, and fine-grained access control down to the field level</text><line class="sv-line" x1="460" y1="214" x2="460" y2="234" marker-end="url(#ar27214)"/><rect class="sv-box" x="60" y="238" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="262">Dashboards sign-in</text><text class="sv-t" x="76" y="282">Amazon Cognito, SAML, or HTTP basic authentication</text><line class="sv-line" x1="460" y1="296" x2="460" y2="316" marker-end="url(#ar27214)"/><rect class="sv-box" x="60" y="320" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="344">Encryption</text><text class="sv-t" x="76" y="364">AWS KMS at rest, node-to-node encryption, and HTTPS in transit</text><line class="sv-line" x1="460" y1="378" x2="460" y2="398" marker-end="url(#ar27214)"/><rect class="sv-box" x="60" y="402" width="800" height="58" rx="6"/><text class="sv-tb" x="76" y="426">Monitoring and auditing</text><text class="sv-t" x="76" y="446">CloudWatch metrics, CloudTrail for API calls, and audit logs</text><line class="sv-line" x1="460" y1="460" x2="460" y2="480" marker-end="url(#ar27214)"/><rect class="sv-boxg" x="310" y="484" width="300" height="40" rx="6"/><text class="sv-tb" x="460" y="509" text-anchor="middle">OpenSearch Service domain</text></svg>
+    </div>
+    <figcaption>Image 4a &mdash; Layers of protection for Amazon OpenSearch Service. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>Fine-grained access control</strong> is the answer for rules at the <strong>index, document, or field</strong> level.</li>
+      <li>A <strong>VPC</strong> and security groups keep the domain <strong>private</strong>. A VPC does not replace access control.</li>
+      <li>Fine-grained access control needs <strong>node-to-node encryption</strong> and <strong>encryption at rest</strong>.</li>
+      <li>For dashboards with the <strong>company login</strong>, use <strong>SAML</strong> or <strong>Amazon Cognito</strong>.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>VPC for where, IAM for who, field rules for what.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Hide a field from some users”<br>→ Fine-grained access control with field-level security</p>
+    <p><strong>Trigger 2:</strong> “Keep the domain off the internet”<br>→ A VPC with security groups</p>
+    <p><strong>Trigger 3:</strong> “Sign in to OpenSearch Dashboards with the corporate login”<br>→ SAML or Amazon Cognito</p>
+    <p><strong>Trigger 4:</strong> “Encrypt the data of a domain at rest”<br>→ AWS KMS</p>
+    </div>
+
+  <div class="qbox">
+    <h2>4.7 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A retailer uses Amazon OpenSearch Service to search orders. Support agents must be able to search the orders, but they must not see the customer email field. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Turn on fine-grained access control, and give the support role field-level security that hides the email field.</li>
+      <li><strong>B.</strong> Put the support agents in a separate security group.</li>
+      <li><strong>C.</strong> Encrypt the domain with a different AWS KMS key for the support agents.</li>
+      <li><strong>D.</strong> Turn on node-to-node encryption for the domain.</li>
+      </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> Fine-grained access control provides security at the field level, so a role can search the orders and not see the email field.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>Field-level security hides one field from a role, and it needs encryption at rest and node-to-node encryption turned on.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>A security group controls network access to the domain. It cannot hide a field in the documents.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>A KMS key protects the stored data. It does not decide which fields a user sees.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Node-to-node encryption protects the traffic between nodes. It does not control what users see.</td></tr>
+      </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>4.8 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ac.html" target="_blank" rel="noopener">Identity and Access Management in Amazon OpenSearch Service</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-cloudwatchmetrics.html" target="_blank" rel="noopener">Monitoring OpenSearch Cluster Metrics With Amazon CloudWatch</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-cloudtrailauditing.html" target="_blank" rel="noopener">Monitoring API Calls With AWS CloudTrail</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/opensearch-service/pricing/" target="_blank" rel="noopener">Amazon OpenSearch Service Pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 5 ============ -->
+<section class="tab" id="tab5" role="tabpanel" aria-labelledby="b5">
+  <h1 class="tabh">5. Comparison &amp; Scenarios</h1>
+
+  <h2>5.1 OpenSearch and Related Services Compared</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Requirement</th><th>Best fit</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Search any field with partial matches, with ranked results</td><td>Amazon OpenSearch Service</td><td>It is a search engine.</td></tr>
+      <tr><td>Read or write an item by its key at any scale</td><td>Amazon DynamoDB</td><td>It is a key-value database and the system of record.</td></tr>
+      <tr><td>Run SQL queries on files in Amazon S3, with no cluster</td><td>Amazon Athena</td><td>It queries the data in place and charges by the data scanned.</td></tr>
+      <tr><td>Search the recent logs of one application interactively</td><td>CloudWatch Logs Insights</td><td>It queries the logs where they are stored, with no pipeline.</td></tr>
+      <tr><td>Near-real-time log search across many services, with dashboards</td><td>Amazon OpenSearch Service</td><td>It indexes logs for fast search and OpenSearch Dashboards.</td></tr>
+      <tr><td>Semantic search on vector embeddings for generative AI</td><td>OpenSearch vector search</td><td>Domains and vector search collections store and search vectors.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.2 When to Use OpenSearch Service</h2>
+  <h3>5.2.1 Use It When</h3>
+  <ul>
+    <li>Users search text, and they expect partial matches and ranked results.</li>
+    <li>You analyze logs and metrics in near real time and show them on dashboards.</li>
+    <li>You need to complement a database that can query only by key.</li>
+  </ul>
+  <h3>5.2.2 Use Another Service When</h3>
+  <ul>
+    <li><strong>DynamoDB or Amazon RDS:</strong> you need a system of record with transactions or key lookups.</li>
+    <li><strong>Amazon Athena:</strong> you query large files in Amazon S3 with SQL, and you do not need a search index.</li>
+    <li><strong>OpenSearch Serverless:</strong> you want search with no cluster work. This is still OpenSearch Service.</li>
+  </ul>
+
+  <h2>5.3 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Scenario keywords</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Full-text search, partial matches, any field</td><td>Amazon OpenSearch Service</td></tr>
+      <tr><td>2</td><td>Search DynamoDB items by any attribute</td><td>DynamoDB Streams, Lambda, and OpenSearch Service</td></tr>
+      <tr><td>3</td><td>Near-real-time log search with dashboards</td><td>CloudWatch Logs subscription filter, Firehose, and OpenSearch Service</td></tr>
+      <tr><td>4</td><td>Visualize search and log data</td><td>OpenSearch Dashboards</td></tr>
+      <tr><td>5</td><td>Search with no cluster to manage</td><td>Amazon OpenSearch Serverless</td></tr>
+      <tr><td>6</td><td>99.99% availability for a domain</td><td>Multi-AZ with Standby</td></tr>
+      <tr><td>7</td><td>Keep older logs searchable at a lower cost</td><td>UltraWarm and cold storage</td></tr>
+      <tr><td>8</td><td>Hide a field or a document from some users</td><td>Fine-grained access control</td></tr>
+      <tr><td>9</td><td>Keep the domain private</td><td>A VPC and security groups</td></tr>
+      <tr><td>10</td><td>SQL on files in Amazon S3 with no cluster</td><td>Amazon Athena</td></tr>
+      <tr><td>11</td><td>Semantic search for generative AI</td><td>OpenSearch vector search</td></tr>
+      <tr><td>12</td><td>A Lambda function must reach a domain in a VPC</td><td>Run the function in the VPC</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.4 Lesson Summary</h2>
+  <p>This lesson covered the following points:</p>
+  <ul>
+    <li>Amazon OpenSearch Service is a managed search and analytics service. It stores documents in indexes that are split into shards with replicas, and it searches any field, including partial matches.</li>
+    <li>Use it for full-text search, log analytics with OpenSearch Dashboards, and vector search. It complements a database such as DynamoDB, and it is not the system of record.</li>
+    <li>Data reaches it from DynamoDB through DynamoDB Streams and Lambda, from CloudWatch Logs through a subscription filter, from Kinesis and Amazon S3 through Lambda, from Firehose directly, or through OpenSearch Ingestion.</li>
+    <li>A domain gives control of the cluster. OpenSearch Serverless removes cluster work with collections and OCUs.</li>
+    <li>Multi-AZ with Standby gives 99.99% availability. UltraWarm and cold storage lower the cost of a long history, and automated snapshots back up a domain.</li>
+    <li>Security uses a VPC, IAM, fine-grained access control, SAML or Cognito for the dashboards, and encryption with AWS KMS.</li>
+  </ul>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>If users search it, OpenSearch indexes it.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 6 ============ -->
+<section class="tab" id="tab6" role="tabpanel" aria-labelledby="b6">
+  <h1 class="tabh">6. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: Explain what Amazon OpenSearch Service is, and why FlashCart should add it next to its DynamoDB table instead of replacing the table.</summary>
+    <p><em>Maps to:</em> Objectives 1 and 7 (Comprehension).</p>
+    <p>Amazon OpenSearch Service is a managed service that runs OpenSearch, an open-source search and analytics engine. It searches any field, including partial matches, and it ranks the results. DynamoDB queries only by primary key or index, so it cannot do that. OpenSearch is not a system of record, so FlashCart keeps the catalog in DynamoDB and copies it to OpenSearch for search. The application retrieves items from DynamoDB and searches them in OpenSearch.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Describe the concepts of document, index, shard, and replica, and explain why an index is split into shards.</summary>
+    <p><em>Maps to:</em> Objective 1 (Comprehension).</p>
+    <p>A document is one JSON record. An index is a collection of related documents. OpenSearch splits an index into shards and spreads them across the nodes, so indexing and search run in parallel and the index can grow beyond one node. A replica is a copy of a shard on a different node. It protects the data if a node fails, and it can serve search requests.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: Describe how data gets into OpenSearch Service from DynamoDB, from CloudWatch Logs, and from a Kinesis data stream.</summary>
+    <p><em>Maps to:</em> Objective 3 (Application).</p>
+    <p>For DynamoDB, turn on DynamoDB Streams and use a Lambda function that writes each change to the domain. For CloudWatch Logs, create a subscription filter that sends the logs to Lambda for real-time loading, or to Amazon Data Firehose for near-real-time loading, and Firehose delivers them to the domain. For a Kinesis data stream, use a Lambda function that reads the stream and writes to the domain. OpenSearch Ingestion is a managed alternative that needs no custom code.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Compare an OpenSearch Service domain with an OpenSearch Serverless collection, and say when you would choose each.</summary>
+    <p><em>Maps to:</em> Objective 4 (Analysis).</p>
+    <p>A domain is a cluster. You choose the instance types, the node count, and the storage, and you can use UltraWarm and cold storage and manual snapshots. Choose it when you need control of the cluster. A collection is the unit of OpenSearch Serverless. Capacity is measured in OCUs, scaled automatically for indexing and search, with data in Amazon S3. Choose it when the team does not want cluster work. Serverless supports only automated snapshots, does not allow cross-account access to collections, and is available in a subset of Regions.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: Explain how to make a domain survive the loss of an Availability Zone, and compare Multi-AZ with Standby with Multi-AZ without standby.</summary>
+    <p><em>Maps to:</em> Objective 5 (Comprehension).</p>
+    <p>Spread the domain across Availability Zones with Multi-AZ, and use replicas so that copies of the data are in other zones. Multi-AZ without standby offers 99.9% availability, and each index needs at least one replica. Multi-AZ with Standby offers 99.99% availability. It uses three zones, with two active and one on standby, it requires three dedicated master nodes and a multiple of three data nodes, and it promotes the standby nodes if a zone fails.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: FlashCart’s support agents must search orders without seeing the email field, and the domain must be private. Describe how you would configure the domain.</summary>
+    <p><em>Maps to:</em> Objective 6 (Application).</p>
+    <p>Place the domain in a VPC and use security groups to allow only the client networks. Turn on encryption at rest with AWS KMS and node-to-node encryption, which fine-grained access control requires. Turn on fine-grained access control and create a role for the support agents with field-level security that hides the email field. Use SAML or Amazon Cognito so that people sign in to OpenSearch Dashboards with the company login. Watch the domain metrics in Amazon CloudWatch.</p>
+  </details>
+
+  <details>
+    <summary>Question 7: Design a solution for FlashCart that provides product search and log analytics, keeps a year of logs at a low cost, and survives a zone failure.</summary>
+    <p><em>Maps to:</em> Objective 8 (Synthesis).</p>
+    <p>Keep the catalog in DynamoDB, turn on DynamoDB Streams, and use a Lambda function to index the products in an OpenSearch Service domain for the search box. Send the application logs to CloudWatch Logs, and use a subscription filter and Amazon Data Firehose to deliver them to the domain. Use OpenSearch Dashboards for the operations team. Deploy the domain in a VPC with Multi-AZ with Standby, three dedicated master nodes, and fine-grained access control. Keep recent logs on the hot data nodes, move older indexes to UltraWarm and cold storage, and rely on the automated snapshots for backup. Choose OpenSearch Serverless instead if the team wants no cluster work.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>
