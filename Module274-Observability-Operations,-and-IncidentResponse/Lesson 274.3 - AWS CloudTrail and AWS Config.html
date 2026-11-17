@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 274.3 - AWS CloudTrail and AWS Config</title>
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: light;
+    --page-bg: #ffffff;
+    --text: #1c2733;
+    --muted: #4f5b67;
+    --rule: #d5dce3;
+    --card: #f4f7fa;
+    --card-border: #ccd3da;
+    --hover: #ccd3da;
+    --h1: #611940;
+    --h3: #7a2455;
+    --link: #611940;
+    --code-bg: #f5f7f9;
+    --table-alt: #f6f8fa;
+    --problem-bg: #ffeef7;
+    --problem-bar: #611940;
+    --warn-bg: #fdf3e7;
+    --warn-bar: #c26a00;
+    --exam-bg: #eaf6ee;
+    --exam-bar: #2e7d4f;
+    --tip-bg: #e5fe77;
+    --tip-bar: #7a8f00;
+    --q-bg: #f7eef3;
+    --q-border: #611940;
+    --svg-box: #f7eef3;
+    --svg-stroke: #611940;
+    --svg-hot: #d9f6fd;
+    --svg-hot-stroke: #611940;
+    --focus: #611940;
+    --h2: #000000;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+      --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+      --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+      --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+      --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+      --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+      --focus: #71e2fd;
+      --h2: #ffffff;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+    --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+    --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+    --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+    --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+    --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+    --focus: #71e2fd;
+    --h2: #ffffff;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+  *, *::before, *::after { box-sizing: inherit; line-height: 1.5; }
+  body {
+    margin: 0; background: var(--page-bg); color: var(--text);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 17px;
+  }
+  .layout { display: flex; align-items: flex-start; max-width: 1280px; margin: 0 auto; padding: 28px 20px 60px; }
+  .side-wrap { width: 270px; flex: none; margin-right: 28px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); overflow-y: auto; }
+  .sidebar { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px; }
+  .tab-btn {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    border-left: 5px solid transparent; border-radius: 6px; padding: 10px 12px; margin: 0 0 2px;
+    font: inherit; font-size: 15px; color: var(--text); cursor: pointer;
+  }
+  .tab-btn:hover { background: var(--hover); }
+  .tab-btn[aria-selected="true"] { background: #611940; color: #ffffff; font-weight: 700; border-left-color: #71E2FD; }
+  .tab-btn:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible, .panel:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .content { flex: 1; min-width: 0; max-width: 900px; }
+  .brand { display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; margin: 0 0 14px; }
+  .brand img { display: block; width: 230px; max-width: 100%; height: auto; }
+  .page-title { color: var(--h2); font-size: 2.8rem; font-weight: 700; margin: 0 0 8px; }
+  .page-sub { color: var(--muted); font-size: 1.05rem; margin: 0 0 26px; max-width: 70ch; }
+  .js .panel { display: none; }
+  .js .panel.active { display: block; }
+  .panel { margin-bottom: 40px; }
+  .js .panel { margin-bottom: 0; }
+  .panel h1 { color: var(--h1); font-size: 2.35rem; font-weight: 700; margin: 6px 0 12px; }
+  h2 { color: var(--h2); font-size: 35px; font-weight: 700; margin: 34px 0 10px; }
+  h3 { color: var(--h3); font-size: 1.45rem; font-weight: 700; margin: 24px 0 8px; }
+  h4 { color: var(--h3); font-size: 1.15rem; font-weight: 700; margin: 18px 0 6px; }
+  p { margin: 0 0 14px; max-width: 76ch; }
+  ul, ol { margin: 0 0 16px; padding-left: 26px; max-width: 76ch; }
+  li { margin-bottom: 6px; }
+  a { color: var(--link); }
+  code { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 0.88em; }
+  pre.flowcode { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 14.5px; overflow-x: auto; margin: 6px 0 18px; white-space: pre; }
+  .table-scroll { overflow-x: auto; margin: 6px 0 22px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15.5px; }
+  th, td { border: 1px solid var(--rule); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #611940; color: #ffffff; font-weight: 600; border-color: #611940; }
+  tbody tr:nth-child(even) { background: var(--table-alt); }
+  .wide table { min-width: 860px; }
+  .callout { border-left: 5px solid; border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 22px 0; max-width: 880px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .label { font-weight: 700; display: block; margin-bottom: 6px; }
+  .tip { background: var(--tip-bg); border-color: var(--tip-bar); color: #1c2733; }
+  .tip a { color: #611940; }
+  .warn { background: var(--warn-bg); border-color: var(--warn-bar); }
+  .exam { background: var(--exam-bg); border-color: var(--exam-bar); }
+  .problem { border-left: 6px solid var(--problem-bar); background: var(--problem-bg); border-radius: 0 12px 12px 0; padding: 22px 25px; margin: 28px 0; }
+  .problem h2.ps-heading { font-size: 1.35rem; margin: 0 0 8px; }
+  .problem p:last-child { margin-bottom: 0; }
+  .overview-box { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 24px 14px; margin: 0 0 24px; }
+  .overview-box h2 { margin-top: 20px; }
+  figure.diagram { margin: 14px 0 26px; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 14px 8px; overflow-x: auto; background: var(--card); }
+  figure.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
+  figure.diagram figcaption { color: var(--muted); font-size: 14.5px; padding: 8px 4px 6px; }
+  .s-box { fill: var(--svg-box); stroke: var(--svg-stroke); stroke-width: 1.5; }
+  .s-hot { fill: var(--svg-hot); stroke: var(--svg-hot-stroke); stroke-width: 1.5; }
+  .s-line { stroke: var(--svg-stroke); stroke-width: 2; fill: none; }
+  .s-mark { fill: var(--svg-stroke); }
+  .s-t { fill: var(--text); font-size: 14.5px; }
+  .s-b { fill: var(--text); font-size: 15px; font-weight: 700; }
+  .s-m { fill: var(--muted); font-size: 13.5px; }
+  .exam-question { background: var(--q-bg); border: 2px solid var(--q-border); border-radius: 8px; padding: 16px 22px; margin: 22px 0; max-width: 880px; }
+  .exam-question .label { font-weight: 700; margin-bottom: 2px; }
+  .exam-question .note { color: var(--muted); font-size: 14.5px; }
+  .exam-question details { border-top: 1px solid var(--rule); margin-top: 12px; padding-top: 10px; }
+  .exam-question summary, .kc-list summary { cursor: pointer; font-weight: 700; color: var(--link); }
+  .lab-box { border: 2px dashed #333333; background: #fdf3d7; color: #1c2733; border-radius: 4px; padding: 20px 24px 18px; margin: 30px 0 0; max-width: 880px; }
+  .lab-box .lab-title { text-align: center; color: #611940; font-size: 1.9rem; font-weight: 700; margin: 0 0 16px; }
+  .lab-box .lab-sub { color: #611940; font-weight: 700; font-size: 1.2rem; margin: 0 0 6px; }
+  .lab-box a.lab-link { color: #611940; font-weight: 700; text-decoration: underline; }
+  .lab-expect { border: 1.5px solid #333333; background: #ffffff; color: #1c2733; border-radius: 4px; padding: 14px 24px; margin: 0 0 26px; max-width: 880px; }
+  .lab-expect p:last-child { margin-bottom: 0; }
+  .lab-expect a { color: #611940; font-weight: 700; }
+  .resources ul { list-style: none; padding-left: 0; }
+  .rtype { display: inline-block; font-size: 13px; font-weight: 700; color: #ffffff; background: #611940; border-radius: 4px; padding: 1px 8px; margin-right: 8px; }
+  .kc-list { list-style: none; padding-left: 0; max-width: none; counter-reset: kc; }
+  .kc-list > li { counter-increment: kc; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px; margin-bottom: 14px; }
+  .kc-list .q { font-weight: 600; margin-bottom: 8px; }
+  .kc-list .q::before { content: "Question " counter(kc) ". "; color: var(--h1); }
+  .kc-list details { background: var(--exam-bg); border-left: 4px solid var(--exam-bar); border-radius: 0 6px 6px 0; padding: 10px 14px; }
+  .kc-list details p:first-of-type { margin-top: 10px; }
+  .panel-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .panel-nav button { background: var(--card); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 16px; font: inherit; font-size: 15px; font-weight: 600; color: var(--link); cursor: pointer; max-width: 48%; text-align: left; }
+  .panel-nav button:hover { background: var(--hover); }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 2px solid var(--rule); color: var(--muted); font-size: 14.5px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 900px) {
+    .layout { display: block; padding: 16px 14px 50px; }
+    .side-wrap { width: 100%; margin: 0 0 24px; position: static; max-height: none; overflow: visible; }
+    .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .tab-btn { margin: 0; }
+    h2 { font-size: 1.4rem; }
+    .page-title { font-size: 2.15rem; }
+    .panel h1 { font-size: 1.85rem; }
+    h3 { font-size: 1.28rem; }
+  }
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .sidebar { grid-template-columns: 1fr; }
+    .lab-box { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="side-wrap" aria-label="Lesson navigation">
+    <div class="sidebar" role="tablist" aria-orientation="vertical" aria-label="Lesson tabs">
+      <button class="tab-btn" role="tab" id="tab-0" aria-controls="overview" aria-selected="true" tabindex="0">Overview and Objectives</button>
+      <button class="tab-btn" role="tab" id="tab-1" aria-controls="trail-events" aria-selected="false" tabindex="-1">1. What CloudTrail Records</button>
+      <button class="tab-btn" role="tab" id="tab-2" aria-controls="trails" aria-selected="false" tabindex="-1">2. Trails and Long-Term Storage</button>
+      <button class="tab-btn" role="tab" id="tab-3" aria-controls="using-events" aria-selected="false" tabindex="-1">3. Using CloudTrail Events</button>
+      <button class="tab-btn" role="tab" id="tab-4" aria-controls="config" aria-selected="false" tabindex="-1">4. AWS Config</button>
+      <button class="tab-btn" role="tab" id="tab-5" aria-controls="config-rules" aria-selected="false" tabindex="-1">5. Config Rules and Remediation</button>
+      <button class="tab-btn" role="tab" id="tab-6" aria-controls="where-it-fits" aria-selected="false" tabindex="-1">6. Where It Fits</button>
+      <button class="tab-btn" role="tab" id="tab-7" aria-controls="comparison" aria-selected="false" tabindex="-1">7. Comparison and Scenarios</button>
+      <button class="tab-btn" role="tab" id="tab-8" aria-controls="knowledge-check" aria-selected="false" tabindex="-1">8. Knowledge Check</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo." width="230" height="33"></div>
+    <h1 class="page-title" style="border:none;padding:0;">AWS CloudTrail and AWS Config</h1>
+    <p class="page-sub">How AWS records who did what in an account with CloudTrail, and how resources are configured, changed, and checked for compliance with AWS Config: event types, trails and long-term storage, reacting to recorded activity, configuration history, rules, remediation, and conformance packs.</p>
+    <div class="sr-only" id="live" aria-live="polite"></div>
+
+<section class="panel active" id="overview" role="tabpanel" aria-labelledby="tab-0" tabindex="0">
+
+  <div class="overview-box">
+    <h2>Lesson Overview</h2>
+    <p>This lesson covers two services of Amazon Web Services (AWS) that answer the questions that metrics and logs cannot: who did what in an account, and how resources were configured over time. It builds on the metrics lesson (lesson 274.1) and on logs and alarms (lesson 274.2). In this lesson, you will study:</p>
+    <ul>
+      <li><strong>What CloudTrail Records:</strong> events, event types, and the 90-day event history.</li>
+      <li><strong>Trails and Long-Term Storage:</strong> trails, organization trails, log file integrity validation, encryption, and how to analyze old records.</li>
+      <li><strong>Using CloudTrail Events:</strong> investigating changes, reacting with Amazon EventBridge, alarms through CloudWatch Logs, and CloudTrail Insights.</li>
+      <li><strong>AWS Config:</strong> configuration items, the recorder, history, aggregators, and advanced queries.</li>
+      <li><strong>Config Rules and Remediation:</strong> managed and custom rules, evaluation modes, automatic fixes, and conformance packs.</li>
+      <li><strong>Where It Fits:</strong> which audit question each service answers, and which services use their data.</li>
+      <li><strong>Comparison and Scenarios:</strong> a comparison of CloudWatch, CloudTrail, AWS Config, and AWS X-Ray, and a cheat sheet for the AWS Certified Solutions Architect – Associate (SAA-C03) exam.</li>
+      <li><strong>Knowledge Check:</strong> open-ended questions with model answers.</li>
+    </ul>
+  </div>
+
+  <div class="overview-box">
+    <h2>Learning Objectives</h2>
+    <p>By the end of this lesson, you will be able to:</p>
+    <ol>
+      <li><strong>Define</strong> management event, data event, network activity event, Insights event, trail, and configuration item.</li>
+      <li><strong>Describe</strong> what the event history contains and how long CloudTrail keeps it.</li>
+      <li><strong>Explain</strong> the difference between event history, a trail, and CloudTrail Lake, including the availability change for CloudTrail Lake.</li>
+      <li><strong>Compare</strong> CloudTrail and AWS Config by the question that each one answers.</li>
+      <li><strong>Configure</strong> a trail with log file integrity validation, and deliver it to Amazon Simple Storage Service (Amazon S3) and CloudWatch Logs.</li>
+      <li><strong>Apply</strong> EventBridge rules, metric filters, and CloudTrail Insights to react to API activity.</li>
+      <li><strong>Differentiate</strong> managed rules, custom rules, and conformance packs, and detective from proactive evaluation.</li>
+      <li><strong>Evaluate</strong> an audit or compliance requirement, and choose the service, event type, and remediation that meet it.</li>
+      <li><strong>Design</strong> an audit and compliance setup that spans many accounts and Regions, with long-term storage, alerts, and automatic fixes.</li>
+    </ol>
+  </div>
+
+  <div class="overview-box">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#trail-events">What CloudTrail Records</a></li>
+      <li><a href="#trails">Trails and Long-Term Storage</a></li>
+      <li><a href="#using-events">Using CloudTrail Events</a></li>
+      <li><a href="#config">AWS Config</a></li>
+      <li><a href="#config-rules">Config Rules and Remediation</a></li>
+      <li><a href="#where-it-fits">Where It Fits</a></li>
+      <li><a href="#comparison">Comparison and Scenarios</a></li>
+      <li><a href="#knowledge-check">Knowledge Check</a></li>
+    </ol>
+  </div>
+  <div class="overview-box">
+    <h2>Acronyms and Terminology</h2>
+    <div class="table-scroll"><table>
+      <thead><tr><th scope="col">Acronym</th><th scope="col">Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>API</td><td>Application programming interface</td></tr>
+        <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+        <tr><td>AZ</td><td>Availability Zone</td></tr>
+        <tr><td>CLI</td><td>Command Line Interface</td></tr>
+        <tr><td>CPU</td><td>Central processing unit</td></tr>
+        <tr><td>CTO</td><td>Chief technology officer</td></tr>
+        <tr><td>DNS</td><td>Domain Name System</td></tr>
+        <tr><td>EBS</td><td>Amazon Elastic Block Store</td></tr>
+        <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+        <tr><td>GLAB</td><td>Guided lab</td></tr>
+        <tr><td>IAM</td><td>AWS Identity and Access Management</td></tr>
+        <tr><td>JSON</td><td>JavaScript Object Notation</td></tr>
+        <tr><td>KMS</td><td>AWS Key Management Service</td></tr>
+        <tr><td>POC</td><td>Proof of completion</td></tr>
+        <tr><td>RDS</td><td>Amazon Relational Database Service</td></tr>
+        <tr><td>RSA</td><td>Rivest-Shamir-Adleman, a public-key algorithm</td></tr>
+        <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
+        <tr><td>SAA-C03</td><td>Exam code of the AWS Certified Solutions Architect – Associate exam</td></tr>
+        <tr><td>SDK</td><td>Software development kit</td></tr>
+        <tr><td>SHA-256</td><td>Secure Hash Algorithm with a 256-bit digest</td></tr>
+        <tr><td>SNS</td><td>Amazon Simple Notification Service</td></tr>
+        <tr><td>SQL</td><td>Structured Query Language</td></tr>
+        <tr><td>SQS</td><td>Amazon Simple Queue Service</td></tr>
+        <tr><td>SSH</td><td>Secure Shell</td></tr>
+        <tr><td>VPC</td><td>Amazon Virtual Private Cloud</td></tr>
+        <tr><td>YAML</td><td>YAML Ain’t Markup Language</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+</section>
+
+<section class="panel" id="trail-events" role="tabpanel" aria-labelledby="tab-1" tabindex="0">
+  <h1>1. What CloudTrail Records</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>At 2:07 a.m. on Sunday, a DynamoDB table that holds six months of FlashCart order history (lesson 272.3) disappears from the production account. On Monday morning, three engineers say that they did not delete it. About 20 minutes before the deletion, a rule that opened port 22 to the whole internet also appeared on the bastion host’s security group (lesson 269.5). It stayed for 40 minutes and then vanished.</p>
+    <p>The CloudWatch graphs from lesson 274.1 show nothing unusual: central processing unit (CPU) use, network traffic, and error counts are normal. The CTO asks four questions: who did it, what exactly did they do, when, and from where. Nobody has turned on anything for auditing, and the team does not know whether the answer exists at all.</p>
+    <p>The security team adds two more questions. Can the team also see which AWS Identity and Access Management (IAM) user or role was behind each action, whether it came from the console, the AWS Command Line Interface (AWS CLI), or an AWS software development kit (SDK)? And could it have seen who read a specific invoice file in an Amazon Simple Storage Service (Amazon S3) bucket (lesson 271.2) last Tuesday?</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Explain which service answers “who deleted the table,” and why CloudWatch metrics could not.</li>
+      <li>Describe where the engineers can look today without creating anything, and how far back the data goes.</li>
+      <li>List the details that each recorded action gives you.</li>
+      <li>Explain why the team might not be able to see who read the invoice file, and what would be needed.</li>
+      </ul>
+  </div>
+
+  <h2>1.1 What AWS CloudTrail Does</h2>
+  <p>AWS CloudTrail helps you audit, govern, and prove compliance for an AWS account. Actions that a user, a role, or an AWS service takes are recorded as events, and most of them are application programming interface (API) calls. The actions can come from the AWS Management Console, the AWS Command Line Interface (AWS CLI), an AWS software development kit (SDK), or another AWS service. In short, CloudTrail records who did what, when, and from where.</p>
+  <p>CloudWatch metrics describe how a resource performs (lesson 274.1). They do not say who deleted it. When a resource is deleted or changed, investigate CloudTrail first.</p>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 295" role="img" aria-labelledby="t1a d1a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t1a">How CloudTrail records activity</title>
+      <desc id="d1a">Actions from the console, the AWS CLI, the AWS SDKs, and AWS services are recorded by CloudTrail as events. Event history keeps 90 days of management events with no setup, and a trail delivers events to Amazon S3 and CloudWatch Logs for as long as you want.</desc>
+      <defs><marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="25" width="170" height="44" rx="8" class="s-box"/>
+      <text x="100" y="53" text-anchor="middle" class="s-b">Management Console</text>
+      <line x1="185" y1="47" x2="238" y2="130" class="s-line" marker-end="url(#ar1)"/>
+      <rect x="15" y="85" width="170" height="44" rx="8" class="s-box"/>
+      <text x="100" y="113" text-anchor="middle" class="s-b">AWS CLI</text>
+      <line x1="185" y1="107" x2="238" y2="130" class="s-line" marker-end="url(#ar1)"/>
+      <rect x="15" y="145" width="170" height="44" rx="8" class="s-box"/>
+      <text x="100" y="173" text-anchor="middle" class="s-b">AWS SDK</text>
+      <line x1="185" y1="167" x2="238" y2="160" class="s-line" marker-end="url(#ar1)"/>
+      <rect x="15" y="205" width="170" height="44" rx="8" class="s-box"/>
+      <text x="100" y="233" text-anchor="middle" class="s-b">AWS services</text>
+      <line x1="185" y1="227" x2="238" y2="160" class="s-line" marker-end="url(#ar1)"/>
+      <rect x="240" y="60" width="175" height="170" rx="8" class="s-hot"/>
+      <text x="327" y="100" text-anchor="middle" class="s-b">AWS CloudTrail</text>
+      <text x="327" y="128" text-anchor="middle" class="s-t">records each action</text>
+      <text x="327" y="148" text-anchor="middle" class="s-t">as an event:</text>
+      <text x="327" y="176" text-anchor="middle" class="s-m">who, what, when,</text>
+      <text x="327" y="196" text-anchor="middle" class="s-m">and from where</text>
+      <line x1="415" y1="110" x2="478" y2="80" class="s-line" marker-end="url(#ar1)"/>
+      <line x1="415" y1="180" x2="478" y2="210" class="s-line" marker-end="url(#ar1)"/>
+      <rect x="480" y="25" width="225" height="110" rx="8" class="s-box"/>
+      <text x="592" y="58" text-anchor="middle" class="s-b">Event history</text>
+      <text x="592" y="84" text-anchor="middle" class="s-t">90 days of management</text>
+      <text x="592" y="104" text-anchor="middle" class="s-t">events, no setup</text>
+      <rect x="480" y="165" width="225" height="110" rx="8" class="s-box"/>
+      <text x="592" y="198" text-anchor="middle" class="s-b">Trail</text>
+      <text x="592" y="224" text-anchor="middle" class="s-t">Amazon S3 and CloudWatch</text>
+      <text x="592" y="244" text-anchor="middle" class="s-t">Logs, kept as you choose</text>
+    </svg>
+    <figcaption>Image 1a — CloudTrail records actions as events and offers two places to read them. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>1.2 What an Event Contains</h2>
+  <p>Each event is a JavaScript Object Notation (JSON) record. These fields answer the CTO’s four questions:</p>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Question</th><th scope="col">Field</th><th scope="col">Example</th></tr></thead>
+    <tbody>
+      <tr><td>When</td><td><code>eventTime</code></td><td>2026-11-01T02:07:14Z</td></tr>
+      <tr><td>What</td><td><code>eventSource</code> and <code>eventName</code></td><td>dynamodb.amazonaws.com, DeleteTable</td></tr>
+      <tr><td>Who</td><td><code>userIdentity</code></td><td>An IAM user, an assumed role, or an AWS service</td></tr>
+      <tr><td>From where</td><td><code>sourceIPAddress</code> and <code>awsRegion</code></td><td>203.0.113.25 in us-east-1</td></tr>
+      <tr><td>On which resource</td><td><code>requestParameters</code></td><td>The table name</td></tr>
+      <tr><td>Did it work</td><td><code>errorCode</code></td><td>Present when the call failed</td></tr>
+      </tbody>
+  </table></div>
+  <pre class="flowcode">{
+  &quot;eventTime&quot;: &quot;2026-11-01T02:07:14Z&quot;,
+  &quot;eventSource&quot;: &quot;dynamodb.amazonaws.com&quot;,
+  &quot;eventName&quot;: &quot;DeleteTable&quot;,
+  &quot;awsRegion&quot;: &quot;us-east-1&quot;,
+  &quot;sourceIPAddress&quot;: &quot;203.0.113.25&quot;,
+  &quot;userIdentity&quot;: { &quot;type&quot;: &quot;IAMUser&quot;, &quot;userName&quot;: &quot;dev-sam&quot; },
+  &quot;requestParameters&quot;: { &quot;tableName&quot;: &quot;orders-archive&quot; }
+}</pre>
+  <p>This example is abridged and invented for the course. A real event has more fields.</p>
+
+  <h2>1.3 Event Types</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Event type</th><th scope="col">What it records</th><th scope="col">Default behavior</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Management events</strong></td><td>Control-plane actions on resources, such as <code>RunInstances</code>, <code>CreateBucket</code>, and IAM <code>AttachRolePolicy</code>.</td><td>A trail logs them by default. You can separate read events from write events.</td></tr>
+      <tr><td><strong>Data events</strong></td><td>Data-plane actions on or inside a resource, such as Amazon S3 <code>GetObject</code> and <code>PutObject</code>, AWS Lambda invocations, and DynamoDB item operations.</td><td>Not logged by default. They are high volume and are charged.</td></tr>
+      <tr><td><strong>Network activity events</strong></td><td>API calls that travel through Amazon Virtual Private Cloud (Amazon VPC) endpoints.</td><td>Opt-in. Generally available since February 2025.</td></tr>
+      <tr><td><strong>Insights events</strong></td><td>Unusual activity, found by analyzing a baseline of management events.</td><td>Opt-in. See tab 3.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>1.4 Event History</h2>
+  <p>Event history is a viewable, searchable, downloadable, and immutable record of the past 90 days of management events in an AWS Region.</p>
+  <ul>
+    <li>You get access to it automatically when you create the account. You do not set anything up.</li>
+    <li>There is no CloudTrail charge for viewing it.</li>
+    <li>You can search by filtering on a single attribute, such as the event name or the user name.</li>
+    <li>It covers only management events. It cannot show data events, and it cannot go back further than 90 days.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Do not read “CloudTrail is enabled by default” too far. Event history is automatic, but it is only 90 days of management events. To keep events longer, or to log data events, you must create a trail (tab 2). A question about who read an S3 object always needs data events to be turned on before the read.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>CloudTrail is the diary of actions: who did what. AWS Config, in tab 4, is the photo album of resources: what they looked like.</p>
+  </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">Written for this course. This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company discovers that an Amazon Elastic Compute Cloud (Amazon EC2) security group was changed two weeks ago. Nobody created a trail. The company must find out which IAM user made the change, with the least effort. What should the company do?</p>
+    <ol type="A">
+      <li>Search the CloudTrail event history for the security group change.</li>
+      <li>Run a CloudWatch Logs Insights query on the instance logs.</li>
+      <li>Check the VPC flow logs for the security group.</li>
+      <li>Look at the CloudWatch metrics of the security group.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> Event history keeps 90 days of management events with no setup, and a security group change is a management event that names the user.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Yes — the change is a management event inside the 90-day window.</td></tr>
+          <tr><td>B</td><td>No — instance logs do not record API calls to the account.</td></tr>
+          <tr><td>C</td><td>No — flow logs describe network traffic, not who changed a setting.</td></tr>
+          <tr><td>D</td><td>No — a security group does not publish metrics that show who changed it.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Who made this API call, or who deleted this resource”<br>→ AWS CloudTrail.</p>
+    <p><strong>Trigger 2:</strong> “The last 90 days of management events, with no setup”<br>→ CloudTrail event history.</p>
+    <p><strong>Trigger 3:</strong> “Record Amazon S3 object reads or Lambda invocations”<br>→ CloudTrail data events, turned on in a trail.</p>
+    <p><strong>Trigger 4:</strong> “Detect unusual API call volume or error rates”<br>→ CloudTrail Insights events.</p>
+    </div>
+
+  <div class="resources">
+    <h2>1.5 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html" target="_blank" rel="noopener">What is AWS CloudTrail?</a></li>
+      <li><span class="rtype">Pricing</span><a href="https://aws.amazon.com/cloudtrail/pricing/" target="_blank" rel="noopener">AWS CloudTrail pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="trails" role="tabpanel" aria-labelledby="tab-2" tabindex="0">
+  <h1>2. Trails and Long-Term Storage</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>After the incident, FlashCart’s auditors ask for two things: every API call kept for seven years, and proof that nobody changed the records afterward. FlashCart now has 14 AWS accounts for development, test, production, and the payments team, and it runs the store in two Regions. The security team wants all the records in one place, and it wants new accounts to be covered automatically.</p>
+    <p>An engineer turns on object-level logging for the invoice bucket. Within a week, that one setting produces about 30 million events a day, and the finance team asks why the audit bill grew. The legal team also asks who can delete the audit records, and whether the records can be encrypted with a key that the security team controls.</p>
+    <p>For the last 90 days, the team can use the console history, but nobody has a plan for queries on records that are two or three years old.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose how to keep the records beyond 90 days, and explain what the 90-day history cannot do.</li>
+      <li>Choose how to cover all accounts and both Regions with one setup, including accounts that are created later.</li>
+      <li>Describe how to prove that a log file was not changed, and how to protect and encrypt the files.</li>
+      <li>Decide which events to record, and explain why object-level events need careful scoping.</li>
+      <li>Choose how to query records that are years old, and explain why CloudTrail Lake is not the first answer for a new account.</li>
+      </ul>
+  </div>
+
+  <h2>2.1 Trails</h2>
+  <p>A trail is a configuration that delivers CloudTrail events to an Amazon S3 bucket that you choose, so that you can keep them for as long as you need and record more than management events. A trail can also send events to CloudWatch Logs (lesson 274.2) and can send an Amazon Simple Notification Service (Amazon SNS) notification when it delivers a log file.</p>
+  <ul>
+    <li>CloudTrail delivers compressed JSON log files to the bucket. Delivery is not instant: expect the files within about 5 to 15 minutes of the activity.</li>
+    <li>The bucket’s retention depends on your S3 lifecycle rules (lesson 271.2), because a trail has no retention limit of its own.</li>
+    <li>The first copy of management events in each Region is delivered at no charge. Additional copies, data events, network activity events, and Insights events are charged. Check the pricing page.</li>
+  </ul>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Trail type</th><th scope="col">What it covers</th><th scope="col">Use it when</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Single-Region trail</strong></td><td>Events in one Region.</td><td>You need records only for one Region.</td></tr>
+      <tr><td><strong>Multi-Region trail</strong></td><td>Events in all Regions. This is the default when you create a trail in the console.</td><td>You want one setup for every Region, including Regions that you add later.</td></tr>
+      <tr><td><strong>Organization trail</strong></td><td>Events of all accounts in an AWS Organizations organization, from one trail.</td><td>You want every member account covered, including accounts created later.</td></tr>
+      </tbody>
+  </table></div>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 290" role="img" aria-labelledby="t2a d2a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t2a">A trail delivers events to Amazon S3 and CloudWatch Logs</title>
+      <desc id="d2a">A multi-Region or organization trail collects events from many accounts and Regions. It delivers log files and digest files to an Amazon S3 bucket, where Amazon Athena can query them, and it can also deliver to CloudWatch Logs, where Logs Insights can query them.</desc>
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="60" width="150" height="110" rx="8" class="s-box"/>
+      <text x="90" y="100" text-anchor="middle" class="s-b">Many accounts</text>
+      <text x="90" y="124" text-anchor="middle" class="s-b">and Regions</text>
+      <text x="90" y="150" text-anchor="middle" class="s-m">CloudTrail events</text>
+      <line x1="165" y1="115" x2="208" y2="115" class="s-line" marker-end="url(#ar2)"/>
+      <rect x="210" y="60" width="145" height="110" rx="8" class="s-hot"/>
+      <text x="282" y="98" text-anchor="middle" class="s-b">Trail</text>
+      <text x="282" y="124" text-anchor="middle" class="s-t">multi-Region or</text>
+      <text x="282" y="144" text-anchor="middle" class="s-t">organization</text>
+      <line x1="355" y1="95" x2="408" y2="65" class="s-line" marker-end="url(#ar2)"/>
+      <line x1="355" y1="140" x2="408" y2="190" class="s-line" marker-end="url(#ar2)"/>
+      <rect x="410" y="20" width="155" height="100" rx="8" class="s-box"/>
+      <text x="487" y="52" text-anchor="middle" class="s-b">Amazon S3 bucket</text>
+      <text x="487" y="78" text-anchor="middle" class="s-t">log files and</text>
+      <text x="487" y="98" text-anchor="middle" class="s-t">digest files</text>
+      <rect x="410" y="150" width="155" height="80" rx="8" class="s-box"/>
+      <text x="487" y="184" text-anchor="middle" class="s-b">CloudWatch Logs</text>
+      <text x="487" y="206" text-anchor="middle" class="s-m">(lesson 274.2)</text>
+      <line x1="565" y1="70" x2="603" y2="70" class="s-line" marker-end="url(#ar2)"/>
+      <line x1="565" y1="190" x2="603" y2="190" class="s-line" marker-end="url(#ar2)"/>
+      <rect x="605" y="20" width="100" height="100" rx="8" class="s-box"/>
+      <text x="655" y="62" text-anchor="middle" class="s-b">Amazon</text>
+      <text x="655" y="84" text-anchor="middle" class="s-b">Athena</text>
+      <rect x="605" y="150" width="100" height="80" rx="8" class="s-box"/>
+      <text x="655" y="184" text-anchor="middle" class="s-b">Logs</text>
+      <text x="655" y="206" text-anchor="middle" class="s-b">Insights</text>
+      <text x="360" y="268" text-anchor="middle" class="s-m">Log file validation proves that the log files were not changed.</text>
+    </svg>
+    <figcaption>Image 2a — A trail delivers events to Amazon S3 and CloudWatch Logs, and each destination has its own query tool. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>2.2 Protecting the Logs</h2>
+  <ul>
+    <li><strong>Encryption:</strong> CloudTrail encrypts log files with Amazon S3 server-side encryption by default. You can use an AWS Key Management Service (AWS KMS) key for the trail instead.</li>
+    <li><strong>Log file integrity validation:</strong> CloudTrail creates a hash for every log file and delivers a signed digest file to the same bucket, about once an hour. CloudTrail uses SHA-256 for hashing and SHA-256 with RSA for digital signing, so changing, deleting, or forging a log file without detection is computationally infeasible.</li>
+    <li><strong>Checking the files:</strong> run the <code>validate-logs</code> command in the AWS CLI. It reports modified or deleted log files and digest files. If you turn validation off, the chain of digest files breaks after one hour.</li>
+    <li><strong>Access:</strong> restrict who can read and delete the logs with IAM policies and the bucket policy.</li>
+  </ul>
+  <pre class="flowcode">aws cloudtrail create-trail \
+  --name flashcart-audit \
+  --s3-bucket-name &lt;audit-bucket&gt; \
+  --is-multi-region-trail \
+  --enable-log-file-validation
+
+aws cloudtrail validate-logs \
+  --trail-arn &lt;trail-arn&gt; \
+  --start-time 20261101T000000Z</pre>
+
+  <h2>2.3 Analyzing Old Records</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Need</th><th scope="col">Option</th></tr></thead>
+    <tbody>
+      <tr><td>Look back up to 90 days at management events</td><td>Event history</td></tr>
+      <tr><td>Query years of events cheaply, without moving them</td><td>Amazon S3 and Amazon Athena (lesson 272.11)</td></tr>
+      <tr><td>Search recent events, count patterns, and alarm</td><td>Deliver the trail to CloudWatch Logs, and use Logs Insights and metric filters (lesson 274.2)</td></tr>
+      <tr><td>A managed data lake with SQL queries for events</td><td>CloudTrail Lake, which is closed to new customers (see below)</td></tr>
+      </tbody>
+  </table></div>
+  <div class="callout warn">
+    <span class="label">What has changed</span>
+    <p>AWS CloudTrail Lake stopped being open to new customers on May 31, 2026. Existing customers can keep using it, but it receives only critical bug fixes and security updates. For similar capabilities, AWS recommends CloudWatch, and it offers a way to import existing Lake event data stores into CloudWatch. Older study materials still teach CloudTrail Lake as the analysis tool, so recognize it on the exam, but design new setups with Amazon S3 and Athena or with CloudWatch.</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>The 90-day event history cannot be extended. Only a trail keeps events longer, and only a trail can record data events. Another common trap: a trail alone does not prove that logs are unchanged. You must turn on log file integrity validation. Finally, a new design should not depend on CloudTrail Lake.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Event history is the window. A trail is the archive. Validation is the seal.</p>
+  </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">Written for this course. This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company must keep every API call for seven years and prove to auditors that the records were not changed. Which solution meets both requirements?</p>
+    <ol type="A">
+      <li>Rely on the CloudTrail event history and download it each month.</li>
+      <li>Create a multi-Region trail that delivers to an Amazon S3 bucket, with log file integrity validation turned on.</li>
+      <li>Create a CloudWatch alarm on API calls.</li>
+      <li>Turn on AWS Config in each Region.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: B.</strong> A trail keeps events as long as the bucket keeps them, and log file integrity validation proves that the files were not changed.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>No — the history covers 90 days only, and a monthly download is manual and unproven.</td></tr>
+          <tr><td>B</td><td>Yes — a trail stores events in Amazon S3, and digest files prove integrity.</td></tr>
+          <tr><td>C</td><td>No — an alarm does not keep or prove records.</td></tr>
+          <tr><td>D</td><td>No — AWS Config records configuration, not API calls.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Keep API history longer than 90 days”<br>→ Create a trail that delivers to Amazon S3.</p>
+    <p><strong>Trigger 2:</strong> “Prove that CloudTrail log files were not modified”<br>→ Log file integrity validation (digest files).</p>
+    <p><strong>Trigger 3:</strong> “Cover every account in an organization, now and later”<br>→ Organization trail.</p>
+    <p><strong>Trigger 4:</strong> “Query years of CloudTrail logs cheaply”<br>→ Amazon S3 and Amazon Athena.</p>
+    </div>
+
+  <div class="resources">
+    <h2>2.4 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-intro.html" target="_blank" rel="noopener">Validating CloudTrail log file integrity</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/cli/latest/reference/cloudtrail/validate-logs.html" target="_blank" rel="noopener">validate-logs command reference</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-lake-service-availability-change.html" target="_blank" rel="noopener">CloudTrail Lake availability change</a></li>
+      <li><span class="rtype">Pricing</span><a href="https://aws.amazon.com/cloudtrail/pricing/" target="_blank" rel="noopener">AWS CloudTrail pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="using-events" role="tabpanel" aria-labelledby="tab-3" tabindex="0">
+  <h1>3. Using CloudTrail Events</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart’s security team wants three alerts. The first is an alert within minutes when anyone deletes a database table or changes a security group. The second is an alert whenever the root user signs in. The third is an alert when an API is called unusually often, such as a sudden burst of calls that terminate instances.</p>
+    <p>An engineer proposes to check the console history every morning. A second engineer proposes a script that downloads the log files from Amazon S3 every hour. A third wants to use the CloudWatch Logs tools from lesson 274.2. The security lead also asks how the AWS threat-detection service from lesson 268.10 gets its data, and whether FlashCart needs to feed it.</p>
+    <p>During a drill, the team must also investigate a suspicious sign-in from two years ago. The logs sit in Amazon S3, and nobody wants to download thousands of files.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose the way to react to one specific API call, such as a table deletion, within minutes.</li>
+      <li>Describe how to turn API calls recorded in CloudWatch Logs into an alarm.</li>
+      <li>Explain how the team can learn about unusual API activity without defining a threshold for every call.</li>
+      <li>Choose how to search two-year-old logs in Amazon S3 without downloading them (lesson 272.11).</li>
+      </ul>
+  </div>
+
+  <h2>3.1 Investigating a Change</h2>
+  <p>When something changes, follow the same steps:</p>
+  <ol>
+    <li>Search the event history for the event name or the resource, if the change is within the last 90 days.</li>
+    <li>For older changes, query the trail’s log files in Amazon S3 with Amazon Athena (lesson 272.11), or the trail’s log group with Logs Insights (lesson 274.2).</li>
+    <li>Read <code>userIdentity</code>, <code>sourceIPAddress</code>, and <code>requestParameters</code> to answer who, from where, and on what.</li>
+  </ol>
+  <p>Other lessons already point to CloudTrail for the same reason. Amazon Relational Database Service (Amazon RDS) API calls, such as who created or deleted a database, appear in it (lesson 272.1), and so do changes to a bastion host’s security group and Session Manager session starts (lesson 269.5).</p>
+
+  <h2>3.2 React With Amazon EventBridge</h2>
+  <p>An API call that CloudTrail records can match an Amazon EventBridge rule (lesson 273.3). The rule can send a notification or run code, so the team learns about a risky call within minutes. An event pattern for API calls uses the detail type “AWS API Call via CloudTrail,” and it names the service and the call:</p>
+  <pre class="flowcode">{
+  &quot;source&quot;: [&quot;aws.dynamodb&quot;],
+  &quot;detail-type&quot;: [&quot;AWS API Call via CloudTrail&quot;],
+  &quot;detail&quot;: {
+    &quot;eventSource&quot;: [&quot;dynamodb.amazonaws.com&quot;],
+    &quot;eventName&quot;: [&quot;DeleteTable&quot;]
+  }
+}</pre>
+  <p>Confirm the exact pattern for each service in the EventBridge documentation before you use it.</p>
+
+  <h2>3.3 Alarms Through CloudWatch Logs</h2>
+  <p>A trail can deliver events to a CloudWatch Logs log group. There, a metric filter (lesson 274.2, tab 5) can count matching events, and an alarm (lesson 274.2, tab 6) can notify the team when the count passes a threshold. The filter pattern for the deletions could be <code>{ $.eventName = "DeleteTable" }</code>.</p>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 335" role="img" aria-labelledby="t3a d3a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t3a">Three ways to react to CloudTrail activity</title>
+      <desc id="d3a">An API call recorded by CloudTrail can match an EventBridge rule that sends a notification or runs code. A trail can send events to CloudWatch Logs where a metric filter feeds an alarm. CloudTrail Insights detects unusual API activity and delivers Insights events.</desc>
+      <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="125" width="140" height="80" rx="8" class="s-box"/>
+      <text x="85" y="160" text-anchor="middle" class="s-b">CloudTrail</text>
+      <text x="85" y="184" text-anchor="middle" class="s-m">API call events</text>
+      <line x1="155" y1="150" x2="198" y2="62" class="s-line" marker-end="url(#ar3)"/>
+      <line x1="155" y1="165" x2="198" y2="165" class="s-line" marker-end="url(#ar3)"/>
+      <line x1="155" y1="180" x2="198" y2="275" class="s-line" marker-end="url(#ar3)"/>
+      <rect x="200" y="25" width="160" height="74" rx="8" class="s-hot"/>
+      <text x="280" y="56" text-anchor="middle" class="s-b">EventBridge rule</text>
+      <text x="280" y="80" text-anchor="middle" class="s-m">matches the API call</text>
+      <line x1="360" y1="62" x2="418" y2="62" class="s-line" marker-end="url(#ar3)"/>
+      <rect x="420" y="25" width="285" height="74" rx="8" class="s-box"/>
+      <text x="562" y="56" text-anchor="middle" class="s-b">Notification or code</text>
+      <text x="562" y="80" text-anchor="middle" class="s-t">Amazon SNS, AWS Lambda</text>
+      <rect x="200" y="128" width="160" height="74" rx="8" class="s-hot"/>
+      <text x="280" y="160" text-anchor="middle" class="s-b">CloudWatch Logs</text>
+      <text x="280" y="184" text-anchor="middle" class="s-m">through a trail</text>
+      <line x1="360" y1="165" x2="418" y2="165" class="s-line" marker-end="url(#ar3)"/>
+      <rect x="420" y="128" width="285" height="74" rx="8" class="s-box"/>
+      <text x="562" y="160" text-anchor="middle" class="s-b">Metric filter, then alarm</text>
+      <text x="562" y="184" text-anchor="middle" class="s-m">lesson 274.2, tabs 5 and 6</text>
+      <rect x="200" y="238" width="160" height="74" rx="8" class="s-hot"/>
+      <text x="280" y="270" text-anchor="middle" class="s-b">Insights events</text>
+      <text x="280" y="294" text-anchor="middle" class="s-m">unusual API activity</text>
+      <line x1="360" y1="275" x2="418" y2="275" class="s-line" marker-end="url(#ar3)"/>
+      <rect x="420" y="238" width="285" height="74" rx="8" class="s-box"/>
+      <text x="562" y="270" text-anchor="middle" class="s-b">Console, Amazon S3,</text>
+      <text x="562" y="294" text-anchor="middle" class="s-t">and an EventBridge event</text>
+    </svg>
+    <figcaption>Image 3a — Three ways to react to CloudTrail activity. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>3.4 CloudTrail Insights</h2>
+  <p>CloudTrail Insights detects unusual activity without a threshold that you define for each call.</p>
+  <ul>
+    <li>Insights analyzes your normal management events to create a baseline of API call volume and error rates, and then it continuously analyzes write events for patterns outside that baseline.</li>
+    <li>Examples of unusual activity are a burst of IAM actions, a sudden jump in calls that terminate instances, unexpected resource provisioning, and calls that hit service limits.</li>
+    <li>Insights events appear in the CloudTrail console, are delivered to Amazon S3, and generate an EventBridge event for automation.</li>
+    <li>Insights is turned on separately, works on management events, and is charged.</li>
+  </ul>
+
+  <h2>3.5 Related Services</h2>
+  <p>Amazon GuardDuty (lesson 268.10) reads CloudTrail management events, VPC flow logs, and DNS logs on its own, so FlashCart does not need to feed it. It turns unusual API calls and unauthorized deployments into findings.</p>
+
+  <h2>3.6 Hands-On Labs</h2>
+  <div class="lab-box">
+    <p class="lab-title">Hands-On Labs</p>
+    <p class="lab-sub">Lab Overview:</p>
+    <p>In the first lab, you create a CloudTrail trail that sends events to CloudWatch Logs, launch an Amazon EC2 instance, build a metric filter for StopInstances events, and create an alarm that sends an email through an Amazon SNS topic. In the second lab, you encrypt an Amazon S3 bucket with an AWS KMS key and use CloudTrail to monitor the activity on it.</p>
+    <p class="lab-sub">You can start the following labs:</p>
+    <p>GLAB 274.3.1 — <a class="lab-link" href="https://docs.google.com/document/d/1qmf7T9F9DqDQNmNQBlG0kcyaChE_Qk2sWB4e6HPyxJI/edit?usp=sharing" target="_blank" rel="noopener">AWS Access Control Alerts With CloudWatch and CloudTrail</a></p>
+    <p>GLAB 274.3.2 — <a class="lab-link" href="https://business.whizlabs.com/labs/how-to-encrypt-an-s3-bucket-using-aws-kms-and-monitor-the-activities-with-cloudtrail" target="_blank" rel="noopener">How to Encrypt an S3 bucket using AWS KMS and monitor the activities with CloudTrail</a></p>
+  </div>
+  <div class="lab-expect">
+    <p><strong>Important Lab Expectation</strong></p>
+    <p>You must submit proof of completion of each lab on Canvas using the following documents:</p>
+    <p><strong><a href="https://docs.google.com/document/d/1DyFAModt9yqohm7dpXHUeS-gt7zP1icKlnqLXEQbHcw/edit?usp=sharing" target="_blank" rel="noopener">POC 274.3.1: Hands-On Labs Validation</a></strong> for GLAB 274.3.1</p>
+    <p><strong><a href="https://docs.google.com/document/d/1TaJg-ErUZ9SitATiOW_qguuHivwhl9l45769KC_NFV8/edit?usp=sharing" target="_blank" rel="noopener">POC 274.3.2: Hands-On Labs Validation</a></strong> for GLAB 274.3.2</p>
+    <p>If you do not complete all labs during class time, you must finish them after class. Failing to complete all labs before the next session may cause you to fall behind.</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>CloudTrail records; it does not alert and it does not block. To react to an API call, use an EventBridge rule, or send the trail to CloudWatch Logs and use a metric filter and an alarm. CloudTrail Insights works on management events only.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Record, then react. CloudTrail records, and EventBridge or an alarm reacts.</p>
+  </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">Written for this course. This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company wants to be notified within minutes whenever an IAM user is created in its account. The solution must need as little code as possible. Which solution meets the requirement?</p>
+    <ol type="A">
+      <li>Create an EventBridge rule that matches the CreateUser API call recorded by CloudTrail and sends a notification to an Amazon SNS topic.</li>
+      <li>Run an AWS Config rule that checks the IAM users once every 24 hours.</li>
+      <li>Install the CloudWatch agent on the IAM service.</li>
+      <li>Query the CloudTrail logs with Athena every morning.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> An EventBridge rule on the CloudTrail event reacts within minutes, and an SNS topic sends the notification with no code.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Yes — the rule reacts to the API call as it happens.</td></tr>
+          <tr><td>B</td><td>No — a daily check is not within minutes.</td></tr>
+          <tr><td>C</td><td>No — IAM is not a server, so no agent can be installed on it.</td></tr>
+          <tr><td>D</td><td>No — a daily query finds the event hours later.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Alert when a specific API call happens, within minutes”<br>→ EventBridge rule on the CloudTrail event.</p>
+    <p><strong>Trigger 2:</strong> “Count API calls and alarm on them in CloudWatch”<br>→ Trail to CloudWatch Logs, then a metric filter and an alarm.</p>
+    <p><strong>Trigger 3:</strong> “Unusual API activity or a spike in error rates, with no thresholds to define”<br>→ CloudTrail Insights.</p>
+    <p><strong>Trigger 4:</strong> “Investigate sign-ins in years of logs without downloading them”<br>→ Amazon Athena on the trail’s S3 bucket.</p>
+    </div>
+
+  <div class="resources">
+    <h2>3.7 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/eventbridge/latest/ref/events-ref-monitoring.html" target="_blank" rel="noopener">CloudTrail events in Amazon EventBridge</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html" target="_blank" rel="noopener">What is AWS CloudTrail?</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="config" role="tabpanel" aria-labelledby="tab-4" tabindex="0">
+  <h1>4. AWS Config</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>Six months after the deletion incident, the auditors return with new questions that CloudTrail alone cannot answer easily. On March 3, was a specific security group open to the whole internet on port 22? How did the configuration of the API load balancer change over the last six months? Which Amazon Elastic Block Store (Amazon EBS) volumes in all 14 accounts and both Regions are not encrypted today?</p>
+    <p>The team could replay hundreds of thousands of CloudTrail events to rebuild what a resource looked like on a given day, but that would take days and would miss resources that were never changed. The platform team also learns that its current setup in the first Region does not cover the second Region at all.</p>
+    <p>The security lead wants one place that shows what exists, how it is configured, and how it has changed, and wants to receive a notification when a resource changes.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Explain what AWS Config records, and why that is different from what CloudTrail records.</li>
+      <li>Describe how to see a resource’s configuration on a past date.</li>
+      <li>Choose how to list all unencrypted volumes across 14 accounts and two Regions with a single query.</li>
+      <li>Explain why the second Region was not covered, and where the recorded data is delivered.</li>
+      </ul>
+  </div>
+
+  <h2>4.1 What AWS Config Does</h2>
+  <p>AWS Config tracks and records the configuration state of your AWS resources over time. It helps you answer what resources exist, how they are configured, and how they have changed. It is a Regional service, so you turn it on in each Region that you want to cover.</p>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Question that AWS Config can answer</th><th scope="col">Example</th></tr></thead>
+    <tbody>
+      <tr><td>Is any security group open to the whole world on port 22?</td><td>0.0.0.0/0 on port 22</td></tr>
+      <tr><td>Are any Amazon S3 buckets public?</td><td>A bucket that anyone can read</td></tr>
+      <tr><td>Which resources have no tags?</td><td>Resources that are missing a cost tag</td></tr>
+      <tr><td>Is any Amazon Relational Database Service (Amazon RDS) database not Multi-AZ?</td><td>A single-instance database</td></tr>
+      <tr><td>How has a load balancer’s configuration changed over time?</td><td>A listener or target setting changed last month</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>4.2 The Recorder and Configuration Items</h2>
+  <ul>
+    <li>The configuration recorder records resource changes. By default, a customer managed recorder records all supported resource types in the Region where AWS Config runs. You can narrow the scope.</li>
+    <li>A configuration item is a record of a resource’s configuration at one moment. Its components are metadata, attributes, relationships, current configuration, and related events. AWS Config creates one whenever it detects a change to a recorded resource type.</li>
+    <li>You can record continuously, which captures every change as it happens, or periodically, which captures the state once a day. Periodic recording costs less, but a problem that appears and is fixed within the same day may never produce a configuration item.</li>
+    <li>You pay for each configuration item that is recorded. Check the pricing page.</li>
+  </ul>
+
+  <h2>4.3 Configuration History and the Timeline</h2>
+  <p>For each resource, AWS Config shows the configuration over time, the compliance over time, and the CloudTrail events that touched the resource. Together, these let an auditor see what a security group looked like on March 3 and which API call changed it.</p>
+  <figure class="diagram">
+    <img src="data:image/webp;base64,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" alt="Screenshot of an AWS Config resource timeline for July 3, 2021, with three CloudTrail events listed at 14:35:31, 14:32:46, and 14:32:45." width="1000" height="143" style="display:block;width:100%;height:auto;border:1px solid var(--rule);">
+    <figcaption>Image 4a — The resource timeline in AWS Config lists the CloudTrail events for a resource. (Source: course slide by Stephane Maarek.)</figcaption>
+  </figure>
+  <p>AWS Config can deliver configuration changes as notifications through Amazon SNS, and it can store configuration snapshots in an Amazon S3 bucket.</p>
+
+  <h2>4.4 Aggregators and Advanced Queries</h2>
+  <ul>
+    <li><strong>Aggregators:</strong> a configuration aggregator collects configuration and compliance data from many accounts and Regions into one view.</li>
+    <li><strong>Advanced queries:</strong> you can run SQL-like queries on the current configuration of your resources, for one account and Region or across an aggregator. The console offers sample queries.</li>
+  </ul>
+  <pre class="flowcode">SELECT resourceId, awsRegion
+WHERE resourceType = &#x27;AWS::EC2::SecurityGroup&#x27;</pre>
+  <figure class="diagram">
+    <img src="data:image/webp;base64,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" alt="Screenshot of the AWS Config Advanced queries page with 58 sample queries, such as Count EC2 instances, Count non-compliant, and Unused EBS volumes." width="700" height="641" style="display:block;width:100%;max-width:640px;height:auto;border:1px solid var(--rule);">
+    <figcaption>Image 4b — The Advanced queries page offers sample queries. (Source: course slide by AWS with Chetan.)</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>AWS Config records configuration state, not API calls and not performance. It tells you what a resource looked like, not who changed it, although the timeline links to the CloudTrail event that did. AWS Config is also Regional and is charged for each recorded item, so it is not free to turn on everywhere.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>CloudTrail is the diary, and AWS Config is the photo album. The diary says who did what. The album shows how the room looked.</p>
+  </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">Written for this course. This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company must show an auditor how the configuration of a load balancer changed over the last six months, and whether a security group was open to the internet on a specific date. Which service provides this?</p>
+    <ol type="A">
+      <li>AWS Config</li>
+      <li>CloudTrail event history</li>
+      <li>Amazon CloudWatch metrics</li>
+      <li>AWS X-Ray</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> AWS Config keeps the configuration history of resources and shows a resource’s configuration at a past date.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Yes — it records configuration items over time.</td></tr>
+          <tr><td>B</td><td>No — the history covers 90 days of management events and does not store resource configuration.</td></tr>
+          <tr><td>C</td><td>No — metrics describe performance, not configuration.</td></tr>
+          <tr><td>D</td><td>No — X-Ray traces requests, not configuration.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “How did a resource look on a past date, or how has its configuration changed”<br>→ AWS Config configuration history.</p>
+    <p><strong>Trigger 2:</strong> “Inventory and query resources across accounts and Regions”<br>→ AWS Config aggregator and advanced queries.</p>
+    <p><strong>Trigger 3:</strong> “Notification when a resource configuration changes”<br>→ AWS Config, with Amazon SNS or EventBridge.</p>
+    <p><strong>Trigger 4:</strong> “AWS Config is a Regional service”<br>→ Turn it on in every Region that you need.</p>
+    </div>
+
+  <div class="resources">
+    <h2>4.5 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/config/latest/developerguide/config-concepts.html" target="_blank" rel="noopener">AWS Config terminology and concepts</a></li>
+      <li><span class="rtype">Pricing</span><a href="https://aws.amazon.com/config/pricing/" target="_blank" rel="noopener">AWS Config pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="config-rules" role="tabpanel" aria-labelledby="tab-5" tabindex="0">
+  <h1>5. Config Rules and Remediation</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>The security team wants to know the moment anyone creates an unencrypted volume, a security group that allows Secure Shell (SSH) access from anywhere, or an Amazon S3 bucket that allows public reads. The finance team also wants every resource to carry cost-allocation tags. Today, the team finds such problems only when an auditor asks.</p>
+    <p>An engineer proposes to use AWS Config rules to block the creation of unencrypted volumes. A second engineer wants resources to be fixed automatically as soon as they are found, but worries that an automatic fix could break production. The platform team also needs the same rules in all 14 accounts, including accounts that join the organization later. CloudFormation StackSets from lesson 296.1 are one option that the team already knows.</p>
+    <p>The last requirement comes from the network team: they want to be told about a violation in the chat tool, not only in the Config console.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose the rule type for each of the three security checks and for the tagging check.</li>
+      <li>Explain whether Config rules can block an action, and name the setting that evaluates before deployment.</li>
+      <li>Design automatic remediation, including what runs the fix and what permission it needs (lesson 268.8).</li>
+      <li>Choose how to deploy the same rules and fixes to all accounts, and how to send violations to the chat tool.</li>
+      </ul>
+  </div>
+
+  <h2>5.1 Config Rules</h2>
+  <p>A Config rule defines a desired configuration. AWS Config evaluates your resources against it and marks each one as compliant or non-compliant.</p>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Rule type</th><th scope="col">What it is</th><th scope="col">Examples</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Managed rule</strong></td><td>A predefined, customizable rule that AWS creates. AWS keeps a long list, far longer than the “over 75” on some course slides.</td><td><code>restricted-ssh</code>, <code>s3-bucket-public-read-prohibited</code>, <code>rds-multi-az-support</code>, <code>required-tags</code>, <code>multi-region-cloudtrail-enabled</code></td></tr>
+      <tr><td><strong>Custom rule</strong></td><td>A rule that you write from scratch, either as an AWS Lambda function or as a policy in the Guard language.</td><td>A check that every EBS volume uses one type, or that every instance uses an approved size</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>5.2 When Rules Evaluate</h2>
+  <ul>
+    <li><strong>On a configuration change:</strong> the evaluation runs after AWS Config sends a configuration item change notification. You choose which resources start an evaluation by setting the rule’s scope.</li>
+    <li><strong>Periodically:</strong> the evaluation runs at a regular interval, which suits checks that do not depend on a change.</li>
+    <li><strong>Evaluation modes:</strong> detective evaluation checks resources after they exist, and proactive evaluation checks resources before they are deployed.</li>
+  </ul>
+  <figure class="diagram">
+    <img src="data:image/webp;base64,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" alt="Screenshot of AWS Config rule results listing three EC2 security groups, two marked Compliant and one marked Noncompliant." width="1000" height="177" style="display:block;width:100%;height:auto;border:1px solid var(--rule);">
+    <figcaption>Image 5a — Rule results show each resource as compliant or noncompliant. (Source: course slide by Stephane Maarek.)</figcaption>
+  </figure>
+
+  <h2>5.3 Rules Detect; They Do Not Prevent</h2>
+  <p>A Config rule reports non-compliance. It does not deny the action, so it cannot stop someone from creating an unencrypted volume. Use IAM policies or other preventive controls to stop an action, and use Config rules to find and fix the resources that slip through.</p>
+
+  <h2>5.4 Remediation and Notifications</h2>
+  <ul>
+    <li>Remediation actions fix non-compliant resources by running AWS Systems Manager Automation documents (lesson 268.8). You can use AWS managed documents or write your own, and a document can call a Lambda function.</li>
+    <li>You can set remediation to run automatically or to run manually.</li>
+    <li>You can configure retries, with a maximum number of attempts and a retry interval, for a resource that is still non-compliant after a fix.</li>
+    <li>The Systems Manager execution role needs permission to change the resource, so scope that role with care.</li>
+    <li>To be told about violations, use EventBridge (lesson 273.3) to route a non-compliance event to Amazon SNS, AWS Lambda, or Amazon Simple Queue Service (Amazon SQS), for example to post in a chat tool.</li>
+  </ul>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 260" role="img" aria-labelledby="t5a d5a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t5a">How a Config rule detects and fixes a problem</title>
+      <desc id="d5a">AWS Config records a resource configuration and evaluates it against a Config rule. A non-compliant result can start a remediation action in Systems Manager Automation and send a notification through EventBridge.</desc>
+      <defs><marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="70" width="125" height="80" rx="8" class="s-box"/>
+      <text x="77" y="105" text-anchor="middle" class="s-b">Resource</text>
+      <text x="77" y="129" text-anchor="middle" class="s-b">changes</text>
+      <line x1="140" y1="110" x2="178" y2="110" class="s-line" marker-end="url(#ar5)"/>
+      <rect x="180" y="70" width="135" height="80" rx="8" class="s-box"/>
+      <text x="247" y="105" text-anchor="middle" class="s-b">AWS Config</text>
+      <text x="247" y="129" text-anchor="middle" class="s-t">records it</text>
+      <line x1="315" y1="110" x2="353" y2="110" class="s-line" marker-end="url(#ar5)"/>
+      <rect x="355" y="60" width="140" height="100" rx="8" class="s-hot"/>
+      <text x="425" y="92" text-anchor="middle" class="s-b">Config rule</text>
+      <text x="425" y="118" text-anchor="middle" class="s-t">COMPLIANT or</text>
+      <text x="425" y="138" text-anchor="middle" class="s-t">NON_COMPLIANT</text>
+      <line x1="495" y1="95" x2="528" y2="62" class="s-line" marker-end="url(#ar5)"/>
+      <line x1="495" y1="125" x2="528" y2="168" class="s-line" marker-end="url(#ar5)"/>
+      <rect x="530" y="25" width="175" height="75" rx="8" class="s-box"/>
+      <text x="617" y="58" text-anchor="middle" class="s-b">Remediation</text>
+      <text x="617" y="82" text-anchor="middle" class="s-t">Systems Manager</text>
+      <rect x="530" y="130" width="175" height="75" rx="8" class="s-box"/>
+      <text x="617" y="163" text-anchor="middle" class="s-b">Notification</text>
+      <text x="617" y="187" text-anchor="middle" class="s-t">EventBridge, SNS</text>
+      <text x="360" y="245" text-anchor="middle" class="s-m">A rule reports non-compliance. It does not block the action.</text>
+    </svg>
+    <figcaption>Image 5b — A Config rule detects a problem, and remediation and notifications follow. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>5.5 Conformance Packs and Many Accounts</h2>
+  <ul>
+    <li>A conformance pack is a collection of Config rules and remediation actions that you deploy and monitor as one unit. You define it in a YAML template.</li>
+    <li>You can deploy conformance packs centrally to all member accounts of an AWS Organizations organization.</li>
+    <li>CloudFormation StackSets (lesson 296.1) can also deploy Config rules across accounts and Regions.</li>
+    <li>AWS Security Hub and AWS Firewall Manager need AWS Config to be turned on (lessons 268.9 and 268.10), because they read resource configuration from it.</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Config rules detect problems; they do not block actions, so a question that says “prevent” does not point to a Config rule. Remediation needs a Systems Manager Automation document and a role with permission to change the resource. Also, AWS Config must be turned on and recording before a rule can evaluate anything.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Config rules judge, and remediation fixes. Neither one is a wall.</p>
+  </div>
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">Written for this course. This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company wants Amazon S3 buckets that allow public read access to be detected and made private automatically, with the same setup in every account of its organization. Which solution meets the requirement with the least effort?</p>
+    <ol type="A">
+      <li>Deploy an organization conformance pack with a managed Config rule and an automatic remediation action.</li>
+      <li>Turn on CloudTrail Insights in each account.</li>
+      <li>Create a CloudWatch alarm on bucket size.</li>
+      <li>Turn on VPC flow logs.</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> A conformance pack bundles rules and remediation, an organization pack deploys it to every account, and a managed rule already checks for public read access.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Yes — it detects, remediates, and deploys centrally.</td></tr>
+          <tr><td>B</td><td>No — Insights finds unusual API activity, not configuration problems.</td></tr>
+          <tr><td>C</td><td>No — bucket size says nothing about public access.</td></tr>
+          <tr><td>D</td><td>No — flow logs describe network traffic, not bucket permissions.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Evaluate resource configurations against compliance rules”<br>→ AWS Config rules.</p>
+    <p><strong>Trigger 2:</strong> “Automatically fix a non-compliant resource”<br>→ Config remediation with a Systems Manager Automation document.</p>
+    <p><strong>Trigger 3:</strong> “The same rules and fixes in every account of an organization”<br>→ Organization conformance pack (or StackSets).</p>
+    <p><strong>Trigger 4:</strong> “Prevent a non-compliant resource from being created”<br>→ Not a Config rule: use a preventive control such as an IAM policy.</p>
+    </div>
+
+  <div class="resources">
+    <h2>5.6 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/config/latest/developerguide/config-concepts.html" target="_blank" rel="noopener">AWS Config terminology and concepts</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/config/latest/developerguide/managed-rules-by-aws-config.html" target="_blank" rel="noopener">List of AWS Config managed rules</a></li>
+      <li><span class="rtype">Pricing</span><a href="https://aws.amazon.com/config/pricing/" target="_blank" rel="noopener">AWS Config pricing</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="where-it-fits" role="tabpanel" aria-labelledby="tab-6" tabindex="0">
+  <h1>6. Where It Fits</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart has to pass an audit in 90 days. The auditors give the team a list of 20 questions, such as who created a database, whether the invoice bucket was public last quarter, which instances have no tags, who started a Session Manager session on a production server, and whether CloudTrail itself is switched on in every Region.</p>
+    <p>The platform team already has pieces in place: CloudWatch logs and alarms from lesson 274.2, a GuardDuty setup from lesson 268.10, Systems Manager Automation from lesson 268.8, and CloudFormation drift checks from lesson 296.1. Nobody has mapped each audit question to the tool that answers it, or described how the pieces feed each other.</p>
+    <p>A new engineer also asks why Security Hub and Firewall Manager keep asking for AWS Config to be turned on.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Map each kind of audit question to CloudTrail, AWS Config, or another source.</li>
+      <li>Explain how CloudTrail and AWS Config work together on one resource.</li>
+      <li>Describe which earlier lessons receive data from CloudTrail and from AWS Config.</li>
+      <li>Explain why Security Hub and Firewall Manager need AWS Config.</li>
+      </ul>
+  </div>
+
+  <h2>6.1 The Map</h2>
+  <p>CloudTrail records API activity, and AWS Config records resource configuration. Each one feeds other services that you have already met.</p>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 385" role="img" aria-labelledby="t6a d6a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t6a">CloudTrail and AWS Config and the services that use their data</title>
+      <desc id="d6a">CloudTrail records API activity and AWS Config records resource configuration. CloudTrail data feeds Amazon S3 and Athena, CloudWatch Logs and alarms, EventBridge, and GuardDuty. Config data feeds EventBridge and SNS, Systems Manager Automation, Security Hub, and Firewall Manager.</desc>
+      <defs><marker id="ar6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="35" width="175" height="80" rx="8" class="s-box"/>
+      <text x="102" y="68" text-anchor="middle" class="s-b">API activity</text>
+      <text x="102" y="92" text-anchor="middle" class="s-m">who did what</text>
+      <line x1="190" y1="75" x2="248" y2="75" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="250" y="35" width="150" height="80" rx="8" class="s-hot"/>
+      <text x="325" y="68" text-anchor="middle" class="s-b">CloudTrail</text>
+      <text x="325" y="92" text-anchor="middle" class="s-m">the diary</text>
+      <rect x="15" y="215" width="175" height="80" rx="8" class="s-box"/>
+      <text x="102" y="248" text-anchor="middle" class="s-b">Resource</text>
+      <text x="102" y="272" text-anchor="middle" class="s-b">configuration</text>
+      <line x1="190" y1="255" x2="248" y2="255" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="250" y="215" width="150" height="80" rx="8" class="s-hot"/>
+      <text x="325" y="248" text-anchor="middle" class="s-b">AWS Config</text>
+      <text x="325" y="272" text-anchor="middle" class="s-m">the photo album</text>
+      <line x1="400" y1="75" x2="468" y2="34" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="470" y="10" width="235" height="48" rx="8" class="s-box"/>
+      <text x="587" y="31" text-anchor="middle" class="s-b">S3 and Athena</text>
+      <text x="587" y="50" text-anchor="middle" class="s-m">lesson 272.11</text>
+      <line x1="400" y1="75" x2="468" y2="94" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="470" y="70" width="235" height="48" rx="8" class="s-box"/>
+      <text x="587" y="91" text-anchor="middle" class="s-b">CloudWatch Logs, alarms</text>
+      <text x="587" y="110" text-anchor="middle" class="s-m">lesson 274.2</text>
+      <line x1="400" y1="75" x2="468" y2="154" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="470" y="130" width="235" height="48" rx="8" class="s-box"/>
+      <text x="587" y="151" text-anchor="middle" class="s-b">EventBridge, GuardDuty</text>
+      <text x="587" y="170" text-anchor="middle" class="s-m">lessons 273.3, 268.10</text>
+      <line x1="400" y1="255" x2="468" y2="224" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="470" y="200" width="235" height="48" rx="8" class="s-box"/>
+      <text x="587" y="221" text-anchor="middle" class="s-b">EventBridge, SNS</text>
+      <text x="587" y="240" text-anchor="middle" class="s-m">lesson 273.3</text>
+      <line x1="400" y1="255" x2="468" y2="284" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="470" y="260" width="235" height="48" rx="8" class="s-box"/>
+      <text x="587" y="281" text-anchor="middle" class="s-b">Systems Manager Automation</text>
+      <text x="587" y="300" text-anchor="middle" class="s-m">lesson 268.8</text>
+      <line x1="400" y1="255" x2="468" y2="344" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="470" y="320" width="235" height="48" rx="8" class="s-box"/>
+      <text x="587" y="341" text-anchor="middle" class="s-b">Security Hub</text>
+      <text x="587" y="360" text-anchor="middle" class="s-m">Firewall Manager, lesson 268.9</text>
+    </svg>
+    <figcaption>Image 6a — CloudTrail and AWS Config, and the services that use their data. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>6.2 Audit Questions and Their Source</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Audit question</th><th scope="col">Source</th><th scope="col">Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Who deleted the DynamoDB table?</td><td>CloudTrail management event</td><td>Lesson 272.3 covers DynamoDB.</td></tr>
+      <tr><td>Who created or deleted an Amazon RDS database?</td><td>CloudTrail management event</td><td>Lesson 272.1.</td></tr>
+      <tr><td>Who read this object in the invoice bucket?</td><td>CloudTrail data event, or the S3 server access log</td><td>Data events must be turned on in advance (lesson 271.2).</td></tr>
+      <tr><td>Who started a Session Manager session on a server?</td><td>CloudTrail</td><td>Session starts are recorded (lesson 269.5).</td></tr>
+      <tr><td>Was a security group open to the world on March 3?</td><td>AWS Config history</td><td>Tab 4.</td></tr>
+      <tr><td>Which security groups allow SSH from anywhere today?</td><td>AWS Config rule <code>restricted-ssh</code>, or an advanced query</td><td>Tab 5.</td></tr>
+      <tr><td>Which RDS databases are not Multi-AZ?</td><td>AWS Config rule <code>rds-multi-az-support</code></td><td>Lesson 272.1.</td></tr>
+      <tr><td>Is CloudTrail turned on in every Region?</td><td>AWS Config rule <code>multi-region-cloudtrail-enabled</code></td><td>The two services check each other.</td></tr>
+      <tr><td>Do all alarms have an action?</td><td>AWS Config rule <code>cloudwatch-alarm-action-check</code></td><td>Lesson 274.2, tab 6.</td></tr>
+      <tr><td>Has a CloudFormation stack drifted from its template?</td><td>CloudFormation drift detection, or the Config rule <code>cloudformation-stack-drift-detection-check</code></td><td>Lesson 296.1.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.3 How the Services Work Together</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">When this happens</th><th scope="col">This service takes over</th><th scope="col">Result</th></tr></thead>
+    <tbody>
+      <tr><td>A resource changes</td><td>The AWS Config timeline links the CloudTrail events that touched it</td><td>You see what changed and who changed it.</td></tr>
+      <tr><td>A rule finds a non-compliant resource</td><td>EventBridge, then Amazon SNS or Lambda</td><td>The team is notified or code runs.</td></tr>
+      <tr><td>A rule finds a non-compliant resource</td><td>Systems Manager Automation (lesson 268.8)</td><td>The resource is fixed automatically.</td></tr>
+      <tr><td>An API call is risky</td><td>EventBridge rule, or a CloudWatch Logs metric filter and alarm (lesson 274.2)</td><td>The team is alerted within minutes.</td></tr>
+      <tr><td>Security data from many services</td><td>GuardDuty reads CloudTrail (lesson 268.10), and Security Hub reads AWS Config (lesson 268.10)</td><td>Findings and compliance in one place.</td></tr>
+      </tbody>
+  </table></div>
+  <p>Metrics, logs, API activity, and configuration are four views of one environment. Tab 7 compares them.</p>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Two prerequisites appear in exam questions. AWS Security Hub and AWS Firewall Manager need AWS Config to be turned on, and AWS Config rules and conformance packs work only for resources that AWS Config records. Also, do not confuse S3 server access logs with CloudTrail data events: both can show object access, but only a trail’s data events appear in the CloudTrail tools.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>CloudTrail answers who did it. AWS Config answers what the resource looked like.</p>
+  </div>
+
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">Written for this course. This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A security group was changed to allow SSH from anywhere. The company wants to know which user made the change, and wants the next such change to be detected automatically. Which combination meets both needs?</p>
+    <ol type="A">
+      <li>CloudTrail to find the user, and an AWS Config rule such as restricted-ssh to detect the problem</li>
+      <li>CloudWatch metrics to find the user, and VPC flow logs to detect the problem</li>
+      <li>AWS X-Ray to find the user, and CloudTrail Insights to detect the problem</li>
+      <li>Amazon Athena to find the user, and an Amazon SNS topic to detect the problem</li>
+      </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: A.</strong> CloudTrail records the user who made the API call, and a Config rule evaluates the security group configuration.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Yes — the diary names the user, and the rule detects the open port.</td></tr>
+          <tr><td>B</td><td>No — metrics do not name a user, and flow logs do not evaluate configuration.</td></tr>
+          <tr><td>C</td><td>No — X-Ray traces requests, not API callers.</td></tr>
+          <tr><td>D</td><td>No — an SNS topic sends messages; it does not detect problems.</td></tr>
+          </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Who changed a resource, and when”<br>→ CloudTrail.</p>
+    <p><strong>Trigger 2:</strong> “Is a resource configured correctly right now”<br>→ AWS Config rule.</p>
+    <p><strong>Trigger 3:</strong> “Security Hub or Firewall Manager asks for a prerequisite”<br>→ Turn on AWS Config.</p>
+    <p><strong>Trigger 4:</strong> “Is CloudTrail itself turned on in every Region”<br>→ AWS Config rule multi-region-cloudtrail-enabled.</p>
+    </div>
+
+  <div class="resources">
+    <h2>6.4 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html" target="_blank" rel="noopener">What is AWS CloudTrail?</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/config/latest/developerguide/config-concepts.html" target="_blank" rel="noopener">AWS Config terminology and concepts</a></li>
+      </ul>
+  </div>
+</section>
+
+<section class="panel" id="comparison" role="tabpanel" aria-labelledby="tab-7" tabindex="0">
+  <h1>7. Comparison and Scenarios</h1>
+
+  <h2>7.1 Comparison Tables</h2>
+  <h3>7.1.1 CloudWatch, CloudTrail, AWS Config, and AWS X-Ray</h3>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Service</th><th scope="col">Question it answers</th><th scope="col">What it records</th><th scope="col">Example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Amazon CloudWatch</strong></td><td>How is it performing, and is something wrong now?</td><td>Metrics, logs, and alarms</td><td>CPU is at 95 percent</td></tr>
+      <tr><td><strong>AWS CloudTrail</strong></td><td>Who did what, when, and from where?</td><td>API calls and user activity</td><td>User X deleted table Y at 2:07 a.m.</td></tr>
+      <tr><td><strong>AWS Config</strong></td><td>How is it configured, and has that changed?</td><td>Resource configuration and compliance</td><td>The security group was open on March 3</td></tr>
+      <tr><td><strong>AWS X-Ray</strong></td><td>Where did a request spend its time?</td><td>Traces of requests across services</td><td>The payment call took 3 seconds</td></tr>
+      </tbody>
+  </table></div>
+
+  <h3>7.1.2 CloudTrail Event Types</h3>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Event type</th><th scope="col">Records</th><th scope="col">In a trail by default?</th></tr></thead>
+    <tbody>
+      <tr><td>Management</td><td>Control-plane actions</td><td>Yes</td></tr>
+      <tr><td>Data</td><td>Object-level and item-level actions</td><td>No — opt-in</td></tr>
+      <tr><td>Network activity</td><td>API calls through VPC endpoints</td><td>No — opt-in</td></tr>
+      <tr><td>Insights</td><td>Unusual activity in management events</td><td>No — opt-in</td></tr>
+      </tbody>
+  </table></div>
+
+  <h3>7.1.3 Ways to Keep and Analyze CloudTrail Events</h3>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Option</th><th scope="col">Covers</th><th scope="col">Retention</th><th scope="col">Query with</th></tr></thead>
+    <tbody>
+      <tr><td>Event history</td><td>Management events</td><td>90 days</td><td>The console</td></tr>
+      <tr><td>Trail to Amazon S3</td><td>Events you select</td><td>As long as the bucket keeps them</td><td>Amazon Athena</td></tr>
+      <tr><td>Trail to CloudWatch Logs</td><td>Events you select</td><td>Set on the log group</td><td>Logs Insights and metric filters</td></tr>
+      <tr><td>CloudTrail Lake</td><td>Events you select</td><td>Set on the event data store</td><td>SQL — closed to new customers</td></tr>
+      </tbody>
+  </table></div>
+
+  <h3>7.1.4 AWS Config Components</h3>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Component</th><th scope="col">Role</th></tr></thead>
+    <tbody>
+      <tr><td>Configuration recorder</td><td>Records resource changes in a Region</td></tr>
+      <tr><td>Configuration item</td><td>A record of one resource’s configuration at one moment</td></tr>
+      <tr><td>Config rule</td><td>A desired configuration that resources are evaluated against</td></tr>
+      <tr><td>Remediation action</td><td>A Systems Manager Automation document that fixes a non-compliant resource</td></tr>
+      <tr><td>Conformance pack</td><td>A deployable collection of rules and remediation actions</td></tr>
+      <tr><td>Aggregator</td><td>A multi-account, multi-Region view of configuration and compliance</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>7.2 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">#</th><th scope="col">If the question says...</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Who made an API call, or who deleted a resource</td><td>AWS CloudTrail</td></tr>
+      <tr><td>2</td><td>Last 90 days of management events with no setup</td><td>CloudTrail event history</td></tr>
+      <tr><td>3</td><td>Keep API history longer than 90 days</td><td>A trail that delivers to Amazon S3</td></tr>
+      <tr><td>4</td><td>Record S3 object-level reads or Lambda invocations</td><td>CloudTrail data events, turned on in a trail</td></tr>
+      <tr><td>5</td><td>API calls that travel through VPC endpoints</td><td>CloudTrail network activity events</td></tr>
+      <tr><td>6</td><td>Detect unusual API activity or error rates</td><td>CloudTrail Insights (management events)</td></tr>
+      <tr><td>7</td><td>Prove that CloudTrail log files were not modified</td><td>Log file integrity validation (digest files)</td></tr>
+      <tr><td>8</td><td>Cover all accounts of an organization with one trail</td><td>Organization trail</td></tr>
+      <tr><td>9</td><td>Query years of CloudTrail logs cheaply</td><td>Amazon S3 and Amazon Athena</td></tr>
+      <tr><td>10</td><td>Managed data lake for CloudTrail events</td><td>CloudTrail Lake, which is closed to new customers</td></tr>
+      <tr><td>11</td><td>React within minutes to a specific API call</td><td>EventBridge rule on the CloudTrail event</td></tr>
+      <tr><td>12</td><td>Alarm on API calls</td><td>Trail to CloudWatch Logs, then a metric filter and an alarm</td></tr>
+      <tr><td>13</td><td>How did a resource look on a past date</td><td>AWS Config configuration history</td></tr>
+      <tr><td>14</td><td>Is a resource compliant with a rule</td><td>AWS Config rule (managed or custom)</td></tr>
+      <tr><td>15</td><td>Automatically fix a non-compliant resource</td><td>Config remediation with Systems Manager Automation</td></tr>
+      <tr><td>16</td><td>Same Config rules in all accounts</td><td>Organization conformance pack, or StackSets</td></tr>
+      <tr><td>17</td><td>Query resource configuration across accounts and Regions</td><td>Config aggregator and advanced queries</td></tr>
+      <tr><td>18</td><td>Prevent a non-compliant resource from being created</td><td>Not a Config rule: use IAM or other preventive controls</td></tr>
+      <tr><td>19</td><td>Security Hub or Firewall Manager prerequisite</td><td>AWS Config turned on</td></tr>
+      <tr><td>20</td><td>Performance monitoring, dashboards, and alarms</td><td>Amazon CloudWatch</td></tr>
+      <tr><td>21</td><td>Trace a request across microservices</td><td>AWS X-Ray (lesson 274.6)</td></tr>
+      </tbody>
+  </table></div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Ask which question is being asked. How is it performing: CloudWatch. Who did it: CloudTrail. How is it configured: AWS Config. Where did the request slow down: X-Ray.</p>
+  </div>
+</section>
+
+<section class="panel" id="knowledge-check" role="tabpanel" aria-labelledby="tab-8" tabindex="0">
+  <h1>8. Knowledge Check</h1>
+  <p>Answer each question in your own words before you open the model answer.</p>
+  <ol class="kc-list">
+    <li>
+      <p class="q">Explain what CloudTrail event history is and what it does not cover.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Event history is a viewable, searchable, downloadable, and immutable record of the past 90 days of management events in a Region. It is available automatically and has no CloudTrail charge.</p><p>It does not cover data events, it does not go back further than 90 days, and it cannot be extended. To keep events longer or to log data events, you must create a trail.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Compare management events, data events, network activity events, and Insights events. Which of them does a trail log by default?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Management events record control-plane actions such as creating a bucket or an instance. Data events record object-level or item-level actions such as reading an S3 object. Network activity events record API calls through VPC endpoints. Insights events record unusual activity found by analyzing management events.</p><p>A trail logs management events by default. Data events, network activity events, and Insights events must be turned on, and they are charged.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">FlashCart must keep every API call for seven years and prove that the records were not changed. Describe the setup.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Create a multi-Region trail, or an organization trail for many accounts, that delivers to an Amazon S3 bucket. Turn on log file integrity validation so that CloudTrail delivers signed digest files, and check the logs with the validate-logs command.</p><p>Encrypt the files with an AWS KMS key if the key must be controlled, restrict who can delete them, and use S3 lifecycle rules to control cost over the seven years.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">A new team asks to use CloudTrail Lake for analysis. What do you tell them?</p>
+      <details><summary>Show the model answer</summary>
+        <p>AWS CloudTrail Lake stopped being open to new customers on May 31, 2026. Existing customers can continue to use it, but it receives only critical fixes.</p><p>For a new setup, deliver the trail to Amazon S3 and query it with Amazon Athena, or deliver it to CloudWatch Logs and use Logs Insights. AWS recommends CloudWatch for capabilities similar to CloudTrail Lake.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Design two ways to be told within minutes when someone deletes a DynamoDB table.</p>
+      <details><summary>Show the model answer</summary>
+        <p>The first way is an EventBridge rule that matches the DeleteTable call recorded by CloudTrail, with an Amazon SNS topic as the target.</p><p>The second way is to deliver the trail to CloudWatch Logs, create a metric filter for the DeleteTable event, and create an alarm on the metric that notifies an SNS topic.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">For each question, say whether CloudTrail or AWS Config answers it: who changed a security group, and how that security group looked on a past date.</p>
+      <details><summary>Show the model answer</summary>
+        <p>CloudTrail answers who changed the security group, because it records the API call, the user, and the source address. AWS Config answers how the security group looked on a past date, because it keeps configuration history.</p><p>The AWS Config timeline also links the CloudTrail events that touched a resource, so the two answers connect.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Describe how Config rules, evaluation modes, and remediation work together. Can a rule stop an action?</p>
+      <details><summary>Show the model answer</summary>
+        <p>A Config rule evaluates resources against a desired configuration and marks them compliant or non-compliant. It can run when a configuration changes or periodically. Detective evaluation checks resources that exist, and proactive evaluation checks them before deployment.</p><p>A non-compliant result can start remediation, which runs a Systems Manager Automation document, with retries if needed. A rule reports a problem and does not deny the action, so use IAM or other preventive controls to stop it.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Design the audit and compliance setup for 14 accounts and two Regions. Include CloudTrail, AWS Config, storage, alerts, and automatic fixes.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Create an organization trail that is multi-Region, with log file validation, delivering to a central Amazon S3 bucket and to CloudWatch Logs. Use Athena for old records, and use EventBridge rules, or metric filters and alarms, for alerts on risky API calls. Turn on CloudTrail Insights for unusual activity.</p><p>Turn on AWS Config in each account and Region, collect it in an aggregator, and deploy an organization conformance pack with managed rules and automatic remediation through Systems Manager Automation. Route non-compliance events through EventBridge to the team’s notification tool.</p>
+      </details>
+    </li>
+  </ol>
+</section>
+
+    <footer>
+      <p>Copyright © 2026 Per Scholas. All rights reserved.</p>
+      <p>Sources: AWS documentation; content paraphrased from course slides by Stephane Maarek and by Chetan Agrawal. Diagrams are original to this course.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  var panels = tabs.map(function (t) { return document.getElementById(t.getAttribute('aria-controls')); });
+  var live = document.getElementById('live');
+  var current = 0;
+
+  function label(i) { return tabs[i].textContent.trim(); }
+
+  function show(i, opts) {
+    opts = opts || {};
+    if (i < 0 || i >= tabs.length) { return; }
+    current = i;
+    tabs.forEach(function (t, k) {
+      var on = k === i;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.setAttribute('tabindex', on ? '0' : '-1');
+      panels[k].classList.toggle('active', on);
+    });
+    if (!opts.keepScroll) { window.scrollTo(0, 0); }
+    if (opts.focusTab) { tabs[i].focus(); }
+    if (opts.focusHeading) {
+      var h = panels[i].querySelector('h1');
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    }
+    if (opts.updateHash) {
+      try { history.replaceState(null, '', '#' + panels[i].id); } catch (e) {}
+    }
+    if (live) {
+      live.textContent = '';
+      setTimeout(function () { live.textContent = 'Tab ' + (i + 1) + ' of ' + tabs.length + ': ' + label(i); }, 50);
+    }
+  }
+
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { show(i, { updateHash: true }); });
+    t.addEventListener('keydown', function (e) {
+      var n = null;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { n = (i + 1) % tabs.length; }
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { n = (i - 1 + tabs.length) % tabs.length; }
+      else if (e.key === 'Home') { n = 0; }
+      else if (e.key === 'End') { n = tabs.length - 1; }
+      if (n !== null) { e.preventDefault(); show(n, { focusTab: true, updateHash: true, keepScroll: true }); }
+    });
+  });
+
+  panels.forEach(function (p, i) {
+    var nav = document.createElement('div');
+    nav.className = 'panel-nav';
+    var prev = document.createElement('button');
+    var next = document.createElement('button');
+    prev.type = 'button'; next.type = 'button';
+    if (i > 0) {
+      prev.textContent = '\u2190 Previous: ' + label(i - 1);
+      prev.addEventListener('click', function () { show(i - 1, { updateHash: true, focusHeading: true }); });
+    } else { prev.style.visibility = 'hidden'; prev.setAttribute('aria-hidden', 'true'); prev.tabIndex = -1; }
+    if (i < panels.length - 1) {
+      next.textContent = 'Next: ' + label(i + 1) + ' \u2192';
+      next.addEventListener('click', function () { show(i + 1, { updateHash: true, focusHeading: true }); });
+    } else { next.style.visibility = 'hidden'; next.setAttribute('aria-hidden', 'true'); next.tabIndex = -1; }
+    nav.appendChild(prev); nav.appendChild(next);
+    p.appendChild(nav);
+  });
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) { return; }
+    var id = a.getAttribute('href').slice(1);
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { e.preventDefault(); show(idx, { updateHash: true, focusHeading: true }); }
+  });
+
+  function fromHash() {
+    var id = window.location.hash.replace('#', '');
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { show(idx, { keepScroll: true }); }
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+</body>
+</html>

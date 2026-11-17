@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 274.1 - CloudWatch Metrics, Agent, and Dashboards</title>
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: light;
+    --page-bg: #ffffff;
+    --text: #1c2733;
+    --muted: #4f5b67;
+    --rule: #d5dce3;
+    --card: #f4f7fa;
+    --card-border: #ccd3da;
+    --hover: #ccd3da;
+    --h1: #611940;
+    --h3: #7a2455;
+    --link: #611940;
+    --code-bg: #f5f7f9;
+    --table-alt: #f6f8fa;
+    --problem-bg: #ffeef7;
+    --problem-bar: #611940;
+    --warn-bg: #fdf3e7;
+    --warn-bar: #c26a00;
+    --exam-bg: #eaf6ee;
+    --exam-bar: #2e7d4f;
+    --tip-bg: #e5fe77;
+    --tip-bar: #7a8f00;
+    --q-bg: #f7eef3;
+    --q-border: #611940;
+    --svg-box: #f7eef3;
+    --svg-stroke: #611940;
+    --svg-hot: #d9f6fd;
+    --svg-hot-stroke: #611940;
+    --focus: #611940;
+    --h2: #000000;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+      --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+      --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+      --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+      --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+      --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+      --focus: #71e2fd;
+      --h2: #ffffff;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-bg: #12171c; --text: #e6ebf0; --muted: #aeb9c4; --rule: #34414d;
+    --card: #1a222a; --card-border: #3a4855; --hover: #2a3541;
+    --h1: #f0b8d6; --h3: #f5c8df; --link: #f0b8d6; --code-bg: #1d262f; --table-alt: #171e25;
+    --problem-bg: #35182b; --problem-bar: #b5568a; --warn-bg: #35280f; --warn-bar: #e08a00;
+    --exam-bg: #12301e; --exam-bar: #4caf78; --q-bg: #2a1824; --q-border: #b5568a;
+    --svg-box: #2e1a28; --svg-stroke: #f0b8d6; --svg-hot: #123845; --svg-hot-stroke: #71e2fd;
+    --focus: #71e2fd;
+    --h2: #ffffff;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+  *, *::before, *::after { box-sizing: inherit; line-height: 1.5; }
+  body {
+    margin: 0; background: var(--page-bg); color: var(--text);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 17px;
+  }
+  .layout { display: flex; align-items: flex-start; max-width: 1280px; margin: 0 auto; padding: 28px 20px 60px; }
+  .side-wrap { width: 270px; flex: none; margin-right: 28px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); overflow-y: auto; }
+  .sidebar { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px; }
+  .tab-btn {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    border-left: 5px solid transparent; border-radius: 6px; padding: 10px 12px; margin: 0 0 2px;
+    font: inherit; font-size: 15px; color: var(--text); cursor: pointer;
+  }
+  .tab-btn:hover { background: var(--hover); }
+  .tab-btn[aria-selected="true"] { background: #611940; color: #ffffff; font-weight: 700; border-left-color: #71E2FD; }
+  .tab-btn:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible, .panel:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .content { flex: 1; min-width: 0; max-width: 900px; }
+  .brand { display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; margin: 0 0 14px; }
+  .brand img { display: block; width: 230px; max-width: 100%; height: auto; }
+  .page-title { color: var(--h2); font-size: 2.8rem; font-weight: 700; margin: 0 0 8px; }
+  .page-sub { color: var(--muted); font-size: 1.05rem; margin: 0 0 26px; max-width: 70ch; }
+  .js .panel { display: none; }
+  .js .panel.active { display: block; }
+  .panel { margin-bottom: 40px; }
+  .js .panel { margin-bottom: 0; }
+  .panel h1 { color: var(--h1); font-size: 2.35rem; font-weight: 700; margin: 6px 0 12px; }
+  h2 { color: var(--h2); font-size: 35px; font-weight: 700; margin: 34px 0 10px; }
+  h3 { color: var(--h3); font-size: 1.45rem; font-weight: 700; margin: 24px 0 8px; }
+  h4 { color: var(--h3); font-size: 1.15rem; font-weight: 700; margin: 18px 0 6px; }
+  p { margin: 0 0 14px; max-width: 76ch; }
+  ul, ol { margin: 0 0 16px; padding-left: 26px; max-width: 76ch; }
+  li { margin-bottom: 6px; }
+  a { color: var(--link); }
+  code { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 0.88em; }
+  pre.flowcode { background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 14.5px; overflow-x: auto; margin: 6px 0 18px; white-space: pre; }
+  .table-scroll { overflow-x: auto; margin: 6px 0 22px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15.5px; }
+  th, td { border: 1px solid var(--rule); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #611940; color: #ffffff; font-weight: 600; border-color: #611940; }
+  tbody tr:nth-child(even) { background: var(--table-alt); }
+  .wide table { min-width: 860px; }
+  .callout { border-left: 5px solid; border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 22px 0; max-width: 880px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .label { font-weight: 700; display: block; margin-bottom: 6px; }
+  .tip { background: var(--tip-bg); border-color: var(--tip-bar); color: #1c2733; }
+  .tip a { color: #611940; }
+  .warn { background: var(--warn-bg); border-color: var(--warn-bar); }
+  .exam { background: var(--exam-bg); border-color: var(--exam-bar); }
+  .problem { border-left: 6px solid var(--problem-bar); background: var(--problem-bg); border-radius: 0 12px 12px 0; padding: 22px 25px; margin: 28px 0; }
+  .problem h2.ps-heading { font-size: 1.35rem; margin: 0 0 8px; }
+  .problem p:last-child { margin-bottom: 0; }
+  .overview-box { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 24px 14px; margin: 0 0 24px; }
+  .overview-box h2 { margin-top: 20px; }
+  figure.diagram { margin: 14px 0 26px; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 14px 8px; overflow-x: auto; background: var(--card); }
+  figure.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
+  figure.diagram figcaption { color: var(--muted); font-size: 14.5px; padding: 8px 4px 6px; }
+  .s-box { fill: var(--svg-box); stroke: var(--svg-stroke); stroke-width: 1.5; }
+  .s-hot { fill: var(--svg-hot); stroke: var(--svg-hot-stroke); stroke-width: 1.5; }
+  .s-line { stroke: var(--svg-stroke); stroke-width: 2; fill: none; }
+  .s-mark { fill: var(--svg-stroke); }
+  .s-t { fill: var(--text); font-size: 14.5px; }
+  .s-b { fill: var(--text); font-size: 15px; font-weight: 700; }
+  .s-m { fill: var(--muted); font-size: 13.5px; }
+  .exam-question { background: var(--q-bg); border: 2px solid var(--q-border); border-radius: 8px; padding: 16px 22px; margin: 22px 0; max-width: 880px; }
+  .exam-question .label { font-weight: 700; margin-bottom: 2px; }
+  .exam-question .note { color: var(--muted); font-size: 14.5px; }
+  .exam-question details { border-top: 1px solid var(--rule); margin-top: 12px; padding-top: 10px; }
+  .exam-question summary, .kc-list summary { cursor: pointer; font-weight: 700; color: var(--link); }
+  .lab-box { border: 2px dashed #333333; background: #fdf3d7; color: #1c2733; border-radius: 4px; padding: 20px 24px 18px; margin: 30px 0 0; max-width: 880px; }
+  .lab-box .lab-title { text-align: center; color: #611940; font-size: 1.9rem; font-weight: 700; margin: 0 0 16px; }
+  .lab-box .lab-sub { color: #611940; font-weight: 700; font-size: 1.2rem; margin: 0 0 6px; }
+  .lab-box a.lab-link { color: #611940; font-weight: 700; text-decoration: underline; }
+  .lab-expect { border: 1.5px solid #333333; background: #ffffff; color: #1c2733; border-radius: 4px; padding: 14px 24px; margin: 0 0 26px; max-width: 880px; }
+  .lab-expect p:last-child { margin-bottom: 0; }
+  .lab-expect a { color: #611940; font-weight: 700; }
+  .resources ul { list-style: none; padding-left: 0; }
+  .rtype { display: inline-block; font-size: 13px; font-weight: 700; color: #ffffff; background: #611940; border-radius: 4px; padding: 1px 8px; margin-right: 8px; }
+  .kc-list { list-style: none; padding-left: 0; max-width: none; counter-reset: kc; }
+  .kc-list > li { counter-increment: kc; border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px; margin-bottom: 14px; }
+  .kc-list .q { font-weight: 600; margin-bottom: 8px; }
+  .kc-list .q::before { content: "Question " counter(kc) ". "; color: var(--h1); }
+  .kc-list details { background: var(--exam-bg); border-left: 4px solid var(--exam-bar); border-radius: 0 6px 6px 0; padding: 10px 14px; }
+  .kc-list details p:first-of-type { margin-top: 10px; }
+  .panel-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .panel-nav button { background: var(--card); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 16px; font: inherit; font-size: 15px; font-weight: 600; color: var(--link); cursor: pointer; max-width: 48%; text-align: left; }
+  .panel-nav button:hover { background: var(--hover); }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 2px solid var(--rule); color: var(--muted); font-size: 14.5px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 900px) {
+    .layout { display: block; padding: 16px 14px 50px; }
+    .side-wrap { width: 100%; margin: 0 0 24px; position: static; max-height: none; overflow: visible; }
+    .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .tab-btn { margin: 0; }
+    h2 { font-size: 1.4rem; }
+    .page-title { font-size: 2.15rem; }
+    .panel h1 { font-size: 1.85rem; }
+    h3 { font-size: 1.28rem; }
+  }
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .sidebar { grid-template-columns: 1fr; }
+    .lab-box { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="side-wrap" aria-label="Lesson navigation">
+    <div class="sidebar" role="tablist" aria-orientation="vertical" aria-label="Lesson tabs">
+      <button class="tab-btn" role="tab" id="tab-0" aria-controls="overview" aria-selected="true" tabindex="0">Overview and Objectives</button>
+      <button class="tab-btn" role="tab" id="tab-1" aria-controls="metrics-fundamentals" aria-selected="false" tabindex="-1">1. Metrics Fundamentals</button>
+      <button class="tab-btn" role="tab" id="tab-2" aria-controls="monitoring-resolution" aria-selected="false" tabindex="-1">2. Basic, Detailed, and High-Resolution Monitoring</button>
+      <button class="tab-btn" role="tab" id="tab-3" aria-controls="custom-metrics" aria-selected="false" tabindex="-1">3. Custom Metrics, Metric Math, and Metric Streams</button>
+      <button class="tab-btn" role="tab" id="tab-4" aria-controls="agent" aria-selected="false" tabindex="-1">4. CloudWatch Agent</button>
+      <button class="tab-btn" role="tab" id="tab-5" aria-controls="dashboards" aria-selected="false" tabindex="-1">5. Dashboards</button>
+      <button class="tab-btn" role="tab" id="tab-6" aria-controls="where-it-fits" aria-selected="false" tabindex="-1">6. Where CloudWatch Metrics Fit Across AWS Services</button>
+      <button class="tab-btn" role="tab" id="tab-7" aria-controls="comparison" aria-selected="false" tabindex="-1">7. Comparison and Scenarios</button>
+      <button class="tab-btn" role="tab" id="tab-8" aria-controls="knowledge-check" aria-selected="false" tabindex="-1">8. Knowledge Check</button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo." width="230" height="33"></div>
+    <h1 class="page-title" style="border:none;padding:0;">CloudWatch Metrics, Agent, and Dashboards</h1>
+    <p class="page-sub">How Amazon CloudWatch structures, stores, and displays metrics: monitoring intervals, custom metrics, metric math, Metric Streams, the CloudWatch agent for memory and disk data, dashboards, and the metrics that each AWS service publishes.</p>
+    <div class="sr-only" id="live" aria-live="polite"></div>
+
+<!-- ===================== TAB 0 ===================== -->
+<section class="panel active" id="overview" role="tabpanel" aria-labelledby="tab-0" tabindex="0">
+
+  <div class="overview-box">
+    <h2>Lesson Overview</h2>
+    <p>This lesson introduces metrics, the foundation of monitoring on Amazon Web Services (AWS). It is the first lesson of Module 274 and prepares you for logs and alarms (lesson 274.2). In this lesson, you will study:</p>
+    <ul>
+      <li><strong>Metrics Fundamentals:</strong> namespaces, metrics, dimensions, data points, statistics, periods, and the Regional scope of metrics.</li>
+      <li><strong>Basic, Detailed, and High-Resolution Monitoring:</strong> how often metrics arrive, how long CloudWatch keeps them, and what each option costs you in detail.</li>
+      <li><strong>Custom Metrics, Metric Math, and Metric Streams:</strong> publishing your own data, calculating new values from existing metrics, and streaming metrics out of CloudWatch.</li>
+      <li><strong>CloudWatch Agent:</strong> collecting memory, disk, and other operating system metrics that Amazon Elastic Compute Cloud (Amazon EC2) does not report by default.</li>
+      <li><strong>Dashboards:</strong> automatic and custom dashboards, cross-Region and cross-account views, and sharing.</li>
+      <li><strong>Where CloudWatch Metrics Fit Across AWS Services:</strong> which metrics each AWS service publishes, with detail on Amazon Elastic Block Store (Amazon EBS) volumes and load balancers, and which AWS features use them.</li>
+      <li><strong>Comparison and Scenarios:</strong> comparison tables and a cheat sheet for the AWS Certified Solutions Architect – Associate (SAA-C03) exam.</li>
+      <li><strong>Knowledge Check:</strong> open-ended questions with model answers.</li>
+    </ul>
+  </div>
+
+  <div class="overview-box">
+    <h2>Learning Objectives</h2>
+    <p>By the end of this lesson, you will be able to:</p>
+    <ol>
+      <li><strong>Define</strong> namespace, metric, dimension, data point, statistic, and period.</li>
+      <li><strong>Describe</strong> how long CloudWatch retains metric data at each resolution.</li>
+      <li><strong>Explain</strong> why Amazon EC2 does not report memory and disk space usage by default.</li>
+      <li><strong>Compare</strong> basic monitoring, detailed monitoring, and high-resolution custom metrics.</li>
+      <li><strong>Apply</strong> metric math to calculate a new value, such as an error rate, from existing metrics.</li>
+      <li><strong>Configure</strong> the CloudWatch agent, its AWS Identity and Access Management (IAM) role, and its configuration file to publish memory and disk metrics.</li>
+      <li><strong>Differentiate</strong> the services that publish metrics by default from those that need a setting turned on.</li>
+      <li><strong>Evaluate</strong> whether a requirement needs a custom metric, the CloudWatch agent, or a metric stream.</li>
+      <li><strong>Design</strong> a metrics collection and dashboard plan for a workload that spans several services, Regions, and accounts.</li>
+    </ol>
+  </div>
+
+  <div class="overview-box">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#metrics-fundamentals">Metrics Fundamentals</a></li>
+      <li><a href="#monitoring-resolution">Basic, Detailed, and High-Resolution Monitoring</a></li>
+      <li><a href="#custom-metrics">Custom Metrics, Metric Math, and Metric Streams</a></li>
+      <li><a href="#agent">CloudWatch Agent</a></li>
+      <li><a href="#dashboards">Dashboards</a></li>
+      <li><a href="#where-it-fits">Where CloudWatch Metrics Fit Across AWS Services</a></li>
+      <li><a href="#comparison">Comparison and Scenarios</a></li>
+      <li><a href="#knowledge-check">Knowledge Check</a></li>
+    </ol>
+  </div>
+  <div class="overview-box">
+    <h2>Acronyms and Terminology</h2>
+    <div class="table-scroll"><table>
+      <thead><tr><th scope="col">Acronym</th><th scope="col">Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>API</td><td>Application programming interface</td></tr>
+        <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+        <tr><td>CLI</td><td>Command Line Interface</td></tr>
+        <tr><td>CPU</td><td>Central processing unit</td></tr>
+        <tr><td>EBS</td><td>Amazon Elastic Block Store</td></tr>
+        <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+        <tr><td>ECS</td><td>Amazon Elastic Container Service</td></tr>
+        <tr><td>ELB</td><td>Elastic Load Balancing</td></tr>
+        <tr><td>GLAB</td><td>Guided lab</td></tr>
+        <tr><td>HTTP</td><td>Hypertext Transfer Protocol</td></tr>
+        <tr><td>IAM</td><td>AWS Identity and Access Management</td></tr>
+        <tr><td>JSON</td><td>JavaScript Object Notation</td></tr>
+        <tr><td>NAT</td><td>Network address translation</td></tr>
+        <tr><td>PA</td><td>Practice assignment</td></tr>
+        <tr><td>RDS</td><td>Amazon Relational Database Service</td></tr>
+        <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
+        <tr><td>SAA-C03</td><td>Exam code of the AWS Certified Solutions Architect – Associate exam</td></tr>
+        <tr><td>SDK</td><td>Software development kit</td></tr>
+        <tr><td>SQS</td><td>Amazon Simple Queue Service</td></tr>
+        <tr><td>TCP</td><td>Transmission Control Protocol</td></tr>
+        <tr><td>UDP</td><td>User Datagram Protocol</td></tr>
+        <tr><td>URL</td><td>Uniform Resource Locator</td></tr>
+        <tr><td>UTC</td><td>Coordinated Universal Time</td></tr>
+        <tr><td>VPC</td><td>Amazon Virtual Private Cloud</td></tr>
+        <tr><td>VPN</td><td>Virtual private network</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+</section>
+
+<!-- ===================== TAB 1 ===================== -->
+<section class="panel" id="metrics-fundamentals" role="tabpanel" aria-labelledby="tab-1" tabindex="0">
+  <h1>1. Metrics Fundamentals</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart Inc. runs its online store on six Amazon EC2 instances behind an Application Load Balancer (lesson 270.2) on a normal day, and Auto Scaling (lesson 270.4) grows the group to 40 instances during a flash sale. During the last sale, page response time rose from about 300 milliseconds to more than four seconds for 35 minutes.</p>
+    <p>On the incident call, the operations manager asked two questions: “Which instance is struggling?” and “How do we know?” Three engineers answered in three different ways. One looked at the Auto Scaling group, one looked at the load balancer, and one logged in to an instance and ran a command. None of them could say where the data came from, how it was organized, or how long CloudWatch keeps it.</p>
+    <p>A new engineer then asks two more questions. Why does a CPUUtilization graph for the second Region show nothing for the instances in the first Region? And why does a custom CheckoutLatency metric that she published with two dimensions return no data when she asks for only one of them?</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Describe how CloudWatch identifies a metric, using the terms namespace, name, and dimension.</li>
+      <li>Explain why the custom metric returns no data when only one dimension is requested.</li>
+      <li>Explain why metrics from one Region do not appear in another.</li>
+      <li>Choose a statistic that shows an unusually heavy instance without one spike distorting the result.</li>
+      </ul>
+  </div>
+
+  <h2>1.1 What Amazon CloudWatch Does</h2>
+  <p>Amazon CloudWatch collects monitoring data from AWS resources and applications. It works with metrics (numbers measured over time), logs (text records), and alarms (actions that depend on a metric). This lesson covers metrics, the CloudWatch agent, and dashboards. Logs and alarms are covered in lesson 274.2. To follow one request across several services, use AWS X-Ray (lesson 274.6).</p>
+  <p>CloudWatch works as a metrics repository. An AWS service, an agent, or your own application puts data points into the repository, and you retrieve statistics about those data points.</p>
+
+  <h2>1.2 Metric Building Blocks</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Term</th><th scope="col">Meaning</th><th scope="col">Example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Namespace</strong></td><td>A container for metrics. Metrics in different namespaces are isolated from each other, and there is no default namespace. AWS services use the pattern <code>AWS/service</code>.</td><td><code>AWS/EC2</code>, or a custom name such as <code>FlashCart/Checkout</code></td></tr>
+      <tr><td><strong>Metric</strong></td><td>A time-ordered set of data points for one variable to monitor. A metric is defined by its name, its namespace, and zero or more dimensions.</td><td><code>CPUUtilization</code></td></tr>
+      <tr><td><strong>Dimension</strong></td><td>A name and value pair that is part of a metric’s identity. You can assign up to 30 dimensions to a metric.</td><td><code>InstanceId</code> = <code>i-0a12b3c4</code></td></tr>
+      <tr><td><strong>Data point</strong></td><td>One measurement, with a timestamp, a value, and optionally a unit.</td><td>10:05, 23.1, Percent</td></tr>
+      <tr><td><strong>Unit</strong></td><td>The unit of measure. CloudWatch uses <code>None</code> when you do not specify one.</td><td>Bytes, Seconds, Count, Percent</td></tr>
+      <tr><td><strong>Statistic</strong></td><td>An aggregation of data points over a period.</td><td>Average, Maximum, p95</td></tr>
+      <tr><td><strong>Period</strong></td><td>The length of time that one statistic covers.</td><td>60 seconds, 300 seconds</td></tr>
+    </tbody>
+  </table></div>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 720 255" role="img" aria-labelledby="t1a d1a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t1a">Anatomy of a CloudWatch metric</title>
+      <desc id="d1a">A namespace, a metric name, and a dimension together identify one metric. The metric holds data points, each with a time and a value.</desc>
+      <defs><marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="25" width="160" height="90" rx="8" class="s-box"/>
+      <text x="95" y="55" text-anchor="middle" class="s-m">Namespace</text>
+      <text x="95" y="88" text-anchor="middle" class="s-b">AWS/EC2</text>
+      <line x1="175" y1="70" x2="203" y2="70" class="s-line" marker-end="url(#ar1)"/>
+      <rect x="205" y="25" width="160" height="90" rx="8" class="s-box"/>
+      <text x="285" y="55" text-anchor="middle" class="s-m">Metric name</text>
+      <text x="285" y="88" text-anchor="middle" class="s-b">CPUUtilization</text>
+      <line x1="365" y1="70" x2="393" y2="70" class="s-line" marker-end="url(#ar1)"/>
+      <rect x="395" y="25" width="170" height="90" rx="8" class="s-box"/>
+      <text x="480" y="52" text-anchor="middle" class="s-m">Dimension</text>
+      <text x="480" y="76" text-anchor="middle" class="s-b">InstanceId =</text>
+      <text x="480" y="98" text-anchor="middle" class="s-b">i-0a12b3c4</text>
+      <line x1="565" y1="70" x2="593" y2="70" class="s-line" marker-end="url(#ar1)"/>
+      <rect x="595" y="25" width="110" height="90" rx="8" class="s-hot"/>
+      <text x="650" y="55" text-anchor="middle" class="s-m">Data points</text>
+      <text x="650" y="88" text-anchor="middle" class="s-b">time, value</text>
+      <path d="M15 128 V140 H565 V128" class="s-line"/>
+      <text x="290" y="164" text-anchor="middle" class="s-t">These three parts identify one metric</text>
+      <rect x="595" y="128" width="110" height="28" rx="4" class="s-hot"/>
+      <text x="650" y="147" text-anchor="middle" class="s-t">10:00, 21.5</text>
+      <rect x="595" y="160" width="110" height="28" rx="4" class="s-hot"/>
+      <text x="650" y="179" text-anchor="middle" class="s-t">10:05, 23.1</text>
+      <rect x="595" y="192" width="110" height="28" rx="4" class="s-hot"/>
+      <text x="650" y="211" text-anchor="middle" class="s-t">10:10, 78.4</text>
+      <text x="650" y="242" text-anchor="middle" class="s-m">Unit: Percent</text>
+      <text x="15" y="214" class="s-t">A data point holds a timestamp, a value,</text>
+      <text x="15" y="236" class="s-t">and an optional unit.</text>
+    </svg>
+    <figcaption>Image 1a — The parts of a CloudWatch metric. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h3>1.2.1 How Dimensions Work</h3>
+  <p>Dimensions follow these rules:</p>
+  <ul>
+    <li>Each unique combination of dimensions is a separate metric, even when the metric name is the same.</li>
+    <li>You can retrieve statistics only for dimension combinations that were published.</li>
+    <li>For some AWS service metrics, such as Amazon EC2, CloudWatch can aggregate across dimensions. A request for <code>CPUUtilization</code> in <code>AWS/EC2</code> with no dimensions returns an aggregate across instances.</li>
+    <li>CloudWatch does not aggregate across dimensions for custom metrics.</li>
+  </ul>
+  <p>For example, FlashCart publishes a custom metric named <code>CheckoutLatency</code> with the dimensions <code>Service</code> and <code>Stage</code>. The four combinations it publishes are Payments and Prod, Payments and Beta, Cart and Prod, and Cart and Beta.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Statistics request</th><th scope="col">Result</th></tr></thead>
+    <tbody>
+      <tr><td>Service = Payments and Stage = Prod</td><td>Returns data, because this combination was published.</td></tr>
+      <tr><td>Service = Payments only</td><td>Returns no data, because this combination was never published.</td></tr>
+      <tr><td>No dimensions</td><td>Returns no data, because this combination was never published.</td></tr>
+    </tbody>
+  </table></div>
+  <p>The metric math <code>SEARCH</code> function is the exception. It can find and return several metrics at once (tab 3).</p>
+
+  <h2>1.3 Statistics, Units, and Periods</h2>
+  <p>CloudWatch supports these statistics:</p>
+  <ul>
+    <li>Sum, the total of the values in the period.</li>
+    <li>Average, the mean of the values in the period.</li>
+    <li>Minimum and Maximum, the lowest and highest values.</li>
+    <li>SampleCount, the number of data points in the period.</li>
+    <li>Percentiles, such as p95.</li>
+  </ul>
+  <p>Not every statistic is meaningful for every metric. For example, <code>CPUUtilization</code> in Amazon EC2 is meant to be read with Average, Minimum, and Maximum.</p>
+  <h3>1.3.1 Why Percentiles Matter</h3>
+  <p>The 95th percentile means that 95 percent of the values are lower than the result and 5 percent are higher. An average can hide an unusually heavy instance, while a maximum can be skewed by one spike. A percentile such as p95 shows how the load is distributed. Some service metrics support percentiles, including metrics from Amazon EC2, AWS Lambda, Amazon Relational Database Service (Amazon RDS), and Elastic Load Balancing. Percentiles are not available for a metric when any of its values is negative.</p>
+  <h3>1.3.2 Periods and Units</h3>
+  <ul>
+    <li>The default period is 60 seconds.</li>
+    <li>Valid periods are 1, 5, 10, 30, or any multiple of 60 seconds. A period longer than 60 seconds must be a multiple of 60.</li>
+    <li>Only custom metrics stored at one-second resolution support sub-minute periods (tab 2).</li>
+    <li>Data points that use different units are aggregated separately. If two identical metrics use different units, CloudWatch returns two data streams.</li>
+  </ul>
+
+  <h2>1.4 Scope, Timestamps, and Expiry</h2>
+  <ul>
+    <li>Metrics exist only in the AWS Region where they are created. CloudWatch does not aggregate data across Regions automatically. Metric math (tab 3) and dashboards (tab 5) can combine metrics from different Regions.</li>
+    <li>You cannot delete metrics. A metric expires on its own after 15 months if no new data is published to it.</li>
+    <li>Each data point needs a timestamp. The timestamp can be up to two weeks in the past and up to two hours in the future. If you omit it, CloudWatch uses the time of receipt. Use Coordinated Universal Time (UTC).</li>
+    <li>Metrics with no new data for two weeks do not appear in the console. Retrieve them with the <code>get-metric-data</code> or <code>get-metric-statistics</code> commands in the AWS Command Line Interface (AWS CLI).</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Metrics are Regional and cannot be deleted. A question that asks you to “remove old metrics” has no deletion answer. The data expires by itself, 15 months after the last data point.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>A metric is its namespace, its name, and its dimensions. Change any one of the three, and you have a different metric.</p>
+  </div>
+
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Keep metrics from different applications from being mixed in the same statistics”<br>→ Use separate namespaces.</p>
+    <p><strong>Trigger 2:</strong> “Look at the metric for one specific instance”<br>→ Filter by the InstanceId dimension.</p>
+    <p><strong>Trigger 3:</strong> “Detect unusually heavy load without one spike skewing the result”<br>→ Use a percentile statistic such as p95.</p>
+    <p><strong>Trigger 4:</strong> “Metrics from another Region do not show up”<br>→ Metrics are Regional. Use a dashboard or metric math across Regions (tabs 3 and 5).</p>
+  </div>
+
+  <div class="resources">
+    <h2>1.5 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html" target="_blank" rel="noopener">Amazon CloudWatch metrics concepts</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Statistics-definitions.html" target="_blank" rel="noopener">CloudWatch statistics definitions</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== TAB 2 ===================== -->
+<section class="panel" id="monitoring-resolution" role="tabpanel" aria-labelledby="tab-2" tabindex="0">
+  <h1>2. Basic, Detailed, and High-Resolution Monitoring</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>The sale creates a traffic spike that lasts about three minutes, when a popular product is announced. The central processing unit (CPU) graph on the team’s dashboard shows one data point every five minutes, so the spike is averaged away: the graph shows 55 percent while the instances actually reach 95 percent for three minutes. The Auto Scaling group (lesson 270.4) reacts only after the next data point, so new instances arrive after the spike is over.</p>
+    <p>The checkout team wants response-time data for every second during the first 10 minutes of future sales. The finance team asks how long CloudWatch keeps such detailed numbers, because they want to compare this sale with the sale of exactly one year ago on one graph.</p>
+    <p>The security lead adds one condition: nobody should pay for extra detail on the 40 development instances.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Choose how to get one-minute CPU data for the production instances only, and say what it costs.</li>
+      <li>Choose how to publish response times for every second, and explain the limits of that data.</li>
+      <li>Explain what the graph for last year’s sale will look like, and at what resolution.</li>
+      <li>Explain how the period of an alarm must relate to the resolution of its metric.</li>
+      </ul>
+  </div>
+
+  <h2>2.1 Basic and Detailed Monitoring for Instances</h2>
+  <p>Amazon EC2 sends metrics to CloudWatch in the <code>AWS/EC2</code> namespace. You choose between two monitoring levels:</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Feature</th><th scope="col">Basic monitoring</th><th scope="col">Detailed monitoring</th></tr></thead>
+    <tbody>
+      <tr><td>Interval</td><td>Five minutes</td><td>One minute</td></tr>
+      <tr><td>Turned on</td><td>By default</td><td>Manually, at launch or on a running instance</td></tr>
+      <tr><td>Cost</td><td>No charge</td><td>Charged per metric that Amazon EC2 sends; check the pricing page</td></tr>
+      <tr><td>Metrics available</td><td>The standard Amazon EC2 set</td><td>The same set at finer granularity</td></tr>
+    </tbody>
+  </table></div>
+  <pre class="flowcode"># Turn detailed monitoring on, and off again
+aws ec2 monitor-instances --instance-ids i-0123456789abcdef0
+aws ec2 unmonitor-instances --instance-ids i-0123456789abcdef0</pre>
+  <p>Keep these details in mind:</p>
+  <ul>
+    <li>Detailed monitoring does not add new kinds of metrics. It still does not report memory or disk space usage (tab 4).</li>
+    <li>Status check metrics, such as <code>StatusCheckFailed_System</code>, are available every minute by default at no charge.</li>
+    <li>Some metrics are five-minute only: <code>NetworkPacketsIn</code> and <code>NetworkPacketsOut</code> are available for basic monitoring only, and the CPU credit metrics are published only every five minutes.</li>
+    <li>The <code>ImageId</code> and <code>InstanceType</code> dimensions are available only for instances that have detailed monitoring enabled.</li>
+    <li>When you create an alarm (lesson 274.2, tab 6), choose a period that is at least as long as the metric’s resolution: 300 seconds or more for basic monitoring, and 60 seconds or more for detailed monitoring.</li>
+  </ul>
+
+  <h2>2.2 Standard and High-Resolution Metrics</h2>
+  <p>Every metric has either standard or high resolution:</p>
+  <ul>
+    <li>Standard resolution stores data at one-minute granularity. Metrics that AWS services publish use standard resolution by default.</li>
+    <li>High resolution stores data at one-second granularity. High resolution is available only for custom metrics.</li>
+  </ul>
+  <p>You publish a high-resolution metric by setting the storage resolution to 1 in the <code>PutMetricData</code> call. You can then retrieve it with a period of 1, 5, 10, or 30 seconds, or any multiple of 60 seconds.</p>
+  <pre class="flowcode">aws cloudwatch put-metric-data \
+  --namespace FlashCart/Checkout \
+  --metric-name CheckoutLatency \
+  --unit Milliseconds --value 240 \
+  --dimensions Service=Payments,Stage=Prod \
+  --storage-resolution 1</pre>
+  <ul>
+    <li>Every <code>PutMetricData</code> call for a custom metric is charged, so publishing more often raises the cost.</li>
+    <li>A high-resolution alarm can use a period of 10, 20, or 30 seconds. It costs more than a regular alarm.</li>
+    <li>Do not start a custom namespace with <code>AWS/</code>. That prefix belongs to AWS services.</li>
+  </ul>
+
+  <h2>2.3 Retention and Rollup</h2>
+  <p>CloudWatch keeps data points for different lengths of time, depending on their period:</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Data point period</th><th scope="col">Available for</th></tr></thead>
+    <tbody>
+      <tr><td>Under 60 seconds (high-resolution custom metrics)</td><td>3 hours</td></tr>
+      <tr><td>60 seconds (one minute)</td><td>15 days</td></tr>
+      <tr><td>300 seconds (five minutes)</td><td>63 days</td></tr>
+      <tr><td>3,600 seconds (one hour)</td><td>455 days (15 months)</td></tr>
+    </tbody>
+  </table></div>
+  <p>Data points that are published with a shorter period are aggregated for long-term storage. One-minute data stays at one-minute resolution for 15 days. After that, you can retrieve it only at five-minute resolution. After 63 days, you can retrieve it only at one-hour resolution.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 720 235" role="img" aria-labelledby="t2a d2a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t2a">How CloudWatch keeps and rolls up metric data</title>
+      <desc id="d2a">One-minute data points are kept for 15 days, then rolled up to five-minute data points until day 63, then to one-hour data points until 15 months. Sub-minute data is kept for three hours.</desc>
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="15" width="690" height="44" rx="8" class="s-hot"/>
+      <text x="360" y="43" text-anchor="middle" class="s-t">Under 60 seconds (high-resolution custom metrics only): kept for three hours</text>
+      <rect x="15" y="90" width="210" height="90" rx="8" class="s-box"/>
+      <text x="120" y="122" text-anchor="middle" class="s-m">Days 0 to 15</text>
+      <text x="120" y="152" text-anchor="middle" class="s-b">One-minute data</text>
+      <line x1="225" y1="135" x2="253" y2="135" class="s-line" marker-end="url(#ar2)"/>
+      <rect x="255" y="90" width="210" height="90" rx="8" class="s-box"/>
+      <text x="360" y="122" text-anchor="middle" class="s-m">Days 15 to 63</text>
+      <text x="360" y="152" text-anchor="middle" class="s-b">Five-minute data</text>
+      <line x1="465" y1="135" x2="493" y2="135" class="s-line" marker-end="url(#ar2)"/>
+      <rect x="495" y="90" width="210" height="90" rx="8" class="s-box"/>
+      <text x="600" y="122" text-anchor="middle" class="s-m">Day 63 to 15 months</text>
+      <text x="600" y="152" text-anchor="middle" class="s-b">One-hour data</text>
+      <text x="360" y="215" text-anchor="middle" class="s-m">Not to scale. At each boundary, CloudWatch aggregates the data into a longer period.</text>
+    </svg>
+    <figcaption>Image 2a — Metric retention and rollup. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Detailed monitoring gives the same metrics at one-minute granularity. It does not add memory, disk space, or any other operating system metric. A question that needs memory data always points to the CloudWatch agent.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Five minutes by default, one minute when you pay for detailed monitoring, and one second only for custom metrics that you publish yourself.</p>
+  </div>
+
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">Written for this course. This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company runs a web application on Amazon EC2 instances. The operations team needs the built-in <code>CPUUtilization</code> metric at one-minute intervals and also needs memory utilization in CloudWatch. Which solution meets both requirements?</p>
+    <ol type="A">
+      <li>Enable detailed monitoring on the instances.</li>
+      <li>Enable detailed monitoring and install the CloudWatch agent, configured to collect memory.</li>
+      <li>Publish <code>CPUUtilization</code> as a high-resolution custom metric every second.</li>
+      <li>Keep basic monitoring and install the CloudWatch agent.</li>
+    </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: B.</strong> Detailed monitoring makes the built-in CPU metric arrive every minute, and only the CloudWatch agent can add memory.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">One-minute built-in CPU</th><th scope="col">Memory in CloudWatch</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>Yes — detailed monitoring publishes it every minute.</td><td>No — detailed monitoring adds no memory metric.</td></tr>
+          <tr><td>B</td><td>Yes — detailed monitoring.</td><td>Yes — the agent publishes memory.</td></tr>
+          <tr><td>C</td><td>No — this creates a separate custom metric, not the built-in one.</td><td>No — nothing collects memory.</td></tr>
+          <tr><td>D</td><td>No — basic monitoring stays at five minutes.</td><td>Yes — the agent publishes memory.</td></tr>
+        </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Instance metrics at one-minute intervals” or “more granular than five minutes”<br>→ Enable detailed monitoring (extra charge).</p>
+    <p><strong>Trigger 2:</strong> “Sub-minute” or “one-second” data for an application<br>→ High-resolution custom metric (storage resolution 1).</p>
+    <p><strong>Trigger 3:</strong> “Default Amazon EC2 metric interval”<br>→ Five minutes (basic monitoring).</p>
+    <p><strong>Trigger 4:</strong> “How long does CloudWatch keep metric data?”<br>→ Up to 15 months, rolled up to longer periods over time.</p>
+  </div>
+
+  <div class="resources">
+    <h2>2.4 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html" target="_blank" rel="noopener">CloudWatch metrics that are available for your instances</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/publishingMetrics.html" target="_blank" rel="noopener">Publish custom metrics, including high-resolution metrics</a></li>
+      <li><span class="rtype">Pricing</span><a href="https://aws.amazon.com/cloudwatch/pricing/" target="_blank" rel="noopener">Amazon CloudWatch pricing</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== TAB 3 ===================== -->
+<section class="panel" id="custom-metrics" role="tabpanel" aria-labelledby="tab-3" tabindex="0">
+  <h1>3. Custom Metrics, Metric Math, and Metric Streams</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>The finance team wants “orders per minute” and “revenue per product” on the same dashboards as the servers. These numbers exist only inside the order application, and no AWS service publishes them. The operations team also wants an “error rate” graph for the Application Load Balancer, but AWS publishes the count of failed requests and the count of all requests as two separate metrics.</p>
+    <p>The data team wants every CloudWatch metric from the production Region in an Amazon Simple Storage Service (Amazon S3) data lake (lesson 271.2), and a subset in a third-party monitoring tool, delivered within a few minutes and without polling the CloudWatch application programming interface (API) every minute. The tool that the data team prefers accepts the OpenTelemetry format.</p>
+    <p>A developer suggests publishing a custom metric for every customer ID, so that finance can see revenue for each customer. The finance team estimates two million customers.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Describe how the application can publish orders and revenue, and what the namespace and dimensions should be.</li>
+      <li>Write the calculation that gives the error rate from the two AWS metrics.</li>
+      <li>Choose how to deliver all metrics to the data lake and a subset to the third-party tool, and name the destination service (lesson 273.6).</li>
+      <li>Explain the problem with a metric for every customer ID.</li>
+      </ul>
+  </div>
+
+  <h2>3.1 Custom Metrics</h2>
+  <p>A custom metric is a metric that you or your application publish to CloudWatch. Use custom metrics for application and business data, such as orders placed or products sold. You publish data points with the <code>PutMetricData</code> operation in the AWS CLI or an AWS software development kit (SDK). The caller needs permission to perform <code>cloudwatch:PutMetricData</code>. The CloudWatch agent (tab 4) also publishes custom metrics.</p>
+  <pre class="flowcode">aws cloudwatch put-metric-data \
+  --namespace FlashCart/Store \
+  --metric-name ProductsSold \
+  --value 15 \
+  --dimensions Product=Headphones</pre>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Topic</th><th scope="col">AWS service metrics</th><th scope="col">Custom metrics</th></tr></thead>
+    <tbody>
+      <tr><td>Namespace</td><td><code>AWS/service</code></td><td>Your own name, which must not start with <code>AWS/</code></td></tr>
+      <tr><td>Resolution</td><td>Standard, one minute</td><td>Standard or high resolution</td></tr>
+      <tr><td>Aggregation across dimensions</td><td>Available for some services, such as Amazon EC2</td><td>Not available</td></tr>
+      <tr><td>Cost</td><td>Many are free; some options cost extra</td><td>Charged per metric and per <code>PutMetricData</code> call</td></tr>
+    </tbody>
+  </table></div>
+  <h3>3.1.1 Statistic Sets</h3>
+  <p>For a large number of measurements, publish a pre-aggregated statistic set instead of every data point. A statistic set carries the Min, Max, Sum, and SampleCount of many measurements. For example, aggregate the response times of all page hits once a minute and send one statistic set. Percentile statistics need the raw, unsummarized data points, so a statistic set cannot provide them in most cases.</p>
+
+  <h2>3.2 Metric Math</h2>
+  <p>Metric math lets you calculate new time series from existing metrics. You use it in graphs and dashboards, and an alarm can also use a metric math expression (lesson 274.2, tab 6). CloudWatch computes the result from the source metrics when you request it. The result is not published as a new metric.</p>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Goal</th><th scope="col">Expression</th></tr></thead>
+    <tbody>
+      <tr><td>Error rate as a percentage, where m1 counts failed requests and m2 counts all requests</td><td><code>(m1 / m2) * 100</code></td></tr>
+      <tr><td>Total across all metrics shown in a graph</td><td><code>SUM(METRICS())</code></td></tr>
+      <tr><td>Bytes per second from a byte count, where m1 is the metric</td><td><code>m1 / DIFF_TIME(m1)</code></td></tr>
+      <tr><td>Average volume read latency in milliseconds, where m1 is the total time spent on reads and m2 is the number of read operations (section 6.3.1)</td><td><code>(m1 / m2) * 1000</code></td></tr>
+      <tr><td>Find several metrics that match a pattern</td><td><code>SEARCH</code> function</td></tr>
+      <tr><td>Return the band of expected values around a metric, where m1 is the metric and 2 is the number of standard deviations that sets the band width</td><td><code>ANOMALY_DETECTION_BAND(m1, 2)</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>Metric math can also combine metrics from different Regions, which solves the Regional scope from tab 1.</p>
+  <h3>3.2.1 A Preview of Anomaly Detection and Outlier Detection</h3>
+  <p>CloudWatch can learn what normal looks like for a metric. It applies machine learning to the metric’s past data, up to two weeks of it, and builds a model of expected values that accounts for trends and for hourly, daily, and weekly patterns. The <code>ANOMALY_DETECTION_BAND</code> function returns the upper and lower edges of that band, and a graph can overlay the band so that values outside it stand out. An alarm can also use the band instead of a fixed threshold. Lesson 274.2, tab 6, covers those alarms.</p>
+  <p>This feature has two names. The course slides and many study materials call it anomaly detection. The current AWS documentation page for the feature is titled “Using CloudWatch outlier detection” and uses the term outlier detection. Both names refer to the same feature, and the metric math function keeps the name <code>ANOMALY_DETECTION_BAND</code>. Treat an exam question that uses either term as a question about this feature.</p>
+
+  <h2>3.3 Metric Streams</h2>
+  <p>A metric stream sends CloudWatch metrics continuously to a destination you choose, with near-real-time delivery and low latency. Without a stream, an external tool typically has to poll the CloudWatch application programming interface (API) for the data.</p>
+  <ul>
+    <li><strong>Custom setup with Amazon Data Firehose:</strong> you create a delivery stream that sends the metrics to an Amazon Simple Storage Service (Amazon S3) data lake or to any destination that Firehose supports, including third-party providers. Lesson 273.6 covers Firehose.</li>
+    <li><strong>Quick Amazon S3 setup:</strong> CloudWatch creates the resources needed to stream to Amazon S3.</li>
+    <li><strong>Quick partner setup:</strong> CloudWatch offers a fast setup for some third-party providers, such as Datadog, Dynatrace, New Relic, Splunk, and Sumo Logic.</li>
+  </ul>
+  <p>Each stream uses one output format: JavaScript Object Notation (JSON), OpenTelemetry 1.0.0, or OpenTelemetry 0.7.0. A stream can include up to 1,000 filters that either include or exclude metric namespaces or specific metrics. A single stream can have include filters or exclude filters, but not both. Pricing depends on the number of metric updates, plus the Firehose charges for the delivery stream.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 720 240" role="img" aria-labelledby="t3a d3a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t3a">CloudWatch Metric Streams data flow</title>
+      <desc id="d3a">CloudWatch metrics flow into a metric stream, which applies filters and an output format and delivers to an Amazon Data Firehose delivery stream. Firehose then sends the data to Amazon S3 or to third-party monitoring tools.</desc>
+      <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="85" width="150" height="70" rx="8" class="s-box"/>
+      <text x="90" y="116" text-anchor="middle" class="s-b">CloudWatch</text>
+      <text x="90" y="138" text-anchor="middle" class="s-b">metrics</text>
+      <line x1="165" y1="120" x2="203" y2="120" class="s-line" marker-end="url(#ar3)"/>
+      <rect x="205" y="65" width="170" height="110" rx="8" class="s-hot"/>
+      <text x="290" y="95" text-anchor="middle" class="s-b">Metric stream</text>
+      <text x="290" y="120" text-anchor="middle" class="s-t">Include or exclude</text>
+      <text x="290" y="140" text-anchor="middle" class="s-t">filters</text>
+      <text x="290" y="162" text-anchor="middle" class="s-m">JSON or OpenTelemetry</text>
+      <line x1="375" y1="120" x2="413" y2="120" class="s-line" marker-end="url(#ar3)"/>
+      <rect x="415" y="85" width="130" height="70" rx="8" class="s-box"/>
+      <text x="480" y="116" text-anchor="middle" class="s-b">Amazon Data</text>
+      <text x="480" y="138" text-anchor="middle" class="s-b">Firehose</text>
+      <line x1="545" y1="108" x2="583" y2="72" class="s-line" marker-end="url(#ar3)"/>
+      <line x1="545" y1="132" x2="583" y2="168" class="s-line" marker-end="url(#ar3)"/>
+      <rect x="585" y="40" width="120" height="60" rx="8" class="s-box"/>
+      <text x="645" y="76" text-anchor="middle" class="s-b">Amazon S3</text>
+      <rect x="585" y="140" width="120" height="60" rx="8" class="s-box"/>
+      <text x="645" y="166" text-anchor="middle" class="s-b">Third-party</text>
+      <text x="645" y="186" text-anchor="middle" class="s-b">tools</text>
+      <text x="360" y="228" text-anchor="middle" class="s-m">Delivery is continuous and near real time.</text>
+    </svg>
+    <figcaption>Image 3a — A metric stream delivers CloudWatch metrics through Amazon Data Firehose. (Original diagram for this course.)</figcaption>
+  </figure>
+  <div class="callout warn">
+    <span class="label">Note on source material</span>
+    <p>Some course slides still call the delivery service “Kinesis Data Firehose.” The current name is Amazon Data Firehose, and this lesson uses it.</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>A metric stream delivers metrics, not logs. To send logs to Amazon S3, Amazon Kinesis, or AWS Lambda, you use CloudWatch Logs features that lesson 274.2 covers.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Math happens at the graph; streams leave CloudWatch. Use math to calculate a value, and use a stream to move metrics somewhere else.</p>
+  </div>
+
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Application or business metric that AWS does not provide”<br>→ Custom metric published with PutMetricData.</p>
+    <p><strong>Trigger 2:</strong> “Calculate an error rate or ratio from two metrics”<br>→ Metric math.</p>
+    <p><strong>Trigger 3:</strong> “Send CloudWatch metrics to a third-party tool or data lake in near real time”<br>→ Metric stream with Amazon Data Firehose.</p>
+    <p><strong>Trigger 4:</strong> “Combine metrics from several Regions in one graph”<br>→ Metric math or a cross-Region dashboard widget.</p>
+    <p><strong>Trigger 5:</strong> “Alert when a metric leaves its normal pattern, with no fixed threshold”<br>→ Anomaly detection, also called outlier detection (alarms in lesson 274.2, tab 6).</p>
+  </div>
+
+  <div class="resources">
+    <h2>3.4 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/publishingMetrics.html" target="_blank" rel="noopener">Publish custom metrics</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/using-metric-math.html" target="_blank" rel="noopener">Using math expressions with CloudWatch metrics</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Metric-Streams.html" target="_blank" rel="noopener">Use metric streams</a></li>
+      <li><span class="rtype">Pricing</span><a href="https://aws.amazon.com/cloudwatch/pricing/" target="_blank" rel="noopener">Amazon CloudWatch pricing</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== TAB 4 ===================== -->
+<section class="panel" id="agent" role="tabpanel" aria-labelledby="tab-4" tabindex="0">
+  <h1>4. CloudWatch Agent</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>During the last sale, the checkout instances froze three times for about two minutes each. The CPU graph looked normal at 40 percent, the network graph showed no change, and the Auto Scaling group (lesson 270.4) added no instances because it scales on CPU. The engineers suspected that the Java application ran out of memory, but they could not prove it, because memory is not on any CloudWatch graph.</p>
+    <p>The security team asks that the fix does not store access keys on any server, and that all 40 instances use the same configuration, which one engineer can change in one place. The warehouse in a rented building also runs one on-premises server for shipping labels, and it needs the same graphs.</p>
+    <p>The first engineer who tried a fix installed software on one instance and saw no new metrics after 10 minutes. He later found that the instance had no role attached. On a second instance, memory appeared but disk usage did not.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Explain why memory and disk space do not appear among the standard EC2 metrics.</li>
+      <li>List the steps to get memory and disk metrics from an instance, including the permissions and where the metrics appear.</li>
+      <li>Describe how one engineer can change the configuration for all 40 instances in one place (lesson 268.8).</li>
+      <li>Explain how the on-premises server can send the same metrics.</li>
+      </ul>
+  </div>
+
+  <h2>4.1 Metrics That Amazon EC2 Does Not Report by Default</h2>
+  <p>Amazon EC2 reports what it can measure about an instance from outside the operating system. Values that exist only inside the operating system need software running on the machine.</p>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Reported by default (namespace AWS/EC2)</th><th scope="col">Needs the CloudWatch agent</th></tr></thead>
+    <tbody>
+      <tr><td>CPU utilization, network in and out, and status checks</td><td>Memory used, free, cached, and total</td></tr>
+      <tr><td>Disk operations and bytes for instance store volumes only</td><td>Disk space used, free, and total</td></tr>
+      <tr><td>Amazon Elastic Block Store (Amazon EBS) operations and bytes for attached volumes on Nitro-based instances</td><td>Swap space, processes, and Transmission Control Protocol (TCP) and User Datagram Protocol (UDP) connections</td></tr>
+      <tr><td>CPU credit metrics for burstable instances</td><td>Detailed CPU states, such as idle, user, system, and steal</td></tr>
+    </tbody>
+  </table></div>
+  <p>The disk metrics <code>DiskReadOps</code> and <code>DiskWriteOps</code> cover instance store volumes only. If the instance has no instance store volumes, the value is 0 or the metric is not reported. Performance metrics for an Amazon EBS volume itself, such as queue length and burst balance, come from the <code>AWS/EBS</code> namespace (section 6.3.1).</p>
+
+  <h2>4.2 What the CloudWatch Agent Does</h2>
+  <p>The CloudWatch agent is software that you install on Linux or Windows servers. It runs on Amazon EC2 instances and on on-premises servers. It collects system-level metrics and log files and sends them to CloudWatch. Log collection is covered in lesson 274.2.</p>
+  <ul>
+    <li>By default, the agent publishes its metrics in the <code>CWAgent</code> namespace. You can set a different namespace in the configuration file.</li>
+    <li>Metrics, logs, and traces that the agent collects are charged.</li>
+    <li>The agent replaces the older CloudWatch Logs agent, which could send only logs. Some course slides call the current agent the “unified agent.” This lesson uses its current name, the CloudWatch agent.</li>
+  </ul>
+
+  <h2>4.3 Setting Up the Agent</h2>
+  <ol>
+    <li><strong>Create an IAM role.</strong> Create an IAM role that includes the <code>CloudWatchAgentServerPolicy</code> managed policy, and attach the role to the instance. The role is delivered to the instance through an instance profile.</li>
+    <li><strong>Install the agent.</strong> Install the package on the instance, or use AWS Systems Manager to install it on many instances at once (lesson 268.8).</li>
+    <li><strong>Create the configuration file.</strong> Use the configuration wizard or write the file by hand. The file is JSON and has four sections: <code>agent</code>, <code>metrics</code>, <code>logs</code>, and <code>traces</code>.</li>
+    <li><strong>Store the configuration centrally (optional).</strong> Save the file as a Systems Manager Parameter Store parameter so that every instance reads the same configuration (lesson 268.8). AWS examples name such parameters with the prefix <code>AmazonCloudWatch-</code>.</li>
+    <li><strong>Start the agent and check the result.</strong> Start the agent with the configuration, and confirm that the <code>CWAgent</code> namespace appears in CloudWatch.</li>
+  </ol>
+  <pre class="flowcode"># Start the agent on Linux with a local configuration file
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json
+
+# Check that the agent is running
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a status</pre>
+  <pre class="flowcode">{
+  "metrics": {
+    "append_dimensions": { "InstanceId": "${aws:InstanceId}" },
+    "metrics_collected": {
+      "mem":  { "measurement": ["mem_used_percent"] },
+      "disk": { "measurement": ["used_percent"], "resources": ["/"] }
+    }
+  }
+}</pre>
+  <p>The second block is a minimal example configuration that collects memory and root-volume disk usage. Test any configuration in a lab before you use it on a production instance.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 720 330" role="img" aria-labelledby="t4a d4a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t4a">How the CloudWatch agent publishes metrics</title>
+      <desc id="d4a">The agent on an Amazon EC2 instance reads its configuration from Systems Manager Parameter Store and uses the attached IAM role to publish memory and disk metrics to the CWAgent namespace in CloudWatch. An agent on an on-premises server publishes to the same place.</desc>
+      <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="215" y="12" width="290" height="62" rx="8" class="s-box"/>
+      <text x="360" y="38" text-anchor="middle" class="s-b">Systems Manager Parameter Store</text>
+      <text x="360" y="60" text-anchor="middle" class="s-m">Agent configuration (JSON)</text>
+      <line x1="330" y1="74" x2="200" y2="106" class="s-line" marker-end="url(#ar4)"/>
+      <text x="345" y="100" class="s-m">reads configuration</text>
+      <rect x="15" y="108" width="300" height="118" rx="8" class="s-box"/>
+      <text x="165" y="130" text-anchor="middle" class="s-b">Amazon EC2 instance</text>
+      <rect x="30" y="145" width="130" height="68" rx="6" class="s-hot"/>
+      <text x="95" y="175" text-anchor="middle" class="s-b">CloudWatch</text>
+      <text x="95" y="195" text-anchor="middle" class="s-b">agent</text>
+      <rect x="170" y="145" width="130" height="68" rx="6" class="s-hot"/>
+      <text x="235" y="175" text-anchor="middle" class="s-b">Attached</text>
+      <text x="235" y="195" text-anchor="middle" class="s-b">IAM role</text>
+      <rect x="15" y="245" width="300" height="70" rx="8" class="s-box"/>
+      <text x="165" y="272" text-anchor="middle" class="s-b">On-premises server</text>
+      <text x="165" y="296" text-anchor="middle" class="s-t">CloudWatch agent installed</text>
+      <line x1="315" y1="170" x2="468" y2="188" class="s-line" marker-end="url(#ar4)"/>
+      <text x="392" y="168" text-anchor="middle" class="s-m">publishes</text>
+      <line x1="315" y1="282" x2="468" y2="252" class="s-line" marker-end="url(#ar4)"/>
+      <text x="392" y="290" text-anchor="middle" class="s-m">publishes</text>
+      <rect x="470" y="120" width="235" height="170" rx="8" class="s-hot"/>
+      <text x="587" y="148" text-anchor="middle" class="s-b">Amazon CloudWatch</text>
+      <text x="587" y="176" text-anchor="middle" class="s-t">Namespace: CWAgent</text>
+      <text x="587" y="200" text-anchor="middle" class="s-t">Memory used percent</text>
+      <text x="587" y="222" text-anchor="middle" class="s-t">Disk used percent</text>
+      <text x="587" y="244" text-anchor="middle" class="s-t">Swap and processes</text>
+      <text x="587" y="270" text-anchor="middle" class="s-m">(set in the configuration)</text>
+    </svg>
+    <figcaption>Image 4a — The CloudWatch agent publishes operating system metrics to the CWAgent namespace. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Do not store access keys on the instance to let the agent publish data. The correct answer is an attached IAM role. Also remember that enabling detailed monitoring never produces memory metrics.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>No agent, no memory. No role, no data.</p>
+  </div>
+
+
+  <div class="exam-question">
+    <p class="label">Exam-Style Question</p>
+    <p class="note">Written for this course. This is not an AWS exam question.</p>
+    <p><strong>Scenario:</strong> A company must record the memory utilization of its Linux Amazon EC2 instances in CloudWatch so that the data can appear on a dashboard. Which combination of actions provides the data?</p>
+    <ol type="A">
+      <li>Enable detailed monitoring on the instances.</li>
+      <li>Attach an IAM role that allows publishing to CloudWatch, and run the CloudWatch agent configured to collect memory.</li>
+      <li>Turn on Amazon Virtual Private Cloud (Amazon VPC) flow logs for the subnet.</li>
+      <li>Create a metric stream to Amazon Data Firehose.</li>
+    </ol>
+    <details>
+      <summary>Show the answer</summary>
+      <p><strong>Correct answer: B.</strong> Memory exists only inside the operating system, so software on the instance must publish it, and the instance needs permission to do so.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>No — detailed monitoring changes the interval, not the kinds of metrics.</td></tr>
+          <tr><td>B</td><td>Yes — the agent collects memory, and the role grants permission to publish.</td></tr>
+          <tr><td>C</td><td>No — flow logs describe network traffic, not memory.</td></tr>
+          <tr><td>D</td><td>No — a metric stream exports metrics that already exist in CloudWatch.</td></tr>
+        </tbody>
+      </table></div>
+    </details>
+  </div>
+
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Memory utilization,” “disk space,” or “swap” on Amazon EC2<br>→ CloudWatch agent (CWAgent namespace).</p>
+    <p><strong>Trigger 2:</strong> “Collect metrics or logs from on-premises servers”<br>→ CloudWatch agent.</p>
+    <p><strong>Trigger 3:</strong> “Use one agent configuration across many instances”<br>→ Store the configuration in Systems Manager Parameter Store.</p>
+    <p><strong>Trigger 4:</strong> “Give the instance permission to publish metrics”<br>→ Attached IAM role with the CloudWatchAgentServerPolicy managed policy.</p>
+  </div>
+
+  <div class="resources">
+    <h2>4.4 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html" target="_blank" rel="noopener">CloudWatch agent configuration file details</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/metrics-collected-by-CloudWatch-agent.html" target="_blank" rel="noopener">Metrics collected by the CloudWatch agent</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html" target="_blank" rel="noopener">CloudWatch metrics that are available for your instances</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== TAB 5 ===================== -->
+<section class="panel" id="dashboards" role="tabpanel" aria-labelledby="tab-5" tabindex="0">
+  <h1>5. Dashboards</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>At 2 a.m. during an incident, FlashCart’s on-call engineer opens five console pages: the instances, the load balancer, the database (lesson 272.1), the queue (lesson 273.3), and the billing page. She loses 12 minutes finding the page that shows the problem. Leadership wants one screen for the sale-day war room that shows all five.</p>
+    <p>The store runs in two Regions, and the payments team owns a separate AWS account with its own queue and database. The payments team will not give anyone access to its account, but it agrees to share its metrics. The CEO also wants a read-only view on a television in the office. The television has no AWS account.</p>
+    <p>An earlier dashboard that someone built showed a memory graph, but the line stayed flat at zero for the whole sale.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Decide whether to use an automatic dashboard, a custom dashboard, or both, and explain how the dashboard covers two Regions.</li>
+      <li>Describe how to include the payments team’s metrics without giving anyone access to its account.</li>
+      <li>Choose how to show the dashboard on the television, and name two properties of a shared dashboard.</li>
+      <li>Explain why the memory line was flat, and how to fix it.</li>
+      </ul>
+  </div>
+
+  <h2>5.1 Automatic and Custom Dashboards</h2>
+  <p>CloudWatch includes automatic dashboards and lets you build your own:</p>
+  <ul>
+    <li><strong>Automatic dashboards</strong> are preconfigured, service-level views that show the standard metrics for a service. Start with them, then copy useful metrics into a custom dashboard and remove the ones you do not need.</li>
+    <li><strong>Custom dashboards</strong> are views that you design. You can create them in the console, with the AWS CLI, or with the <code>PutDashboard</code> API operation.</li>
+  </ul>
+  <p>Widgets can show graphs such as line, stacked area, and number widgets, alarm status, and Logs Insights results (lesson 274.2). A dashboard body is a JSON document that lists the widgets and their positions, so you can copy one dashboard’s JSON as a template for another. Image 5a shows a custom dashboard that mixes gauge and line graph widgets. Some of its line graphs list an anomaly detection band (also called an outlier detection band) in the legend, which tab 3 introduces.</p>
+  <figure class="diagram">
+    <img src="data:image/webp;base64,UklGRpxaAABXRUJQVlA4IJBaAACQmQGdASroA5gBPlEmkEYjoiGhopLaiHAKCWdu/8y7PeSUVJdf1X0At+8eHy2iuGo9dDPajWdlUgjrp9Ma5tzniY+sX7d+g3e/tf8Z6AfNffn6j8d8xUVnrd/rfmL/pvoL/yPWh/gf3J9wn9R/+B5N3vH8wH7K/tt7rP/S/bT3k/2D/Hf8X/I/0/5Ev51/ivW5/7vs8+hP+0npr/uR8Qn7Xftx7RH/Q1oH0t/h/7p+zvwC8ZPxX+J/cL+7eoP459P/h/7Z+3/+N52nX3mf/L/u1+z/wHoF/tv8x+PPo78ZP77+7fj/8hH5J/Of9f/ePyJ9Wnbx7d/s//J6gvrd9M/4n9v/yvk+f13+j9Tf1D+9f9X/J/lT9gP83/rv+4+5z5V/xP7JeUX9m/zH/h/1H5OfYF/Kv6n/xf77/rv26+mD+p/+n+z/3vqD/Qf9N/8P878B38+/uf/m/yntyf//3ifvP7Mf7T//8bHOvjXHUYuimn/7T4nx793eyluybFUXXlGbjZZBIRafMAiQi0+YBEhFp8wCJCLT5gESEWnzAIi/AjzfAc/pyEtKZ4HXg/BKhYb2onjqCfd3+lLdNQIPfjrCNoKaq7KUAVElw1PlORy2H81GW4DQmDV+mvgRCZSpZ21sn5Gf4rYfR5O29lhdmRp6eQNi/jFvB9YnjdK4au0ybGycYR/ND2WktMK2E+c1UKna4pmUERsk9r6pDkGRjzOXGggKgYD8VVyeC1DAFUQAtNGJusCbAT30Ym2eUf+HHs+QY97Wj8Xhcun4q2ro4+gD5QcC+g1VX2TS0C5WAmFV3FtXKXQWLJ4PShkEhFpb0nj4WwuUm0PnXif7q0PP/C3fe42VEZI/NaV8GBjIrwDpHrzDE8+NkfiPlKztY/+doNoZcoPEOK1p/zNrWYpDjNl3gn2FFz6k8yHVQjoOYnKXQ/FQAr9B9TgErCKtXswDEuDe0HCLMk3s6FjoUfcfoIVH5vfaacHL/mWmwRIvgslopi7IzHYKpF3WesW7d0ETyEW2l0y2zOMW568NOnLqIxd0U/d5NAnlBiYVW335F4Rp+V5a19v8TUebFKXFKIG+0/CqYNnaoNzCjv/Gm/rkXnlcEhi2mLrRKIZNVzMXdL8o8f1m4BCxM6maT3KT4QOS90L6d2MoJnalge9YooTCsTC8rpYiCoeSIJaLi09Xlx57nNYbdNAjN1a+qDivbEPiASTJVUJqbGaEwUJEzxb4cJMpBgOrQFhYjj3pFW5ubsvsMpdZKcp8tLFY4xHRtquDZWGW8g7z8TmZ7moKrK1bRz9C+YiR/daNw+1Gnyz7dsyEPGdfITSKfrDoo/uAqIoUxc2ulJOL2YC4yMW0WYvpf7oZ3B0YLuqsCQYuRdULGl/bTmYbduQKRQnMYuCko3Ha1aKhTBze8WB7fLEA43OVX/lVXC4CAXmXfGIuAlsz5tbeGGiGOZkIeOerx71tp6OOHk18w4pJKTssvofekHa8FjLNlrA3qBLjLlZhXoRny969Kc+0imcMnoj8w7KxM0w3bUY2meOIN8aaYmIQ7uuOpGGcRZSKXSRqID189xyp8IoCTdeoJvlf74EJrT5QS1AUOBAceXD2gyePivUORP3TLuI+Q3nZSu6SVSeFRIpeU5gIZeSDD7j1M2fVBmOZrhPbNK2HPlbOuCnx8M7FhaoLB37lT+ZbV4f/f9QhvM4Za1fdvyCgV8rZ+IyePkS0no8Gy8NggvgStEJCrAwiBp/2Ze8uaU/PNbGHNRpgESEWnrn6f+J+APkMJ6FZ/Ywcg5Ba9RCtsZtpRpgESEWnykjGDExB3rbI7l6ARYVZoJMCmKI6ztt8xCLT5gESEN6oQRURhqZo6lcXsA7pfTmuqnpEzWdxAAtYyFsauCC1jIWxq4ILWMhbGrggtYyFsauCC1jIZOGtAmuDh30ieXcphPfmARIRafO/58dG1vgIkItPl+VqeAPmFwBcfnzz4s7bJP9ZUcfIl8rZ+Ix6aWSGhly/MWBFB8AIyDeAXd+7ABLAE/rJBJPZIqgiQ9twRk8fIk/BHNU37fpdVeF0CNvhZ6OiAHGdPHyJfK2fiMDn2PHMA35wNZCePkN31THrGXSXu5Har2AWLtCLugYCEDpBzAIkIdc6UI6WWJJI6I1Ny+D3nQckMZR1fkPlbPxGTx8iXyVY90UWwkQgBx9UOla/w0IJAQDNa95ijx6tRtyEOEC1czEYi1eHMkb7qzG2fiMnYPLi6HdnXiXc0Dp8Ooda0+Wp/EIaLxdEbZ+IyePkS+Vs0Ti3tZK5VEdcIsGXngXmPGhpB0ONPqd/gndhwh34SijxMKaa+fLFOi5Q9fU1pOgsdsP9oEiH752lc2tsuzmUanyk2IBGSQfj0ODxFoSYoEut7IUUfLBY1LTNo4wIhj+Z5OShNs/EZPHyJfK0Hn4OsGRVf2u1Fe0bVdekm+F3uWXw9HrLL8HAMt9k4ZA0nMonokgNGA1I7WvlnQhgBy838G4FXTs3tphDMEspW8h0wRAXCrtDxuA62QHJv+CBuCCGLAV8Zj7l3M+BnU0U6TDL+KlTJPmZ05Jt3wM6TM11O4DsH8xbzC2Qqau3FYuutsCuUYpZvdWFpsTQQCfl4uKvoXsc4HXUmf4A+jmqrUrcrKwajWiXKYo7iKI6zsZJPsdkMvQ9lGPWPWoPd+DvUe8gZMljA3sYfdH4QHxD90+V6YYMXz3JCdAd0GqHQP02DqpzGbrvwI/ppQRszDYH1EFkOMHk5aLDG7aoTYmVvH0+m/G4jWEW68Kxb5rpUPOvWce8PLIeK8QuAS6mMEtjQxNJMtYYlM/HkdCeeCT10v5/71pjyhKIctD6GNT8Ekmc3QlK+4oYJgOmDQekBlBepe+eusflQbJvEgYCJei+CNNRICjS1TBzhxkhTgkbRB4q+4PF2i1Ja6ZJhSmDuUp1pSDCj0PQPjgt5XYTDY013I4fHrbQX16mZIO6I2iCXqM5DJ1HTgxREw8NsC/TLgtV2NCM+1+27xB3cLvvT2V1uyLpwuDB/19SXfYTnwwvswvAuv/4yflajlXNSeaJeHFj/iX5nFn4xQIv3jBxqy+csoGd6UNI/R6XQnH2w00jfzUiukS93HfLMGb2/W8Tc0r9z9rz3Gns6tUy09CbFR83Kq+RWR0M9mwUh1+2teqSdI4JFV7r83XaTsGeCROD++T9v2v0ErgpJm8k3GgDr9+wozh+y9Yn55QGQ8e/9cFUsahm/12Posg/EZPHw2yoyTPzHAb1K7TNacNgSWd3Y52qeQ6chVVOdmOPbRxtbh7x9KtWHkJ44utjUORrI81vJ5lqKzrkn5+Xw0eLM6okUbvO+0+YBEhFrtDiZGyaybiIdcJtMAiQi0+YBEc9TDMVM9m0P5yqe4mIkItPmARSKGE1Gd4FgenDDC2JxuQiQCMnj5EvlbPw+IbFof8ljAIkItPmAknY7ozv0C5M2CV4x4tOcp2i35tOZTM1tlU8IwfqzGHiOZYAR/uQVTtkMX68CzEehf7rtAQ+3QFS+Vs0cszB4372/CT/eNtny1zd3MAjJ4+RL5WzQBWF8N3Gj1t5A/NR5kF8vPjOoen+fvc9jpuIyINd1pWH/b8BUvlbPxGTQAqCVsZP5u1DMt3iZy/TdnAepfosKAB4aKjclQml3id89XEMvBJ8ComYWBn92qqXs8g9jHhzGat0XG/t8rZ+IyePkS+Vska17xEJs/fnpxBk6/8MPz/QppxyFceCVHHyJEywSXopm7ijWZKmUI4FW43mKLVIf+6D+i9RTX/eW5qlnonhsAMxo2WcOXlqc8DtUxAiQmrr043QFS+Vs/EZPHyIVBvt8LHVUO+/qRt+0xIQLS9dORd+UyDy0xLNtZPq7n2PH0lmHNlAvhBJtpS0Nsw8xLz8RVUIPjAUbLM5q+mKOnMDlM7/QY1EqR6FiikJ35wQw4+Qf5Wz8JlQ1U5T+wCGXSESktJuTVnRHCsuCzRkvl58Xgn7ibx88zUJjNoy+h1LkF+LwZ5XKuga0g5tNCJlz4+Yv9seZVNwdtM4QgS7+eyVMwLJjKFK7hgxCL9BiSjXVx+VbtgBLtwqzClXWM7YsauIgU8IkPaPNPzttepEy63Rg01YZm74HLIeyqGRrqNpsyzjzhRBiHhvwkgmyT3Vmqoiv6kTMYXUdVy86I8P+iiZBil4894GgCbCQTbYi3/imlxRBEMiS9o/5RyNe6guUoA5wASXL4kixOI+/2bFr4Ua7Rj8stEKM1Hk30D1VgFCrnPjAvTNjGl6VHHyJfKPCWopf6sJNvO7cGo4wtB/JxAHi91VsJHCX1UakWZCuPBKjjuw4MdsztTpmr8iD+emiGiWsTe4XyL0Igg8VJ0SIoE/62ANDHyGF++vhPAA/vHGAMUmCReRnjmYW/r90oq/Dm5L5NpfJnNdGDAKV4LxJ64vkp0YeLEjWDte+oJ3+J/M6Khx6MeCzE3wl0PZQDlr5erR6Bi7wKYx5s0LWM/Ne0I0sE+oF7UQKLTseDs5EGgkScqARgqhNVIe2ncZKnfrwMnRQ3wnsUaRnIk6uV8ds7YMUOhyip7DP/fNMsHzwyu+oPrL44Sw3YrihgJoTgQHsgx91s1ZrXQl6lmTsEL9LHa7qvchSBbfeuj1BMozU+j3LajNnMlCiEBjssHmQMxwL7+R6AAAAAAyV3yircgkhr7Geo+MUX+GDt8Zc+5HiUcwTocFkrRB7jhRXezLK+FvRyIlAhizg1qedyMolIRd/vq0sh8A0FCQCyxXhblghf162UYZXnf1/e3yvhd7js6E95hs4u6zFg/nIsNtU9TKkEIE0VUFaKeCwv7pOHsPW56qhKyz6G8vTv3X4UxsqqDV/KDRl71bWCy2QFkfWgWmvVnBrUqWu1BLPYOLGx33xFsgDx6aH4RsfTzWiGv4tZg4oQVc2ep8IcMUJqmDW2IYjpaA0vKjwdFh/ep+mCTQg//8P6cZSZMQYuPeRFJ0INQgQA1t2mqAywLTGxIWYqkdDRTiWJSg+7Y6w6uFW3YOiLutJtW2FZvjCxgShtltv2sIpfNSj/LDad+uu4fu0pPkOFficHn7moH1ukkHoLZfExVzkyHBv6eQZMMnZxuRVhJjP2itJjXaGXm2JvAD4f8Q9th7UDBxmkkyh9SmkYXhDUp1fkyxx32gNL0h6z4r+ae9JIeVuAeOeSnRzlAJZaggVj2D3nLOiil/7xm1FUgwS5RhIMnlxsvEyNlZeLidAjwXuC3muHnOWeTlXvjkK0bUFalre5sk+ksa+/TfqMbw7iP1SMvdM9oRj5m/dZru359lJXf/wsKKWDudic36nV83uCE3MdMp79+cI7aJ0J+d4afvqJT8sFxXKn6WjKIdKsQ8RBsiQhQWMb4lDq3uW+sKj4SWrDq+TCWgYgAMCg2hXFr5JJCmLGCY5MLvNu0awEXj1znZhBIB5b0PMoEajVTLW8SiX3qNGUJPBaZNExuK08q2vznwjvee2KvRBg0qt2e2s1LVl4lF0PTQx4EI898OVBASHBy1EVPpuDm7BoaoH001OwkZQCNbaOMLpgLDW/omRSuStGrYOBMKmP4Sxtt2oRg8MxZy31Ka/9Smv7tFle3Q9rJymfyKGJ7dNFxdASigdLT1TD1ULqaIHRtFEZxkO1NDF9Jp5gtGdqtwkZIszeh/NVbGAVwRCv7R22LAN6v8OYj/MNEZ19dv6xOKbV3kiu2jFjsgHWsJlOKXMakWaLXJSJLY8VZNOZolXw++Q5NoZ8DzHrEkAO7t3Z7yL2ESywrvtRCbxc6amLEJXjALCw2wadBFm2bVbDSY1abVlN1i8vON9j7mSGGsc0BawkIPKllNllzG/ji1ozDwlMbuRq1XZGHpqMHU780k3SsoZpFbe9Q6GG7L5UpF0Cep0y7738YfZTY+Y1cKcdPHEflTWqQAkycnt9ubOYG5VGDrIAosQM1hAHUb+L7/o6NwBXlGRVOF5fvymPD3IKjNSCbDkRDc04ahmUrMXQrPYBP0ABn0cneG/EmbobcPC0XFvSs3piCg24wEqnEApsXuUW+uazhbA+1zozTXkAmusTiq/ezZ9sM2dcADtxSE2ON44xaQDwF0Oak1nV82JG1G5GIl8t0GtAj8MxiNiyuuI235gFtljuxleA5sDIdHUVSUdYIrrNP6bbpJFdgxo9uy2gnUXYNQXmot0waciul+b4UcDl+Q8rVny/2NTDIfhVu8inOsI1Sv/RB4NmviWNpjcnFclU66RM0TUZiyOFNAvVvG/myQvIEobGXa4z9dSXtTAIVsmfcRP1uWr+sXP7Mo67y49XB5aVgGWpeI1cBwYhkBLvrSZF9Sqn6Bry7QH6MZ6c836NxniaQJZiNSKYzN/dWjdUpsuImEj2heiZTwnqmRQx1TTR76P0daxdl9MzIojJYUb3qnhLYdXXiWF9cfR6XoLR8/TV9voSD58rRxKFI/VIaHnngaaCyvyvuZAozr5lR9/GYBQnlMHkf/OhD4Np9BUXVnemKsn074UaKkKs3yWJgLZTGgDE31vu5kDJ8hRwhiik3/AruTquMC2uaZsH1ucXsz7FkaD6uN/g7CA4Fbw1kmuKrI75qb2U0iMm0klpIQUvVjLLuu49hZ5p55m2dLdTKp7a6bu5t1zxd2n7u8FkYsdEAb+ja4lizBYC/W/ItQkPzBJHlaWcnI7y5mgARtdPNrEqoH7xMxTGn707UG+x26XAwtpz4UXYE4azwMIE10MmIE9EmAeyGYgtBTJVu+JXLNjjW39U72BZlEi8EiT77ugRIHQTxydyMpIsvpthNh6/NKDj6I9o1j5zuEv9Jq8uth8uXFC0Y6g5aj8j961ciHoN71DhEaQeVggp7HcBsEjwD9QLWX+zEhCPtl7FWDZCuk7neoIEghAB+t1kXmI00NVn40a6fJU0TZj/hWveWf+X6GsTxPKdmnuUjvJXogKMsacAOM2J5QynnJ4MJi8uuvkTInAKNTe2Vw5PxO04jEh3HbV7lFX9rCVE9yctWbGQx2xpRugtgnm/+vsy39KYD3bZf/5ZgUh1msisTHiEcL/K8MyBc0xanvO//Y9Iymlh2AQa+7BcMJpj7UPMU9l+9dLI2q0tCvCV8AEVaFXX849W40yS2IPzSzBpqYhQEedKg/cSBQeG5KLP4Ovnb1qpWRr+hBB66bP0vyXUzcECuiQyl+VrUewYSDf/lTFhN46fXBua7mpyqqnpqK9XhIaP/iVnoJNHuH5ocKOqLxj4nvZh4+i8g75drr9x1si4+a3qGFd5vO+DU+4DRCKYMJ1g3BXSLxIKN6Ml8wtgUkzBIv4PhYz6R+GGNP++jyW/kBY6tZ3qpPLS78f/ftmRi0ZhmpM+256ufguSQRa+FsAsR7EKN51RfbeTxMuvFIthGD9ZMvE6KDaoQirDkZs67x70oxHMiTmQsx52CDkXvKgCRLk3J2BH6aYeRKq/budegnBIlV6XZAt3d7FWRRAt8axwRXFQ6bI1sYCt93Z3yuDMxtbFDrlAW2F1wqbCiTnFQTaBSx5XanNSvZ1rkrhZaKn8Wz6RofB54Q3uEVdj/oJDAShCD8mn4Z4WBLjdFtUeI5Gs2k5DTRtGf2OtZOWXAkgltcmETnymU200cjwLrjg2PH7T5BKOvhHw6hTPYfgL3wgP7oSNEWfFLkntMt2+dvCtWEoyCkE0essLwCAzetOf6j+Bo8KuU3/PN0GULkCM82jHHhJmWJ7yNfx/T5H8VQUJw+s7CjdYePx8kOobZfy521ziz9yvKl7ukQBBbk6OcWD8MRzneICbBHSn6d8nat6KfzYdGU8bSeSZTDTDeBPWCZuUbsjk7xQAjMHpRtJHmZO1rQEq13bxsT5fTdTFkEM0OsOsXIJwZjBF6v8mM+0NHXw1d1/NoWN3O7tZ+gMOK/2PUiBENIsyheMg8hmnWnKFv1XYO2PwYs0d88w8D6cQThv0tZ+fw2jvv2jFapak1evqOmVvImIMdVq3jIUzfguBRKvcDW7onl4bz6OuyQduUPyoUaorIl6YZjccxwODjMFDe11TKPJxnxn3NjZQzY+obw0khafb+o/03KhjTkVPwDxUHQ/UcSR6boUw1BUNLPg+hLrn2zcyq5W7JOu42+aV23/H4G81e8979nCqLAwDoH/9+qaQUMcs3w9GbiPbQLiKtOG/aU/uDA9DGbs8L5Sohh+x7t1PyyDxLTsJIaNt5S9wZ5fcinwoNmPmNNn4R5AhmSMSGyET8RmuEe1vlbAHzGat/NbP5qWsWJeUBAhli0r4R3/SagjAqrSa/Q6sNOU1FnZ9WS50hjnD0tXkuWy283Kk5zyPBGfL0E1GuvmohU8CVfpDqehXwJtIHGrJl93sQPgLwnrHt/epG/qLAG6v9VJ6wjB2YZjvgsmc5Mb+jlnc8TkkGlR2OIjKD+IwA69i8nCfD/UrElmXFEE0Xy0Sg8SRr1qTkJnHYBqi1tTrQkVMHgWQThkqML0+p/B5cY1J4FcPgYXGJLSTr1NkaduzcW2Sp0Xvx51w9P0vtZKVH7/XpnLPrchEhChUX8dizrAEm+EKaCrbkKzJH0FkrCnXlGQOMLEgg0K++AqU4JkAj+YOJ7TnoKv6w5dIob/FSwchxzoAK5ML36DCiqO05mRmD/QJhxIs1Xt2/zOrFessMotfZ1rFRhyWQy4qZRuMTSMRdwQsEis5n5jIkH8m/D5tkZthLKqVWwSvyP4XjH9AuAvI/pc4mNnuesUj0zDFQQbeD6IAyfMdL/ipZG5nkyrWTzreTclbuHwwLzrtSj378f7P7iDADdf0UYmQfhtdpQzN7OXgZXdiREwpSoK7Z3kE6jUG/9rjlhskJVXo7Bk0Q+jUihlSUBlyFMbKgDBRH7AwecRx0DU4DQobnLWgJr80PhNqj/ymH7WZfgs6Y9l+K8KEYNHJSuST+MFDXTmY+/QTKy4Y6MTdLBeSEjAKd6OZubjLtsswfAOwH8N412L6Rb7nPRhsS6+ifPeqgP9kctz2n1ZV/9o7gLY/c4tjJvLhs0b8ZWNMR4JDVZcEFveXjxrpEDH9qTjnGp6UHsddRpyWEdRvPNJa9UI2YC/SbjjmKuHT4gm60ly777+2kZLykCSEbm5C5Pct2+Ulwv6hSa2F5Rd2rJVvN39UbMRw/i+PzQbvFbp39H68N1eYdM6RLBu2Ak9+HsDmZN2YzJYqnjW1VHSsb9kE9UVDu/1s/1dpSIqx712LJ3COQM16rjowZKpelAITTgJdIKqBep9P+LDVXV4yiH5Pqux4/Fjsu6J/zwIA264LPb4+8qiCjnwIFtAHlrblIb9rYUUr334sYSoB6qVxaVjqWMOx7pvIRmpk0Ln46XZd1OykZUZUhP1aL1Z2WhG1075UTVjkw/JKWMEuaFfrahq4I3z0p/JVHpknhQhk+OWdXjYkEBGEC6p2z+t6H8fjYP5BWQTYuoNBxsunSAHh6ne9TdLQYz1i33RloYW6UZKt3Nx65HgEwI9PNa9nTLFZ7r8uDRnB4+5NZhFOh38+JDsPaotywtnaHg9xNVaDYp7LcgYRIsbJ3Da002YYUzgVDDbp8/Dqj2GMqIW/IvlPmduKclB3wpSnlguMf1h7cGyg3W8HV1t09zAdb+JX69/OcHr7arquwH6j20cnSIevQHYJbadJF3eZfR9MN5GQmRPKiYiIB+H2L3OYA+Wu9K9w4U5wzUjIAKO3LcE7EpjusSFhjxxPPPPkuGjIAbwC8FdomifMdTw3RWgPZe3Bv7GAU3H/GweZiQZLibfQcKBTY4vMkD60AZXNlsBeXXVyO8Dv2H7riDPdO06zBMG/ZyL25MBg3JPHLRZqsCxHBDDkTuMU0/cuu48ChmlkXxHtl38EHdq+/RByunHvUDjRmyTocs7vfmdToIflaUgImkZQmLGY+9YukTJ+lKhf9tSEwTetd1jydbVRWcDsx3Q2RcrWwtZc6nx+31ka5qA44KI4xpF87BzDfzlhANSL/PCXcGMhdI7SFAE0KGSOwjtbBRMCfApNSqBW4AVzfKDDhltWzQDCUkHlCl83fwXzk3J6z+fneOS4bdC69BV1taRQLI/eirWQ1d7T3w4KPYuLbo/JwGmpC63z/me8esgGzdwdE69Ll+FQ+zd0062I8wueY0bola0ecFFS9stQwE6MgxmWfJvFg/Knee9EvcWj71p2uCHbnTb01xh4cWJHf8+OpVM6XjKaI154xSQYwjJD5mBBrxqc7QW9mlu98I0dnCAcNlqkjlX6og0lbodAKxQv1V07mfH+erVmosWgbwOWDbL/PTIBm9TQhSZe3FpBnr6SaA6zyCkyztv16GWKRejAdL1xSfqKw4/1oNxmKtA7kwOQo431B82J+wqKfNqWeN996DwhIRifPV96oe47uO5ZtK6Nq69//3bvcBrC175X6HiKx2qL593XPppgGMYAvXAUNQ24O3hnYtvi/kgxuxWC/tUjJ9sEe9lskbdUmSIu5kXlot680pxT+JraPGOSgFB9ULg2VRLbxxqtCE5MSbdC0BfWyMsXDfgIFxfERW1ow7laGrhwtHgOZib6NLTmYlN/fiYsVesIjn+mzB84kAN2uHaWE82+oKV9862r4G4DLL2MKIcZf859lJvvCuREC74D0OQh2S58q08xLU5pZc8z7MwqlddPtZZ/B4glL82I+Kh6vMP5e93ACHUDMpnJI49atowb+QmOj2KmvjyNh/QkOS5+CLfBiyVBKWcJRDTWqCai5kzjT9AcjkCoNHSqNTFvPnaOW/K+iBhJq8G80NwqeVfp9KzQvDC5ZH5Z/7hrU+gQVAj2Pb3XAT6IO6kwrVsIU07P1Ofq843cvddv90O+La0HplN92zurBDyt1Y82/uBHRC5x7LzteL7iHVs/CIagVbiOj3ohZ0d429MS1hjcR6v2/fW5d6JNIYfmqywPZQtZ2Y7cA7PditG7YezHq/JUl/FeQSZHft5IlCTPQ2zMd5UCe8EXDeo+09po3YWMsNigEF67zSd5aHu8bZSKVwDdGL6jsBOhgvSn0RtzRepMGZ8UmlebFkUlVxB6c7Qvf1HFK8ZO8I4mX9+nS61eWR078zAIp18vCmA3ZQYBBa2IWExdNjVdunEV30ZqDgTXIR3SDflgsZysMa/PI0rapzzIITxF03HQbmh6wJhFsT6zokwob1S6oFT2nFVKBw0+EVYxVGEn3tGHXPGTME4ZLvndjv8cg482aWYu+7jlmK0P/JBf76V5DPaYmWDHU6LmCWs8v0jPVdeizsw95/xahg68+42cY2bHlf3uD4zaGwZHyhg6hz2RM2hhoL0ESwfZvRUTkiTGfaaQRR0Rf77MCNzHaLmXnySLIyaV1IsBQd7HzGiOuk/270Qrih9EQEyGVj7mmIODUFylxShD23+lbTIGRycmK/UUzSXOFnwj77nwVT1KovxtqUL5pOlGvRJAQM+3mwzhRgEkeOx2PffRwAVvZbe3XwpPdKESml8vcbOs5z/P/AjdzfGcIVXmt4tUyjeQoTd5qDWtilJO7AuOmtgwsbWpZAAH+Do/QJRo+GWtdSSZUuSJUaTzUtALH2nV53561hB5GV2fAT5NLBTEkW6+QMpa8yd16Ja4yMeRU7lPRfkn1oyiSENwyU6uW/1xNPuJ+J2ZYUH59f4Yv7ydUYaN2OaDdxxyPMwHDvZHbnebqgrIcxliw9SfZzZB/2m/hIAk3CGvlO8DNQK9yHsb7PdwfuQrzOUwabFQgUIwEYknqNyjm/VMNputINMR7pVTUjlRAV7tB+EvR3yfFBtjk5m0IacmHMYfxzRpPq/2Xa19pYpeiszkZfW07L7xo+7eo56WRY2u8wE9YKAyRivsLWwH0LE8iQcNsNWym6PgbQ5zhDAEChQkhExUkkkHxYdKoPSMSlYqmc6hysknUglglBUR1zXQJxpBeUd7exojjSkodjXHikA12yH3DQxZvfRkvOg3jL9WVzhIndcvYW3HE5E76Ugd0Jg4aGsAGYiahxX+P2J4IU/7smeXeJicGUv1JzNMHiRA40OBNU/vuTYX31ifUZdGd3DfJ2SiXcinRiLitn689B6ro/u0tqvKfy+99osYBurj1FU/5nBZwOaRX9Js0/HMalHoMYiWS9bPkgANo/Y++dL4NGgRiGaGjtnhlHUC0hutU7N5FpJm/3fJjX9xWBem9jtRynIC+uhu1djHPha7zqEOI3/fcXdwuuHDQ/2sYSbc5OWWu46PWVAATxF84Vq/wUb6e2fXNZmqQIXCTmD4uYb026aXztlspd5gmYur2LKcQGdfEHbdS8C9SxYgWW4dlpjimuO2d+pQGum3Jpnnz+bLUGvEklp70KAwdsUW7S14kLEaiFu5PkAbwUcwL0AAYWu5Mt0TK61RHY4LTJMZGCYvI8/5yK2WHhu99BkC0ROYhnoUB3+MVsSeHpM8H38/ntWG8fhkLYRHe3NecDSa0Y9oz20LoI9iBHvxhMpkNYQuU0qSC3c8E3g7p8Rju84q9/a/wWFAA46QnNy/4Z/YA8aKrh0xsDEUjohU39NdfayfeVg1zxWalaHXB2cRc2c+duU4e96qFDJ1ky9ixqM6fMaWNFxByZ/9Vqr6WEpwTfx5J+emXdedPdS1Ou8BF2bCGNjCU+4A1msJ9oj6+ns6dBF4xpY/tYem395T7GWFbUy2v0iSHuk5sABof5iD9fqtylKODAtXAqkAb4kCz0Mbui/i6vcrpb7Qsi1U5axv34idfustIPWhBrSDCrnQ6OWAg5OcZUIf5zAmcny0lNR9B4STyKrq1sMJxnMH5ejJQELO+pPxlnf+9yL1y1AzY4FU7B7FJWCWVwGMJnKTw/hotsrOcVttgnom5BAGkcfbBB4vbFPRs6/Qp3lUV4avW7Un7uh44Koae+YRcd+eFv0UyeI4BzRM4YE0tbg0rI2sBfPdLE/ag4wNuJK3CCW34wXyeu1uMiRg/eXslYnXfSWdE353vjqK3Ch6ZzJ4wV+deWMwJVxwigjXFK7CLdte6CmdmaddmSMf8fNi30xVuS0wg2lQSOikfPQOle7sY3QQeF3BwRhgvhQmp+PuYdec9eW81lV5SA+1ZJMImYwqEoU486lDYAXd21FZqqyzpQcnr5X2IV+mYnWsbiG1At274NzEKOcFENTrAMfwbYF/TnWZ4JJvuuSTX+EWZxR7kn8e8cjk0xk8anSImm3x9VozzKpD7mP7hioo4h9htSEtkzVuSSPZrh2THohyzFsshz9B5loHH0VrCIlg0CoibGCwVB0guniW+rV2Z5TYlwBmzDvl6+Jh8Gf9kRBp644YcNGuW+1gj4n+uyqfCmj3Cos8cxb3CRptjGucUHQXB2CjW1Vm8WHlIr/dbyEnlxLIHN+R4n1sOa/X31CqgbXs7Xk0ERzbEfV7Z4Nh/Swfo7zpiT6ISV3p/qZEU2OlINWBizeBEQ6Ds/duqnB1q9y9/+m3kc0r0iC1wCmp2xLaE93a8g2xGddKyu3YArutBVdIRxO3TcwN1nH+3mn28deNlRMArioeut6rBoxjGMYxjGMYxjGMYetQ/MgTuUIO+IrmjXWL4wQ0fnuQCvEI6+DXmhs5QnDGmKAlw1UXi7AWLA1JdLsBWHMZfRb6PnNt7s4EI3CYnx9AyWULxU0dbhbhbtpfPP2MUJliFjPsgrMaEHU8HTpOKAxoeYutRG+Bnj2R7iJHW6qi8ifBbtDG0RHXelLuiJvnHwEGzIAbsBgZKdyKaocMgP6g6IgG1zdGYykXMNJGOQvLUvmbDC9tsIyUh79f7uKr5YOS5p2Lq9DHbkkrvRSfrfBNWzw6qtCugAAPXkQPEC8QOjDmogjDYMST8tcqWf/FrzJ03ZgxQjQrHHpzYh2Z5nydPVV5SpGArhQn2eNLMSFh74HPu0Gze8o9JlBipDznt4e50QDizWROYSvqaOhXynIHXO+h2C9wEW/+yC50lyYU59dHEkUQyDWrQyxlVZ9Ql/qglCMg6oiVKTB4P160r42o6MWncW9LpevgRle+a6z3+XBi6G7ppQARyA22TmszNHw2SHzmZwLqzUamONGhAWADPDGZ9W5CMpqsf4E6LZhWEQv0tZDjibfIgAKK4m7JIIDhlsnwo4jZdgvheV/yv5ZyKGHq0hl2EsXYwj9qBEmfQMHLwqFxB3ZcdyZNMsswFK6wEZ/oQVLINLwA3DLCGkfxBF7Kuz7L7DhF69y1pUEcCXg6ethIxzPPoQxqi0/rLJV2gC4AAADxH9S+BQdekzrrUVK+r/P5BD/QvQddTTm3BqJS2MNePqgWrR1eGBhg4ZbHlhyayOwd3SMjKGeFJu0GQcjXove0chGXxRAxi1yjYNGfZbUaxKtDJEul4F0FyPCGk8eNzKFx4JbtW6N8ShDD6IaFNDQ/LynUVr/J++p81cUtFvp8w0DMm091s7rGCMc7mwVqgU8y3zwh54Q88IeeEPPCH1tAJKhEh12oARECQoJ96r+QdnOjm6CX3opaCmSanitX1w47pkyF0T1ARuao4jKm2ztDAqRvlv6GtJLElNbEigGsFHbxHmcuoYJJsRqv25EM9q3M3zM0xFB34mtDxt58aPPhF0T7AARnk8ZyP4tWMuU6uuULBiVCwklwQ9aPSiRzR82wXNw9je47++0mmNuAX9PkUD/dg0XvuWR9+nWeVsD4s/jjUb7tx+JGaylCidOA5PxBSK84eNWWpngmijM79iYZh6RJH9MAABsN6VkJkcEh6ACYS4M/EGmPwsefWk8G6Hc3AZ10zA6SN+6q/FAxo/32rhk2c1HTkoAIMqgHOqMxcFSqp/Ad0OM7h8h8j9AKr/Q9qszIxiI2pQFCXCVE5OOJV3uuBqIKlhhitv/O6LFrdsF/9D3Er4CtG/3o/2K6Z7dPKm/Bi0DesvNRFxDaBZcsKyX7poNVcy6sVQw4CIylAINK4kT96j40sB1BtCfPO+epx8PD+O1VRG7EGWWGGVkVjEb4lCkO+R3odTfL7BuJ/wMd9Fz0RQspZeg2N8SgyDVnw/55FPFxLNnWNQuvuUXMsLgFzj6yXLhtGMZHRyngfUS57t+HXjBqwNRRV3Xg8yltnzawp3UM5VMDjUFHy/Pyeq3wG4pJoUU+YseRgvjwWHC8AE4AbsoN52VMJ/D8u2Tq7mJvCb/f8LAxFAxv47POOziX0fKzXVJc/MLsZIhjRheNfQP9vSjWUTgVerbZbQK1BMM+j1y5aP9nwKs6ZENFsKGOaHcjwc2tzmufS/SP/53HwHcJ8bGCTU1T9n1WNCOcomqN22eWp3ixJJrLCPVwq3Gz3umcR5Tz87pJYwfJ1veBZpR209iA7YrxUsVRbokM3sZdEgNKcQWNuxy3Weeb1DEZH17hgo1oWUBB4DrsO2JBptzOaBDzj/nrrowfcwhzhZEGDeg3h0gT1If1WTSh5AUKBUYXR0lK4WZ6OQv0hdVd2687BqUbg1DToIwn0a2ItF5AdqUp+iCE8tW0mCEbiZBDnqVkkUeAwB6V+Rvd5iNpew64lUiSQXJ2emnOQDs+UdeC98uvABxi+lQ74IXIHVMXjNmDG5OOcetRwGfBu5b+WGYaWpRqC6Ib+GgOzaV1u9tF2XJyeZtulUhBw2PWvh5p82OaHjrAj6rV5NKmA3PeylSwJiGmKJlA+P8yfxnlvdMsT4Bqr5YF1fwc6HNnfQw3ZvGU2h2elor1GfoO+S52HMHTCQHInMh7/shX0jX4t1SZyHSwjaClhnBq23x/pxfn0u7xa6sfRDJFZsiw/rqd8spvk83TFt1xy81WpJb+OY3ylGI515eLot+n/LdAwvYwJsd34voTrTu5ZxeZ9n7ER53beET/tGGzCVwSMIJNT0xnvPbVVhmxDuVpTeCF5vzfd/XM4XUfZ7Y16KgVjUueqNU2dzFyTVnBdEp4lTtvejcd379M1aa0y6dmj64NhjYWEItQE7495pJf4hdn6lH3UKhBKvoMl+iw3YXWugSdw4rPp0G2sstrN1Tn7V5GAN/O1bnPgujV4GbEjuXckt3NW29wtoM/0Cx18OBBCwF68crQefiVFwU1z80kFwoTWdAzOJ2NfueJYtLZ9r9NTeEEx8uBkVypcCGd1NqY6kGAWBqGQXUIa4flVztQer3KuRzySpMS3HiLlrtDt5PeXi4ftbq8jvFKCIfXqwhqHb5XKw4RV4vHcfqFIrHq2rwxvwSiilWMJamX02RCkW3KWS342K2K11scrB4Q/0NrKT96s3kVnK6nQ0TztxFFfquPBCiCwRkpAx5ppopyZ4RxrS/z0cyUy5zlMqT2w4ZJ2d0PbijZGLm4ut4vrpwQIGmLSUaz4NIPIPM83nj7dbGsweXYZmWIL7/Ll8kqyULvzmNlJ5YoQq+yxGnrAQxaijlZQuEEnLIMh7hwFeRAoWgU61CixjMFYmGd4IERUcCiH+xKR4oGEVS/u5LKuKKilHjywzUTpnXj9dp3H0/lorwkvHA3OwoiUqRG1Mv3beyb2xfZEJs9oKI51kGyNuSGRQs4oO92u7kC761CHfQT5ZiO82iRuYP8IGVZRlgLLeumZP1i1a6uIk0DzKen6TxR0hVke1qZj2JNtW8E9tvtY/Ik79gYHn1nB6IGy9O+GAbX4a3BczK2o9YvS0ak4Dv/vaRqU/JFUYVxZlMwGWCKC5hJ+nANLTQlwbQpr/LWaMi8hQ8QtrfgwPZPBYol94u4J3KzXJSjsNW/98XBcRUwgI1U3v1WBdxwNfl20DL9IBg4bdtsmbCImUPdBLhUDczwo2OBd2mU4kGfvWKnWIaRp2k9d0URhKmwWN0+Hd/2l7uzoel0ceEIyFtUcuOgB7tdofW2WnmJCkB/kXvcC/rk5X8F/LevJ9WhzvPU578Ur0D6xgwMHzyg6SmVBHlqnu5fEDXKiecPFizcbJlmr/TdjsiFFuchpuFLLgkGQqOFGtVXyD+UTwWXO8oqFOCvpoIwWaN9imfxo/dpnHBglOYvX0dfwneKJisCzjnXT4D9jf+4pxpJ4rKNgsBqx6b+4lswcibWd5taJcfruwZBfxmnE1fRlYPpUgvjq1kveEb/OuebnQNb6PXyAQswIvfQpluzDoYywAMyM8taM1wR2b15wZk29gIPEWLWSAUGSxEnhuNB8oKyihMu+I/h4tfntvca9mcoXgF15a+9pfdVmgHLP1ms/5vPXrsMAKVb+ePQuiNRE6XGeCpavFkQV+eWWIihV0t4vb6P8bUzsr6fFlV1QQ1fzprRKL8Iy8sQZ+WIRCzvwCD8b5fTGcRYlcuPitsiDiPkYV6yE4aZ8qhyM1z7KqUK9gfuz+CDWwEu0WeBf3ClCQLoR3I7GdDjRygZHfiWQxKgpKKUC4P+XNhc0NVpD1d6c7ePlWLKKy2w9nwqRvHCvtuzoCYU722rPAUobVc/6AMEmS/FUIcjyCi6blI/VCf5erJDL9NAOcGqrcCPDy6SqEOOJIJmZLZO06hBvZHuWMbIXrkmMYO01mtAY3furEO851dxcVtG7Rgl6SwsZ1ZNU8BAGL4mkIz1VVOyNQylBG3DLZYRz0kR1y/kciMnaTT3Olh8MzMcph6/EPJ28fAE5o3X4mGi1fuOzc4E/oeVr8pegYHmlAhb0MM2Fd0zq2X6EVHzijL33S4w2/zNFc2SeuWjjVhXFw1vCqe7KWcVn9PkoeRyg73fP7YSxVjccbhRYVrBaO4gofSVFzA8PRahbhIyu+gRGl7nX349oYysZK8v/Iw1HjHZKkHgUrLqIZAwjcTCS95sJePIMsjx8bZrQqUXue4ReiViQkLUJAA1lMT6+9odf+VzMTWyk078iv3pyDguRrc4w0ltjK3PkDFdZzhTWx9S1+wnjFIozzLIHn+gwXi33RnoYukTxEr1fU7/tv8JCFLT5dyiW+dy9J2KdW4RFe6c12MrxiHv9CGZILuHSxh5XbsMCpFMLcEz9fnCMMIbIHpyqMZlvxUavWZkY6vAnvSCqrQUZVE9dkecFta9hBNr1O6EC4bBL9ibAV6suSUhOmTP/BX4Ww/RBPjDoCqNM8eJj6s1nBDrqFtAr2bNk2ZlXf5gAly+A2XAgMUcpdeQBQbxL6/p9KYWdw6LeBqG0p1gJC6cHbZ+asOB7R4qmdrHzrS6p7ImUlJS9aZ2CCw4DX5tvIhUYIxPbJqxcklvltuDl2Z1ScqIYBcKk6U7gGog/jqqtIN+Ve/GzDqT/+kKZzhH4o4ukmI77C73ZLoCvm4h8gEN4VMsqHuYynSGmo5N7omAuvF52ktMx80alfY+P8nU/o9zuctWt+vSbJDzIlcWpKHrQjlmCh63oNUtOl9j0+xeifvts5l8RfVvzCovKujx6brGb26Cj83jnw8ThxBjVbQ5PKBcu/We1noLWKX0UwFV6IMDWR9GRWv70pNCWaM3W3TkSyOMaRESJYzG6d6Ro1odjNuW2aFgwGe9++O/ffo3GvNsRw4mT5ZWKfeNQ4wyBkNzlebQhPZ5rUyQLTjRzUpgMtQKJJvPismJBH9o0ibyq4wNkdaIWKjtVVYpuMBBH9JbJ8Zc1ohqwB8skCo2Ce4jU6bpOCBKLOO0KryZSmjFeslkDmZrYJWrWYQte+7hngZgrtTJgF9lTS3gaX/PiCEpXEXcmlEHxL1Ewod2ccyHb2N1b8n9NphpIFZ9srokQeHggN3qXl2G15lcwRpvpzBR7rZoFcrVXgxua17swFE4L/MGomJlIOoJspODLYqpNoIp+5gXvasreAH3mCB2FnMrjCYH99ygQcs9zKQ8h1COnj03WzhICoKwNLOxIoFXMuu7N81Dgp8C9b8FaOMP8a428B5Pg9E7AAXdJ2ZNrdHiF1u5e+9sW7UmndulPvIhc6DgHCJ95C7ogkGb/NAImMhtXJ47ocG+dnqANMZRir9hCIeoQ5QZzuiWqDq3s/qNPrWIh/rsHzFTQcC7oj+xERKpZErbwu9yyRtjk3xQWBSBszsJvsGCKrvXMLpqIB4eEjY1UBvsNiUrfR0jyGw2R/v7yvedz/P6F829ExO9wyVIQospHociFRviP9w75b8jfkzqH8q+9PVFGUsKhfoaTJoSpmeuS6WnnQZNaRo/NUJ+iGaFG6w8wU0Qj2Bay005rNmXHdmo1MFiz8pinojf1bdvqtYM000F59b8ZowsQYcLjj3wPqo82HIYbdZ/D8FBGjmb6v1N26rzJTZXJ6mXzDlWKgXnUoL9n0I3us/Ho0+Wwm2DJZy6qcA8GDx97CGP/GOr+N0F7uvPWbtOYW8zFUIPgDFqFE7xN8BkvjohfOV/a5EXZ6lU1VTKUn5Z0Ltg5/akACZkbrEJnzjTfQKX3gmA73Re73QbleevY2+LxgBReULIIFOjGGIIhLAJaZudTxWcB2G+IJYzUouvExQop7w08CRDyo05RU4gGqYiEybknVTyZPpIv/fu/TnGxpPuaaqniZtZfuR35B0B0opzmIL9hp33Tv2J6MOblqCuHhnlVq5LAy0X4KJD1c5M2Hl1zSQzEEPvsumE+noOpnrTR3ikFKmF5ouwWX3tZ3En4HGww2Jf9QeFtZGzuJeAkkM48rJ5Pyu9SIZWvr4PUdqY8Np66yYqAKmzLs8bdR373hZRZfYAW0d4GLGklv4iZBpfB02+vuDQrNttp1EhCB+mH1oKDnUvoUX9vv/u+HxMsne7enDDbGTsZURGg/tdbjFzil7UebExy4uMJZyeEmN8gOMMLqRxWCvGtBoQ/3JgHBaEwA9KelV98RPr0D6t4Xt94yfWOkNt8AtaSuJIqqxlh6gNBI8Wt2wYIAjnKXHpWskVtHlAwovxS/zeP1YhNPjPwB6fHLw59Ii+dVCAUNe5CM+2qnoP1sgZVf2nMSPSE/9PJQbpjvfM1p4YIni1jJXTh4oXPZ7vjsZRC3SPvCU0/yq/3Hd9cf9JmBNW2yuXoANd4iMSwapJrJ/DMeJbFMfMZDXAHnuLIbs/eES9FKntaRy/xJDkQqOyCSKLZ/wm3wEt5CJ58LjeRzaoq+LQ4ri1N5V7bYTnzlTpR7Sv9JyAk7V038UP2gqssgzKiNUbsVjKW858VSmZ2Sq2eXYqZuYb/lxfjix+AzanUBWVZcWLN1UdiJ84GdFvTbWeqkDL43PB5HUhX8jvtXGu5yNIo7qKpiY6F2YNMP4Gm9oybeewsK6oviHKwDQbrahhMOMLIluoElqPAqXCzqM94WaFDy9VbOU5GpXTx7nT3HiVG8wNa9hwvYBjAD61yQ2VREGy7wuBJaPUc++qkFIKFrILEOmNFjbnQY3AIj2XAyrs179KZzB43BBa3IfEUspMG1ONRH3sfOFObhMPnE4Ugs0GtE5hakWjnPLmVSQaL4SxERo7f3tl6s5lczaZMmwV2Cqahhceiugv6jGn30zrBwsz8ShczKmJxm5R0nnTpVDNZ9GXyVBwXrGNVRy4lc47hic3K/H3eVXzgDsfF36unAiguuKkAjodMMk6XsI68T6V3T7GJEc2lElEqongT/exrd/LRds8sFSdUnbP/ZWiu16+Jo8gxFLHxH4Q4Sf51kXh9ci+JJXa93X+PgeWFtb5JxYc8UYpR3vy7eLdRhgFa2RuwDWBl+hagRi1tnvQev9Ik1BshiiCL4blLGV1JB9sd6M648RPcR/gKMNqR5bGRohRlFQdTHqqEFMRw/NLm0DOOZQJsohAbtREc2MTv7CeNK7IU4d0MvSeEhO5GUE30317xXpr9TAcNAvq+aKA79Y9qJjTVGUu1Z44WK9JyxO/y+p9TnwrGgKohhFd7DiHuvSy7GsxCDvHIoyWGoXl1eiX7LABItq08eJNeY4JRgdOgA9M38h3zd70+hiEHfe6Q8y5MdeMknPu5GiT0NO31J3sSSzs1N8gzzJO3S0NS3BSxE87A+GVhGzmpZEU9s8Lo+1BOCaeGYE8pg4kbP97Elghmd43ZNosti8cGowyWbCyuPhpdAZdb1LvEeTrvH0TomrVbS+YX72pEJp1vRwMU7CxCqQHlrrmFc3wwPQtRZOc7/mFC7RvBtm/sRwWf0J8hDtJb6WkjbZyy6yNqhjQBr6+UTluD4CiKMz0qFkFJMEDQvUasAmr9PNXUhVUqSJKOVAqW5NvvkJLeABuSy9TE7RvXhX6KjZZnQk+Fxg650imd28zcRdNQqIE3j20Od8WM62+MZ39vH5B6D4sRayf+OXCP3i1uuUy2Mp3QGE9Nn+UUpe6ufDQPJDzj+6DSLY0lY0sE4iLwuSaoaMd9Zira27IzAzu1hZ4hHc9u2zz1LwELQWAb+EUj3mmhzBFH+FOmp7WdCose1O5kdiEYIbrGyybfWCPwCENNgj389LoJzShcEXwPTcezZ84hTVJrLKrqDUJvAvmVsAormBdutZ/YdgzMqxgq+wsWIDaFISVxMWKkTti4dyGf3fLDZDixC468IW6mBFu0An/YPmrApAhfsNs7fceIY/iExKhTCxLJlCXyvNRaJy7P822+iw60Fx2NOxXIFPqhYH+Tl9ZzbKA+MYujvFDvtgMKMaQrnArfRtnvIBX27QRZvLeVbom+lvaJUnT6kzpLmSlEf+s0EelZWLkEzTVlVZBTr2ZgKK4FAsSOhzJNCv3JqzNGZoO54QWZ6iQg/KIYFaiMlR6TEFRg2QnWJapT0ZyUb8G9QcjLhVI+epSn5hqMF1N8Mbk86NHvPPe05elH0ebbSWuNRWMGmhfE3n1pPA+/VSqDZdPW9IdxtrPdMCdLb37w1il8AmSFJR9eSD98uJFp49UOdRYGje6TB0VvM3tEQ8jMprZtDujNekFUYpnTYZ68nfHX50iguMYWTHrbdVqOInOsoxPNQDvd3imS/TPMFFA55SUn/PSDj7uYdUt7HnTGmOf1XG4/U1JdrfEE67e2Fgln/nECe5x4fC5bkrm7wLrlZ8njoP9bNY6svHCP6R7C4IYArgvnsWsfqG6G7FnP0DsZmNfj8qTpQWZHMlojBaRcgs45SB3zZ9K/e6zLfl9qxXDuDW8e1oKe5tNkmXdhpMtjpuBEZ9LgTNwebEZ9Ulj6TICVTkyTEq8gXZWD7X30/v8xf8Q/VXxX3NVCQeyInYNMP3kgEAh7Ox2Tr5wPItYNY9dJprupRDMDbenq/soFRSI4q+7Ggj5dBLq1q7Z4dxUNyHCJDxOCWmQbEhk6GAOz8NS5dl8MtQ9HXnSF1VMRyyPJ/7g2XZCaonJpiMhhOEBPWLhF8uvuo1D+4Q4KKc62L8zLa6nQytQFZv0AbJAFrfy8QUtThvKWcWCEQ7bXYJ5PYX9NKqJYXH2vmC+ZtuZp10YdN7frB/yqHOdXCBPDKFu3cGaGXE0Pu91Jqj7tfDymGz5u9hvmoETrRk84wN+uL6nZ/lKFVUVLeRb08XDNnuZPnMro9ZhtJrdf4jVzThz4JVTFyLpIoSfwJclZ+aXfCNxaplhQFlmSQl3SlZxRK/Qg/khMFHcd7b5p3TegZUZ7u1fPlV3WXNcqAVpac/xFDwj/elioP42/zR0LVHRYRNngOCo99Dkx08bVfS/xe1m1d8CRDHd2gg51eN2XtREox71cWHgo4vfYyqZG2bBuTHBfGr4ybuQvkcY8/vK5yVgDLx9ZqVSYpH4742W53R5ichdFK3ZlYMxHct31IHb7tpwFhFufZvLQRpugWy+PqVtzaD3EJAtCzXN2Cedf+uuzTliFCVgO4FW5jq2I9/5RhU5142sKCPSbj8pHBFB1oippETqrhqmtLS1PRcRfCWIEi+ZGXB3yJLC05fz+oARR5bI9Ojjp8xhS9V+TcFfnMpfC1ccIW/fu4a0+D7/TnWfItsVgnB8DpsDiA9u5hNu4PI1QsYWN1wizcPmWU9JrxayvH/agWp1BZp3sqhXqnBqKUFcZaUuUZlCkLFLWW/ZrwL804893Xk8YLG4HEb/h+fyPA1cObuTlFr6coS3eMaPIa+xhg3q7DiWInnX5/hMlnh0ivLNLxV0ChSIM8gsCNUtB8HeZ0V9VGBMqYezlgFdCMEJafQFne76rYMjUND58WVCvatjd5F/wfrf4PSvaASKRKK15n3AgPBNnPSXeV7wTQDJoGvsy2Hi4D3H9IfdzQ5LP0BhmFkj20B36mAdqgFrHZYQ6Msd6HDvB7rsGK6nCbYYNVVFibNsQFbb39MTSMRxmA/cjKcX8UEuK7F/iyiF7+4y0PXN/sYhfofym5DEBNFe8g3jYwPEsojlZfxkCnEYZb9BzhUaB1cnsyhOjX1IR04azUdBtuMWEYQl1zoIoM3/rux2d+qzga2PbhUlL9l8jt42wUNaGhx5YneQFS1HJBt24O16BJaTIUc8bJJ8Tw/H8B/6JTxbeOMaCpvYMokI0BAzzAcPMxo0aLow9ERW/Vc5tCdXzHHaDd5+v95VXPy2YLAruoDHD6j5Q1jNNDvcijsavBbaogbR2/7m22b4EdaePyhQKhA6vrXTDvk8FFInwaojobtTKOUS7sJg7u3UasF8T90RZh4icw9QL9gKis8ulyUnFqQ9XTTXFMAsvVikSNhyd5JSRFRznzNpWEoY3LcTqun4OOP07/yr/RArnL7+1b9o5sxE2K1yCAKtW17LuPheTyXc8cTSiQLoEvkAolqRiUVR5C8E9rw/JQPMCzPLhJ5EivpRyfqQ4+h9QYeGPUUslBnLX+Ctyi3bRUPJUfsLnnVaKXo5MUNt12wAF/XXOsdpWoqcXBnghDVN5H1HhmsAKwp9NXz95FmjS95vFr6+fLIi5IpxlP8LVHv2bJECTjTcHit28+F3X/Tdnq1pOP1vyNS8jM3Ny7Deh1CjiAwzwratsYAPu/CyPt+E/phnVByCfmfSLlAAADC6ZMRz3fG5UJVevPvxpU7DpezkKo01Wo6XnTN07I4e/ymIzvHHRZjFBPuxWEVcVLueU/DGxf6Rg9fAmjxOMH7szQ8nGf137x8OLXls0dt4Lenq/kyDpmAAQHGWOo9CCo7fwpzDmY1jDdIKuaFj890vJpAjPAu94vyS3mRD/K/8ecehQ4OR1vYrqJDZVBUAdffQ8v4tUmgLzviOIo2ztp2Daz0fQMmtinlHC5m/L9nVlKlukFy1MqCY0W5mtGFAIQz0im8uZQzPeMllwfUHroJPIQuMr655pqvb/uylh7PiXqDIRUn3wYLlWpLZjx+EuNSL4AADlb5IDfMyOlgNSp6jbWftv6vyb1oZvfHuDY92mOKtp3XgqQauhPDK8bybPbvQcEhpku6elgXgITTuTbV5d4F1GqQfw34fPnfmoqNPlTDA5xbQmkC+xZC3Kc9diUr1sQSIRcHsDOKX3ecvgX9jRZPgGiWg9omTx2RhHJDAYY0c9ACzFcSbKMCNmkiA410YpKrBa+aDyAY6DMbjfSdZX6sZ1JQ4HVIbAaWhbDh5QbsBxs1zAMPZ0TEgSHcTnvPE8z5ni/XdquOeWiFHySRVTSOJ3frFq5XBVCbcgHUezUsKaNg8luRYt0WlxIWQyWOUJfH0rRtICgkX9IL3YN00Xfb/FGke7ST+vIyMAAGyLP2Wv/7dmWBx4+ta1EQ8S72U6yFmGEbAFuTLe0WSL6f7eRlAODNgWGEf2YwdeqU5ZRP9gEeSdf4yMHXUV5jSuGCi3xLIKlWbU3UzcwuakM7pHHYBc+rCrrmhguz4YIFPYGPtelF0NgDpH3HuDmx6FFT4bIZybSyvHbZSJPpQPM8TcMEOuoolGbJTdQ2srjRzmMyaKwqkukSopItjt6OeM4hN1OZAADD1pDU1EaJODjL8eOIPRVa3LSdcNd3eFeP5zdA0hZFuJAJxXsGcbUQ7jCr2kFCLWUWRQAAj40qkUloIOUqJ2CGbkuGkEhOOqHcQ8Huc5axdwDpidQFgIKJciH063DyUgbwLsas1eLAfKkvDkAAl4wUFENickS5rHS4K1ZUYV3llpIcfvsafjqOGmz3mwHP0REShSwfnJxj5Ah2ruxZ+j3pDd3v8j57WGDvfyoN7le36ksojrQ4YNpcwFY1SVC1ecRdq05AhgUGUqgWmsLbLKslMSmqIRu2kavopJWoRyYkld1vUkHCgyrGdLJC6355lCArlh+wR+ni8hmRBKfBj4kJHdqEu2Bm73Yk92tHvqEzCWzCK/MO0DqjNOn86959Xy0RAw6MOjCuZPqvsOcIxoByzXqfmRZp3ZWPM69HseYaotH8sj8UN50kBkFkWQHWCLFYFNW4mVz+JxrBJqAdtEKNGnhsAC1X0YfOiZtRlAQ3O5ApdhJRguSxFyIkWW5iW5TC5RAoRGW+tkWzqY0pjSmNKY0pjSl/RZbaz0bC8T+1oikDNbyRT6/5sm9Ii6fSpX/cOPbW6r+gJZVNuKOPqdcTEOBd9LiyCYHJi1P+vTpCiWhfr1RkjoWESNePFJFOb52YZJ/Q+wAO/I0+P7mewoTC0QuhGBam8bq+j4k9T4AKvwCcP+Kz1Yn5SMm0WA07ku/7oy4ECg1b3A2DQo6rn6CRyNvfR64CmzU2nfuu1v23GPUQibwiDQ92OQY7s/bXc1qB3rLoeJNzKSacrUNPlPl+Uvo9n1+WH0dgb9U/UkDUX4q9FRPVTzyMTJjIwaAhSgo30OoJIdKtbL9xhDcU6ryqq45kR7FAgW/RxXH6z6kweWtBTYIwIFbf8RTjAFdzyVeDH6Upem5wBNS/nVCAhLAwH5HRtZ/VpzYHwX+BtsLccJXS6/yKXVh3VhInUySGSf/yTkjygAAADTMgq2hWbiG1y1uYHMqthaZqvogCK4JQyAVahgMgQxUhH/jubjWuxUoWlcOooc4mTZunDKRG+JQudBPdfgvfHU8fPyeXufy2z9sN55w4iHK+FOd8cvZLfJEtobF46OPGlBogExyVTTcmqbtlLoXj3bwWFsgf2RAlPpy2QATPDKeLdDwPinQrzTZUgna8Nb/OuBi+fdryFUtc+Fd1Rpvo92MhUHfG8mpDqMPx5SSnAJwXfriHPR8zt8p4Cg80VuWZ1rcQxttNULMtGaK/md0hjk5Zxebhc0ZrzbCksNdF61qg+fDSiIJG8Qek2QtYn6XYBAje31E5a1zQQWJgy5QJHWsMyVSoVPIMaj1w+KAkkJwOMsBbHnRCxGbjxs+WVNK3BOmPrJX9fp6c1KJ0WWP6xz/5VMHycBwjyhM+DN26MsKpKFQsX0e6aBu2R3prV+w0siipC67mGyARMIr1pna/jH3ts1un8tPlKmiWKGok2//Mr9mPhXk1kge9TjpFFybwvAoFwOkyHT4j4cIGphRg2I906pUpBA4x7K/FNMH6L+B3kqP9tIVS8W3apAWfw8fzKEKuo2w69XuAjjygisdDBhfZwxLfTTirWbXJRIpf/JDfWD4sG2agtG0eYcxoxJ+H/ycMJ/N3K1gSMZ9ay/TfTCZKQxl2YanfzylUHb/wpOitD7rSz2EKZzPOxSWwDmIkB23/wiAJFuHO7IgKE8KpDjtpBJp+DZ35WH9fcKIOwV/YWmGo0fXuMInXZsizYhoqfnexgeBJCb4BYOGl9IdjFwmx7D1axVfDwYGCle8nnEpE421jff2n7PoxxJE/0ToQgmionNM0J/tk1ZGHYllYVSZqLXxGb7QMDGpNwWJkhaA2gzNpn78nGFgBv1zidgZpI/eQww56S83h/sM60tGHLtEnivT+/Na0BV86Z9gt9uFj17qWikmU46i7cW5eQ6DnML4alHpilK2jxLfQNc8oXrDTda8vQp0ywFSPL1o+hmJYN9hT88r5jZsfbpvTA5a2eBc0IuYVqQzRveWc7MAAK8hIeOgTLg3Txm/qVMnIZ+BHpEKJ0NBAsyrL0ISI1/VuRQwul++vUyMNx2Ygex0uAxKCueHjfEzqWkeY4ldu6UMVZG1UWZSXMQ/BkelSpRD+pVSGPn0cQWAmquUaMUuS8L32EIYGzE/CNp4j8k7pjfEov1+KhAHy3Mu2AhVUrsqB/WjsR+6FwXLwDDszfCYi+McLcn7sMPemEbHWBxqS33sEo3angyfcb9aHg5GorVO3BDPaxRjn0mu4hd0XkXwls7urw86xSImN/VrnjfEoa1Op+sK4riuK4riuK4riuK4riuKWqlX5cSDI98o/IHXZb09Fgz55c7aLLWysB4FYGUj218pm7i1w7Nw12NP+Q669kyrv3sOzRIhnertxUM4LbS3RkXasFBrmEVvzH+Y6MNt75LpEN1bwUFPtTl/mgoLvq7qXu1WtXjJ1MhSWPDYHVsSr0GIu9Sgn9Tgbphi03hPbXruhf/H8KccZofJipL81LyozaQarVUrIrQsGekC7gzxgf7KNl4OLb2rXMdRb3wge7Sz99CYn2ICfDp2tXPvvKVvCVLwPJhLKwCjxSDQHcW75BUow2qLjzPwsKny8ckzPo3gaT9ny+XgQ1SznBoxDppkLZyaFysX0aoSd7WyCvZ6W9VxlaGWGEWt8obZzxjPChpsN97JNsRSTCRZTFTTnLat6E/6s6bCSb2MhjOocl4XGkAqZZn6m/XaKjND2VpUKlP+05eDiDIMlHwCE25rPqLpl7YQtvZ221cX8JX/pzd76qWfrGlT8mqZ5TPfcu2bddWqvZfvF8pjWYPvOxTXQgxGuIbUsVU5Y1JGBZ2Yer6OtFqIwgS9a7f5+AWPzkXVGx6jWTB5dHZdKeojpTIJgo4JWPP5FnuVa/5umBZpod3y5Doic26wNQWIgAEx9VQitsj1KhRV4pAwrNrZ0c4ZFOWfcgZIG7NvMqq99iDTGmdjjueJghQuMycnk9HAyBi635hXvxyaB1Wod5FzZHBMVDN/D/tasa+B8mPD0X9/IE5GSDzrJfTKAcfYHYpq7dzuVD8aKTamnU7RcMpvK3YX80kbSV0oRytpr6luIYBgLVDpgAFfxIplBU79QYjSiDCVv3VlCpa4KxsZ+h2+lQrsxwcAVY2EGtdOUM3A1FRWKhu9ajYXP7a+JCyZ9psZFdL44P+zf/Bkf/3CmN8SjKph2nZm3Ig1pnuN32bncyLBVxCoCaCWTTQBhD9Vqqbs7/mzcUR2fI1JPufq1SO4B0Ubr56Ds+RqSfc/Oa8BzMEiw4MvqNlQfAyARjYcIsawWNOvCbtdJ1Kwkz5/wmus6AxF3mbGadYCGfZwvlEj0dLf1aYV4x7freVgJDZ2ogOIro05/gToK+aYREXJTIeUcBuep4Ui92ux/+h7lXe7kJQWqGYkQ60S9UbNiyyebiW6U8uIHq9EsQWCFwEELzYCaDEtyLusLP1efTU2S8dWhI/6Z6uJF2UgaHGCPWQpVv3lph5WSHdBWgAgYbrvo7K5bZhLVBtwckI9GENJdLoFPTwQxXAKUHvN2/Yo/ggYwF2QGg5wNMTZxmg4r4BqSgm/bhdHJCt29Z2riNEd/XXyEZcRL4cm+FOP2gDpNPaK00KrGWAEoWxxDpvRDfCbzVV9PvnRaHIFEDMdhdXB+mzeN01jgZi0ZDIkxGxvS7ULbHTiRmdYAKkPgMBnWkBvi5l8Yfg/zeHAyns7gdrucT9vvAb+hggFf1IoT8DdMFLgS+oQZQzYLT2g0pVyVLAVL27OkfEx/zuKlpZ+XET7a+HU8X+RYbR9em/EoYIF7GR+4A4dRSbGRE304M1ZXOI8JP9mk6ogNyVuxqzGD8gYOfG7TOGwhv4w9OWTPoeClKtdiXGy9MMlYTNbHukmqeRgh5d45KKKW4atHrN2T90KKF6Q+nTKFsovGe/qL4h7fJMuL1JWp0JzToxVmZH2ActLhPXM/H1ovSoNaHQEv8QB5s3kaBl5jF7izhuVeBF0CKISI9sE0+XmXZz9kZibaPoNOmgHDmbHT+8M7lKdZyOzd19dV8TWoB8coPhzBuB0Agz6ArgHPOFrQOmF9buDlZfpImLLQRUEgNl9hiCF2eRKaLFQQ/khMekBw/HjzjaqT7XEGFD9loC0A05eXTo/XQHuRZWh+dVslnGlMjADm4RRX4X8yT+qqyHvxaeGGZE/JB2Qlgrm2idobMRQdbEJHhKhYXMEyKq7gpO8FxzyOnjvuIoZUu1qEN5FW+yENpPsskoVMaWO3m5o77jKsvtqqvJTzK/lXebokn7P5RD05qrA0F9RVnesQwXRKV5Cl/XH8pHffkn0hMgzwJyAUk+gVu3opdRlMe9LVK1Q6G72Y3WbcQrk1iUpZKJ81vtAd0dLs2OzUZwMYkuxaT7HKGnxrtxwsBB/8NxPxZPOGXuZUgkqgizJiWZjU1DivUXMKEpEUMdxtspbUsCytgUmT5lxk0jaxvr6THaehv875N2kq21bCNWi/Y6P9udAMwRc/eY6cs5cMW7/xtVCfyDFmyeCLqcL2FT9HP7vYCgb6l+H+f11gBBmKhD0H3mInhPS7blkeCNZNeuwYU+6sSt55YTrtN2s1vCxWK/f5Mql6efjLQ4LrBOuz06+md7BzYiRp7XALKuHnuaT6Nr9MAge3zdVGGuKvvaADaTfDSkLyqYOJVuuQ76nhrqpbFLQu2aIUt33dmsFGbSyxu9vBVZ9GTrPK0aR+o6LgqbLXmbz/FbLSojrpinbqDzHTSNpS3/PznWPFGBmyb5uPsP2XngbK9a65ieOFVpf8NMYEjDmiAjOOhZUcDSG4jeedU5M+erKp+8rZ3nFxs4MbuQW2ODgFT6UJ0vkYXWtt8EdGbwh981+QfZdSoEsWIxNUq9Gxx04T8N+AJ9tPfNjUAJhvzauAWuKqcZbNt4/tIC27kmOtKwJB8gUZPfLT+xzmpe6IZhN6hSKogWujPPaHolnTh1L9Z52xcumx7j36yFLqhkVWb9UeWsKdoG//1xrl2ecvtsEE9TrUWTEyh2h35xB4g6S12D9AuHb/+KLS+9yL+M2iIdqq7O2JgsImdYsMtb28opKT8slq+E/PYUXSzdzNHep13QLrhNgb0mKODDJVoqwbA/vL3kdmWMFuOfG8yf901uDddaKSS1eLR8I6sV5wHZPPs+h38aVjubnoV7PjSCWHEeKm0RvtpsOC26ReHgrXXgG/VJvwkSAKDbwfwTOD2SM7pf6ekzd2pLITQMuVQ+nYkAfkFAlZFCrAeI3E3LRmPE7tgBkGIqVJzC5m97szQ2H+QmaxzCmTdRAlIW/MU1cae2sRB75AVtIQ2uEaZGHh+HklDJ3v6dIoe8QCGszgS+wg50Q3fLzlitxiaCJ+p/YRG9cmbhyRH+z9OJPLuuU89LB8tm/RXA3PBGoDOSGnala3TuxaDFhdRNUQ+pbjxkt1B/aM9YmA1rolZgplAaWtQqj0tFnx/6cvC48ldrvsSerfjlXeC/1pbelLjlQbqIh37A/VscYY+AWWlisp/BgotF/hzDFn9/CbZ5VwfXB9NrsN+N99sXoAuBuN4o96cyCoFb6a5owXQhJLAyqmwy/+dKqVaN3H6mzlMJh8L9N5/DDV1YVGLWr2yITzDzyT8B6/aYyKqTSEg+WjydYXDXT1UTVsJXGkKeNQGHFLz+wE86dOuL4PkgGWwxaRnDJjtFyZhgmJ+86gFtjum+T0a++kzqsqVYZcpEycf5e4BeAE81nYYniG/4Mud++JtRw9J9J/+g2lele9V9OUl/l0E5ejk1LNvxqrOI7KfSr5vWH0lkuudaws4TeSlsbC+ldnPPVJHkiA+FCnEEliiHz3J6aq8wizvYCfVwXLB5ngZ/vA6IIjwz/kIOvXUAytgOgEN9gthIalJuQRPfpujp4a9Re1qKAAKw5L4Aoyu6GRr70FjagYVrPjFFlb2GAySAphfAsHnolBSsIFCCGEgiGoBHzum9L7a4d6qUtBE7NcwC/pt1XZvNDIzmcqDv9UMZhpjRIcZS7eARXlnD8mCtz6pdwraHQ36EccGe1teDtnAAByL9G94jg7mLzV/ilAKls3uep5mBwIYUdVLAqJwdu8CNg0yhJlG0vU0Xwm3/CD5HVcU663rpTlZ3e2DQFvfS0KBwRrNYcRtxPRXrkITFhO7fIemMoE5Ep8ic2KcmqwMYp+or2wHUyrGzKDn57ehNg75kZ2icTQqIBiwV9LrrWjgv/WWyIAAA=" alt="Screenshot of a CloudWatch dashboard with four gauge widgets for CPU, memory, latency, and disk usage, above line graph widgets. Some line graphs list an anomaly detection band in the legend." width="1000" height="408" style="display:block;width:100%;height:auto;border:1px solid var(--rule);">
+    <figcaption>Image 5a — A custom dashboard that mixes gauge and line graph widgets. (Source: course slide by AWS with Chetan.)</figcaption>
+  </figure>
+
+  <pre class="flowcode">{
+  "widgets": [
+    { "type": "metric", "x": 0, "y": 0, "width": 12, "height": 6,
+      "properties": {
+        "metrics": [ [ "AWS/EC2", "CPUUtilization", "InstanceId", "i-0123456789abcdef0" ] ],
+        "stat": "Average", "period": 300, "region": "us-east-1",
+        "title": "Checkout CPU" } }
+  ]
+}</pre>
+  <p>To work with dashboards, a user needs the permissions <code>cloudwatch:GetDashboard</code> and <code>cloudwatch:ListDashboards</code> to view them, <code>cloudwatch:PutDashboard</code> to create or modify them, and <code>cloudwatch:DeleteDashboards</code> to delete them. Dashboards can incur a charge beyond a free allowance, so check the pricing page before you create many.</p>
+
+  <h2>5.2 Cross-Region and Cross-Account Dashboards</h2>
+  <p>Metrics are Regional (tab 1), but a dashboard can show metrics from several Regions in one view. Each widget names the Region of its metrics, so no extra configuration is needed.</p>
+  <p>To show metrics from other AWS accounts, use CloudWatch cross-account observability:</p>
+  <ul>
+    <li>You enable at least one sharing (source) account and at least one monitoring account.</li>
+    <li>In the monitoring account, widgets can use the <code>accountId</code> and <code>region</code> properties to name where each metric comes from.</li>
+    <li>You can mix accounts and Regions inside one widget, for example in one metric math expression.</li>
+  </ul>
+  <figure class="diagram">
+    <svg viewBox="0 0 720 310" role="img" aria-labelledby="t5a d5a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t5a">A cross-Region and cross-account dashboard</title>
+      <desc id="d5a">Metrics from two Regions in account A and one Region in account B flow into one dashboard in the monitoring account. Engineers view it in the console or through a shared read-only link.</desc>
+      <defs><marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="15" y="25" width="235" height="70" rx="8" class="s-box"/>
+      <text x="132" y="55" text-anchor="middle" class="s-b">Account A, us-east-1</text>
+      <text x="132" y="77" text-anchor="middle" class="s-t">Web instances, load balancer</text>
+      <rect x="15" y="120" width="235" height="70" rx="8" class="s-box"/>
+      <text x="132" y="150" text-anchor="middle" class="s-b">Account A, eu-west-1</text>
+      <text x="132" y="172" text-anchor="middle" class="s-t">Replica database</text>
+      <rect x="15" y="215" width="235" height="70" rx="8" class="s-box"/>
+      <text x="132" y="245" text-anchor="middle" class="s-b">Account B, us-east-1</text>
+      <text x="132" y="267" text-anchor="middle" class="s-t">Payments queue (shared)</text>
+      <line x1="250" y1="62" x2="298" y2="92" class="s-line" marker-end="url(#ar5)"/>
+      <line x1="250" y1="155" x2="298" y2="155" class="s-line" marker-end="url(#ar5)"/>
+      <line x1="250" y1="250" x2="298" y2="220" class="s-line" marker-end="url(#ar5)"/>
+      <rect x="300" y="25" width="270" height="260" rx="8" class="s-hot"/>
+      <text x="435" y="50" text-anchor="middle" class="s-b">Dashboard in the</text>
+      <text x="435" y="70" text-anchor="middle" class="s-b">monitoring account</text>
+      <rect x="315" y="88" width="115" height="48" rx="4" class="s-box"/>
+      <text x="372" y="117" text-anchor="middle" class="s-t">Web CPU</text>
+      <rect x="440" y="88" width="115" height="48" rx="4" class="s-box"/>
+      <text x="497" y="117" text-anchor="middle" class="s-t">Latency</text>
+      <rect x="315" y="148" width="115" height="48" rx="4" class="s-box"/>
+      <text x="372" y="177" text-anchor="middle" class="s-t">Database</text>
+      <rect x="440" y="148" width="115" height="48" rx="4" class="s-box"/>
+      <text x="497" y="177" text-anchor="middle" class="s-t">Queue depth</text>
+      <rect x="315" y="208" width="240" height="60" rx="4" class="s-box"/>
+      <text x="435" y="243" text-anchor="middle" class="s-t">Alarm status widget</text>
+      <line x1="570" y1="155" x2="598" y2="155" class="s-line" marker-end="url(#ar5)"/>
+      <rect x="600" y="95" width="105" height="120" rx="8" class="s-box"/>
+      <text x="652" y="130" text-anchor="middle" class="s-b">Engineers</text>
+      <text x="652" y="150" text-anchor="middle" class="s-t">console or</text>
+      <text x="652" y="168" text-anchor="middle" class="s-t">shared</text>
+      <text x="652" y="186" text-anchor="middle" class="s-t">read-only</text>
+      <text x="652" y="204" text-anchor="middle" class="s-t">link</text>
+    </svg>
+    <figcaption>Image 5b — One dashboard that combines Regions and accounts. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>5.3 Sharing Dashboards</h2>
+  <p>You can share a dashboard with people who do not have access to your AWS account:</p>
+  <ul>
+    <li>Share it with specific people by email address, and they sign in with credentials that are generated for them.</li>
+    <li>Share it publicly through a URL, so that anyone with the link can view it without AWS access.</li>
+  </ul>
+  <p>Shared dashboards are read-only, and you can revoke sharing at any time. Dashboards can also use variables and live data, which the CloudWatch documentation describes. Image 5c shows the Share dashboard option in a dashboard’s Actions menu.</p>
+  <figure class="diagram">
+    <img src="data:image/webp;base64,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" alt="Screenshot of a CloudWatch dashboard named SharedDashboard with the Actions menu open and a red arrow pointing to the Share dashboard option." width="900" height="486" style="display:block;width:100%;max-width:700px;height:auto;border:1px solid var(--rule);">
+    <figcaption>Image 5c — The Share dashboard option in the Actions menu of a dashboard. (Source: course slide by AWS with Chetan.)</figcaption>
+  </figure>
+
+
+  <h2>5.4 Hands-On Lab and Practice Lab</h2>
+  <div class="lab-box">
+    <p class="lab-title">Hands-On Lab</p>
+    <p class="lab-sub">Lab Overview:</p>
+    <p>In this lab, you launch an Amazon EC2 instance and build a CloudWatch dashboard that shows the instance’s CPUUtilization metric in a line widget, a stacked area widget, and a number widget. The metric takes five to 10 minutes to appear, which is the basic monitoring interval from tab 2.</p>
+    <p class="lab-sub">You can start the following lab:</p>
+    <p>GLAB 274.1.1 — <a class="lab-link" href="https://docs.google.com/document/d/1NX6Xq8dnTy9-fFDdbmpBoN-JrpGNhOAfDVOtA0bprR8/edit?usp=sharing" target="_blank" rel="noopener">CloudWatch Dashboard for an EC2 Instance</a></p>
+  </div>
+  <div class="lab-box">
+    <p class="lab-title">Practice Lab</p>
+    <p class="lab-sub">Lab Overview:</p>
+    <p>Use this challenge lab to practice the skill from the guided lab: creating a CloudWatch dashboard and a widget for an EC2 instance.</p>
+    <p class="lab-sub">You can start the following lab:</p>
+    <p>PA 274.1.2 — <a class="lab-link" href="https://business.whizlabs.com/labs/creating-a-cloudwatch-dashboard-for-ec2-instance-challenge" target="_blank" rel="noopener">Creating a CloudWatch Dashboard and a Widget Challenge</a></p>
+  </div>
+  <div class="lab-expect">
+    <p><strong>Important Lab Expectation</strong></p>
+    <p>You must submit proof of completion of PA 274.1.2 on Canvas using the following document:</p>
+    <p><strong><a href="https://docs.google.com/document/d/11Gkd4UUsb1DRXiCmJpVWsmaujdbJMO92ZEmSg1h_gX4/edit?usp=sharing" target="_blank" rel="noopener">POC 274.1.2: Hands-On Labs Validation</a></strong></p>
+    <p>If you do not complete all labs during class time, you must finish them after class. Failing to complete all labs before the next session may cause you to fall behind.</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>A dashboard displays data; it does not send notifications or take actions. Alarms do that (lesson 274.2, tab 6). A dashboard also does not create metrics, so it cannot show memory unless the CloudWatch agent publishes it first.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>Automatic first, custom next, share last. Start from a preconfigured view, build your own, and then share it read-only.</p>
+  </div>
+
+  <div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Single view of resources in several Regions”<br>→ CloudWatch dashboard with cross-Region widgets.</p>
+    <p><strong>Trigger 2:</strong> “View metrics from multiple AWS accounts in one place”<br>→ Cross-account observability with a dashboard in the monitoring account.</p>
+    <p><strong>Trigger 3:</strong> “Show a read-only view to people without AWS access”<br>→ Dashboard sharing by email or public link.</p>
+    <p><strong>Trigger 4:</strong> “Preconfigured view of one service’s standard metrics”<br>→ Automatic dashboard.</p>
+  </div>
+
+  <div class="resources">
+    <h2>5.5 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/CloudWatch_Dashboards.html" target="_blank" rel="noopener">Using Amazon CloudWatch dashboards</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch-dashboard-sharing.html" target="_blank" rel="noopener">Sharing CloudWatch dashboards</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html" target="_blank" rel="noopener">CloudWatch cross-account observability</a></li>
+      <li><span class="rtype">Pricing</span><a href="https://aws.amazon.com/cloudwatch/pricing/" target="_blank" rel="noopener">Amazon CloudWatch pricing</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== TAB 6 ===================== -->
+<section class="panel" id="where-it-fits" role="tabpanel" aria-labelledby="tab-6" tabindex="0">
+  <h1>6. Where CloudWatch Metrics Fit Across AWS Services</h1>
+
+  <div class="problem">
+    <h2 class="ps-heading">Problem Statement</h2>
+    <p>FlashCart is adding services before the next sale, and the platform team wants one dashboard for the whole checkout path. An engineer opens CloudWatch and finds that every service uses its own namespace and its own metric names. She asks which metric to watch for each service, and what to check before she trusts a graph.</p>
+    <p>A test shows three problems. The graph for the Auto Scaling group is empty. The graph for an Amazon EBS volume goes blank when the volume is detached. And the team wants an alarm on estimated charges, but it cannot find a billing metric in the Region where the instances run.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Name the namespace and one metric to watch for the EC2 instances, the load balancer, the queue, and the database.</li>
+      <li>Explain why the Auto Scaling group graph is empty, and what to turn on.</li>
+      <li>Explain why the EBS volume graph is blank, and what the volume metrics do not report.</li>
+      <li>Explain where the billing metric lives.</li>
+    </ul>
+  </div>
+
+
+  <h2>6.1 The Metrics Map</h2>
+  <p>Every AWS service that publishes metrics sends them to CloudWatch, grouped by namespace. The same metrics feed dashboards (tab 5), metric math, anomaly detection, and metric streams (tab 3), alarms and their actions (lesson 274.2), and Auto Scaling policies (lesson 270.4).</p>
+<figure class="diagram">
+    <svg viewBox="0 0 720 380" role="img" aria-labelledby="t6a d6a" xmlns="http://www.w3.org/2000/svg">
+      <title id="t6a">AWS services and your own data publish metrics to CloudWatch, and several features use them</title>
+      <desc id="d6a">Metrics from compute, scaling and load, storage and data, and network and cost services, plus the CloudWatch agent and custom metrics, are stored in CloudWatch by namespace, metric name, dimensions, and data points. Dashboards, metric math, anomaly detection, alarms and their actions, Auto Scaling policies, and metric streams use those metrics.</desc>
+      <defs><marker id="ar6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="s-mark"/></marker></defs>
+      <rect x="10" y="10" width="225" height="64" rx="8" class="s-box"/>
+      <text x="122" y="32" text-anchor="middle" class="s-b">Compute</text>
+      <text x="122" y="52" text-anchor="middle" class="s-m">AWS/EC2, AWS/Lambda,</text>
+      <text x="122" y="68" text-anchor="middle" class="s-m">AWS/ECS</text>
+      <line x1="235" y1="42" x2="273" y2="42" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="10" y="84" width="225" height="64" rx="8" class="s-box"/>
+      <text x="122" y="106" text-anchor="middle" class="s-b">Scaling and load</text>
+      <text x="122" y="126" text-anchor="middle" class="s-m">AWS/AutoScaling,</text>
+      <text x="122" y="142" text-anchor="middle" class="s-m">AWS/ApplicationELB</text>
+      <line x1="235" y1="116" x2="273" y2="116" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="10" y="158" width="225" height="64" rx="8" class="s-box"/>
+      <text x="122" y="180" text-anchor="middle" class="s-b">Storage and data</text>
+      <text x="122" y="200" text-anchor="middle" class="s-m">AWS/EBS, AWS/S3,</text>
+      <text x="122" y="216" text-anchor="middle" class="s-m">AWS/RDS, AWS/SQS</text>
+      <line x1="235" y1="190" x2="273" y2="190" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="10" y="232" width="225" height="64" rx="8" class="s-box"/>
+      <text x="122" y="254" text-anchor="middle" class="s-b">Network and cost</text>
+      <text x="122" y="274" text-anchor="middle" class="s-m">AWS/Route53, AWS/VPN,</text>
+      <text x="122" y="290" text-anchor="middle" class="s-m">AWS/NATGateway, AWS/Billing</text>
+      <line x1="235" y1="264" x2="273" y2="264" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="10" y="306" width="225" height="64" rx="8" class="s-box"/>
+      <text x="122" y="328" text-anchor="middle" class="s-b">Your own data</text>
+      <text x="122" y="348" text-anchor="middle" class="s-m">CloudWatch agent (CWAgent),</text>
+      <text x="122" y="364" text-anchor="middle" class="s-m">custom metrics (tab 3)</text>
+      <line x1="235" y1="338" x2="273" y2="338" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="275" y="10" width="170" height="360" rx="8" class="s-hot"/>
+      <text x="360" y="40" text-anchor="middle" class="s-b">CloudWatch</text>
+      <text x="360" y="62" text-anchor="middle" class="s-b">metrics</text>
+      <text x="360" y="110" text-anchor="middle" class="s-t">Namespace</text>
+      <text x="360" y="136" text-anchor="middle" class="s-t">Metric name</text>
+      <text x="360" y="162" text-anchor="middle" class="s-t">Dimensions</text>
+      <text x="360" y="188" text-anchor="middle" class="s-t">Data points</text>
+      <text x="360" y="240" text-anchor="middle" class="s-m">One-minute data</text>
+      <text x="360" y="260" text-anchor="middle" class="s-m">kept 15 days,</text>
+      <text x="360" y="280" text-anchor="middle" class="s-m">then rolled up</text>
+      <text x="360" y="300" text-anchor="middle" class="s-m">to 15 months</text>
+      <line x1="445" y1="35" x2="483" y2="35" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="485" y="10" width="225" height="50" rx="8" class="s-box"/>
+      <text x="597" y="31" text-anchor="middle" class="s-b">Dashboards</text>
+      <text x="597" y="50" text-anchor="middle" class="s-m">tab 5</text>
+      <line x1="445" y1="95" x2="483" y2="95" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="485" y="70" width="225" height="50" rx="8" class="s-box"/>
+      <text x="597" y="91" text-anchor="middle" class="s-b">Metric math</text>
+      <text x="597" y="110" text-anchor="middle" class="s-m">tab 3</text>
+      <line x1="445" y1="155" x2="483" y2="155" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="485" y="130" width="225" height="50" rx="8" class="s-box"/>
+      <text x="597" y="151" text-anchor="middle" class="s-b">Anomaly detection</text>
+      <text x="597" y="170" text-anchor="middle" class="s-m">tab 3, alarms in lesson 274.2</text>
+      <line x1="445" y1="215" x2="483" y2="215" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="485" y="190" width="225" height="50" rx="8" class="s-box"/>
+      <text x="597" y="211" text-anchor="middle" class="s-b">Alarms and actions</text>
+      <text x="597" y="230" text-anchor="middle" class="s-m">lesson 274.2, tabs 6 and 7</text>
+      <line x1="445" y1="275" x2="483" y2="275" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="485" y="250" width="225" height="50" rx="8" class="s-box"/>
+      <text x="597" y="271" text-anchor="middle" class="s-b">Auto Scaling policies</text>
+      <text x="597" y="290" text-anchor="middle" class="s-m">lesson 270.4</text>
+      <line x1="445" y1="335" x2="483" y2="335" class="s-line" marker-end="url(#ar6)"/>
+      <rect x="485" y="310" width="225" height="50" rx="8" class="s-box"/>
+      <text x="597" y="331" text-anchor="middle" class="s-b">Metric streams</text>
+      <text x="597" y="350" text-anchor="middle" class="s-m">tab 3</text>
+    </svg>
+    <figcaption>Image 6a — AWS services and your own data publish metrics to CloudWatch, and several features use them. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>6.2 Metrics by Service</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Service</th><th scope="col">Namespace</th><th scope="col">Metrics to know</th><th scope="col">What uses them</th><th scope="col">The catch</th></tr></thead>
+    <tbody>
+      <tr><td>Amazon EC2</td><td><code>AWS/EC2</code></td><td>CPUUtilization, NetworkIn, NetworkOut, StatusCheckFailed_System</td><td>Dashboards; instance recovery (lesson 274.2, tab 7)</td><td>No memory or disk space by default (tab 4).</td></tr>
+      <tr><td>Auto Scaling groups</td><td><code>AWS/AutoScaling</code></td><td>GroupDesiredCapacity, GroupInServiceInstances</td><td>Group size over time (lesson 270.4)</td><td>Group metrics are off until you enable them.</td></tr>
+      <tr><td>Application Load Balancer</td><td><code>AWS/ApplicationELB</code></td><td>RequestCount, TargetResponseTime, HTTPCode_Target_5XX_Count</td><td>Request-based scaling (lessons 270.2 and 270.4)</td><td>Details in section 6.3.2.</td></tr>
+      <tr><td>AWS Lambda</td><td><code>AWS/Lambda</code></td><td>Invocations, Errors, Throttles, Duration</td><td>Error-rate metric math (lesson 273.1)</td><td>Memory detail needs Lambda Insights (lesson 274.4).</td></tr>
+      <tr><td>Amazon RDS</td><td><code>AWS/RDS</code></td><td>CPUUtilization, FreeableMemory, DatabaseConnections, FreeStorageSpace</td><td>Capacity alarms (lesson 272.1)</td><td>Database-level metrics only.</td></tr>
+      <tr><td>Amazon S3</td><td><code>AWS/S3</code></td><td>BucketSizeBytes, NumberOfObjects, request metrics</td><td>Capacity trends (lesson 271.2)</td><td>Storage metrics arrive daily; request metrics are opt-in.</td></tr>
+      <tr><td>Amazon EBS volumes</td><td><code>AWS/EBS</code></td><td>VolumeQueueLength, VolumeReadOps, BurstBalance</td><td>Storage alarms (lesson 271.1)</td><td>Only while the volume is attached (section 6.3.1).</td></tr>
+      <tr><td>Amazon Simple Queue Service (Amazon SQS)</td><td><code>AWS/SQS</code></td><td>ApproximateNumberOfMessagesVisible</td><td>Scaling workers (lessons 270.4 and 273.3)</td><td>Queue depth, not worker CPU, shows waiting work.</td></tr>
+      <tr><td>Amazon Elastic Container Service (Amazon ECS)</td><td><code>AWS/ECS</code></td><td>CPUUtilization, MemoryUtilization</td><td>Service scaling (lesson 273.5)</td><td>Container detail needs Container Insights (lesson 274.4).</td></tr>
+      <tr><td>Route 53 health checks</td><td><code>AWS/Route53</code></td><td>HealthCheckStatus</td><td>Availability alarms (lesson 269.9)</td><td>US East (N. Virginia) only.</td></tr>
+      <tr><td>AWS Site-to-Site virtual private network (VPN)</td><td><code>AWS/VPN</code></td><td>TunnelState</td><td>Tunnel-down alarms (lesson 269.6)</td><td>Watch both tunnels.</td></tr>
+      <tr><td>Network address translation (NAT) gateway</td><td><code>AWS/NATGateway</code></td><td>ErrorPortAllocation</td><td>NAT gateways: lesson 269.2</td><td>Errors mean too many connections to one destination.</td></tr>
+      <tr><td>Billing</td><td><code>AWS/Billing</code></td><td>EstimatedCharges</td><td>Cost alarms (lesson 274.2, tab 7)</td><td>US East (N. Virginia) only; turn on billing alerts first.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.3 Key Storage and Load Balancer Metrics</h2>
+  <h3>6.3.1 Volume Metrics for Block Storage</h3>
+  <p>Amazon EBS publishes one-minute metrics for each volume in the <code>AWS/EBS</code> namespace at no charge, but only while the volume is attached to an instance. It does not report free disk space, which needs the CloudWatch agent (tab 4). Volume types are covered in lesson 271.1.</p>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Metric</th><th scope="col">What it tells you</th></tr></thead>
+    <tbody>
+      <tr><td>VolumeReadOps, VolumeWriteOps</td><td>Operations in the period. Divide the Sum by the seconds in the period for operations per second.</td></tr>
+      <tr><td>VolumeQueueLength</td><td>Requests waiting to complete. A consistently high value means the volume cannot keep up.</td></tr>
+      <tr><td>VolumeTotalReadTime, VolumeTotalWriteTime</td><td>Total time of completed operations. Divide by the operation count with metric math (tab 3) for average latency.</td></tr>
+      <tr><td>BurstBalance</td><td>Burst credits left on gp2, st1, and sc1 volumes. It falls toward zero under sustained load.</td></tr>
+      <tr><td>VolumeIOPSExceededCheck, VolumeThroughputExceededCheck</td><td>Whether the application tried to exceed the volume’s limits. Available on Nitro-based instances.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h3>6.3.2 Load Balancer Metrics</h3>
+  <p>Elastic Load Balancing (ELB) publishes metrics every 60 seconds, and only while requests flow through the load balancer (lesson 270.1). The Application Load Balancer uses <code>AWS/ApplicationELB</code>. The Network Load Balancer uses <code>AWS/NetworkELB</code> and has no HTTP response-code metrics.</p>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Metric</th><th scope="col">What it tells you</th></tr></thead>
+    <tbody>
+      <tr><td>RequestCount, RequestCountPerTarget</td><td>Traffic volume. Requests per target is a common scaling signal (lesson 270.4).</td></tr>
+      <tr><td>TargetResponseTime</td><td>Average seconds for a target to respond. Read it with a percentile such as p95 (tab 1).</td></tr>
+      <tr><td>HTTPCode_ELB_5XX_Count</td><td>Errors that the load balancer itself returns.</td></tr>
+      <tr><td>HTTPCode_Target_5XX_Count</td><td>Errors that the targets, meaning your application, return.</td></tr>
+      <tr><td>HealthyHostCount, UnHealthyHostCount</td><td>The number of healthy and unhealthy targets.</td></tr>
+      </tbody>
+  </table></div>
+
+    <div class="callout warn">
+    <span class="label">Exam trap</span>
+    <p>Not every metric is on by default. Auto Scaling group metrics and Amazon S3 request metrics must be turned on, EBS volume metrics appear only while the volume is attached, and the billing metric exists only in US East (N. Virginia). When a question says that a graph shows no data, the answer is usually a setting or a Region.</p>
+  </div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>No data? Check the switch, the attachment, and the Region.</p>
+  </div>
+
+<div class="callout exam">
+    <span class="label">SAA-C03 Keyword Triggers</span>
+    <p><strong>Trigger 1:</strong> “Messages are waiting in the queue,” “queue backlog”<br>→ ApproximateNumberOfMessagesVisible for scaling.</p>
+    <p><strong>Trigger 2:</strong> “Track the size of an Auto Scaling group over time”<br>→ Enable Auto Scaling group metrics.</p>
+    <p><strong>Trigger 3:</strong> “Estimated charges” or “billing metric”<br>→ US East (N. Virginia) Region, billing alerts enabled.</p>
+    <p><strong>Trigger 4:</strong> “Errors come from the application, not from the load balancer”<br>→ HTTPCode_Target_5XX_Count, not HTTPCode_ELB_5XX_Count.</p>
+    </div>
+
+  <div class="resources">
+    <h2>6.4 Useful Resources</h2>
+    <ul>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/aws-services-cloudwatch-metrics.html" target="_blank" rel="noopener">AWS services that publish CloudWatch metrics</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html" target="_blank" rel="noopener">CloudWatch metrics that are available for your instances</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/ebs/latest/userguide/using_cloudwatch_ebs.html" target="_blank" rel="noopener">Amazon CloudWatch metrics for Amazon EBS</a></li>
+      <li><span class="rtype">Docs</span><a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-cloudwatch-metrics.html" target="_blank" rel="noopener">CloudWatch metrics for your Application Load Balancer</a></li>
+      </ul>
+  </div>
+</section>
+
+<!-- ===================== TAB 7 ===================== -->
+<section class="panel" id="comparison" role="tabpanel" aria-labelledby="tab-7" tabindex="0">
+  <h1>7. Comparison and Scenarios</h1>
+
+  <h2>7.1 Comparison Tables</h2>
+  <h3>7.1.1 Ways to Get a Metric into CloudWatch</h3>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">Option</th><th scope="col">Namespace</th><th scope="col">Granularity</th><th scope="col">Cost</th><th scope="col">What it adds</th></tr></thead>
+    <tbody>
+      <tr><td>Basic monitoring</td><td><code>AWS/EC2</code></td><td>Five minutes</td><td>No charge</td><td>The standard instance metrics</td></tr>
+      <tr><td>Detailed monitoring</td><td><code>AWS/EC2</code></td><td>One minute</td><td>Charged per metric</td><td>The same metrics, more often</td></tr>
+      <tr><td>Custom metric, standard</td><td>Your own</td><td>One minute</td><td>Charged</td><td>Application and business data</td></tr>
+      <tr><td>Custom metric, high resolution</td><td>Your own</td><td>One second</td><td>Charged, with higher call volume</td><td>Sub-minute application data</td></tr>
+      <tr><td>CloudWatch agent</td><td><code>CWAgent</code> by default</td><td>Set in the configuration</td><td>Charged</td><td>Memory, disk space, swap, processes</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>7.1.2 Metrics That Need an Action First</h3>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">You want</th><th scope="col">Do this first</th></tr></thead>
+    <tbody>
+      <tr><td>Instance metrics every minute</td><td>Enable detailed monitoring.</td></tr>
+      <tr><td>Memory or disk space on an instance</td><td>Attach an IAM role and run the CloudWatch agent.</td></tr>
+      <tr><td>Auto Scaling group size metrics</td><td>Enable group metrics collection.</td></tr>
+      <tr><td>Request-level Amazon S3 metrics</td><td>Create a metrics configuration for the bucket.</td></tr>
+      <tr><td>EBS volume metrics</td><td>Attach the volume to an instance. Metrics are sent only while it is attached.</td></tr>
+      <tr><td>Load balancer metrics</td><td>Send traffic through the load balancer. With no requests, no metrics are reported.</td></tr>
+      <tr><td>One-second application data</td><td>Publish a custom metric with storage resolution 1.</td></tr>
+      <tr><td>Metrics in an external tool</td><td>Create a metric stream with Amazon Data Firehose.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>7.2 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="table-scroll wide"><table>
+    <thead><tr><th scope="col">#</th><th scope="col">If the question says...</th><th scope="col">Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>A container that keeps metrics from different applications apart</td><td>Namespace</td></tr>
+      <tr><td>2</td><td>An attribute that identifies one instance’s metric</td><td>Dimension, such as InstanceId</td></tr>
+      <tr><td>3</td><td>The default Amazon EC2 metric interval</td><td>Five minutes (basic monitoring)</td></tr>
+      <tr><td>4</td><td>Instance metrics every minute</td><td>Detailed monitoring, at an extra charge</td></tr>
+      <tr><td>5</td><td>Sub-minute or one-second application data</td><td>High-resolution custom metric</td></tr>
+      <tr><td>6</td><td>Memory, disk space, or swap on Amazon EC2</td><td>CloudWatch agent, with an attached IAM role</td></tr>
+      <tr><td>7</td><td>Metrics from on-premises servers</td><td>CloudWatch agent</td></tr>
+      <tr><td>8</td><td>A business metric that AWS does not provide</td><td>Custom metric with PutMetricData</td></tr>
+      <tr><td>9</td><td>An error rate or ratio from two metrics</td><td>Metric math</td></tr>
+      <tr><td>10</td><td>The 95th percentile, or heavy-load detection that a spike does not skew</td><td>Percentile statistic</td></tr>
+      <tr><td>11</td><td>Stream metrics to a third-party tool or data lake in near real time</td><td>Metric stream with Amazon Data Firehose</td></tr>
+      <tr><td>12</td><td>How long CloudWatch keeps metric data</td><td>Up to 15 months, rolled up over time</td></tr>
+      <tr><td>13</td><td>One view across Regions or accounts</td><td>Dashboard; cross-account needs cross-account observability</td></tr>
+      <tr><td>14</td><td>A read-only view for people without AWS access</td><td>Dashboard sharing by email or public link</td></tr>
+      <tr><td>15</td><td>Billing or estimated charges metrics</td><td>US East (N. Virginia) Region, billing alerts enabled</td></tr>
+      <tr><td>16</td><td>Delete old metrics</td><td>Not possible; they expire after 15 months</td></tr>
+      <tr><td>17</td><td>A gp2 volume slows down after sustained heavy use</td><td>BurstBalance (remaining burst credits)</td></tr>
+      <tr><td>18</td><td>Requests are waiting for an EBS volume</td><td>VolumeQueueLength in the AWS/EBS namespace</td></tr>
+      <tr><td>19</td><td>Errors from the load balancer versus errors from the application</td><td>HTTPCode_ELB_5XX_Count versus HTTPCode_Target_5XX_Count</td></tr>
+      <tr><td>20</td><td>Learn the normal range of a metric and alert when values leave it</td><td>Anomaly detection (also called outlier detection), which learns from up to two weeks of data (alarms in lesson 274.2, tab 6)</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout tip">
+    <span class="label">Memory hook</span>
+    <p>The instance cannot report what the operating system keeps to itself. If the data lives inside the machine, such as memory or disk space, the answer is the CloudWatch agent.</p>
+  </div>
+</section>
+
+<!-- ===================== TAB 8 ===================== -->
+<section class="panel" id="knowledge-check" role="tabpanel" aria-labelledby="tab-8" tabindex="0">
+  <h1>8. Knowledge Check</h1>
+  <p>Answer each question in your own words before you open the model answer.</p>
+  <ol class="kc-list">
+    <li>
+      <p class="q">Explain how a namespace, a metric name, and dimensions together identify a metric. What happens when you add a new dimension to a metric?</p>
+      <details><summary>Show the model answer</summary>
+        <p>A metric is uniquely defined by its namespace, its name, and zero or more dimensions. The namespace keeps metrics from different applications apart, the name says what is measured, and the dimensions describe which resource or category the data belongs to.</p>
+        <p>Each unique combination of dimensions is a separate metric. When you add a unique dimension name and value to a metric, you create a new variation of that metric.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">A team publishes a custom metric with the dimensions Service and Stage. They ask for statistics using only the Service dimension and receive nothing. Explain why, and name two ways to get the data they want.</p>
+      <details><summary>Show the model answer</summary>
+        <p>CloudWatch treats each published combination of dimensions as a separate metric and returns statistics only for combinations that were published. It does not aggregate across dimensions for custom metrics, so a request with only Service matches no published metric.</p>
+        <p>The team can publish an additional metric that uses only the Service dimension, or use the metric math SEARCH function (or a sum across metrics) to find and combine the published combinations.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Compare basic monitoring and detailed monitoring for Amazon EC2. A manager says that enabling detailed monitoring will also show memory usage. Respond to the manager.</p>
+      <details><summary>Show the model answer</summary>
+        <p>Basic monitoring sends instance metrics every five minutes at no charge. Detailed monitoring sends the same metrics every minute and is charged per metric. Both are turned on per instance, and basic monitoring is the default.</p>
+        <p>The manager is incorrect. Detailed monitoring changes only the interval. Memory exists inside the operating system, so it needs the CloudWatch agent running on the instance.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Describe what happens to a one-minute metric over 15 months, and name the retention period at each step.</p>
+      <details><summary>Show the model answer</summary>
+        <p>The data stays at one-minute resolution for 15 days. After that, it is aggregated and available only at five-minute resolution until day 63. After day 63, it is aggregated again and available at one-hour resolution for a total of 455 days, which is about 15 months. After that, the data expires.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">FlashCart wants per-second response times for its checkout service during a 90-minute flash sale. Which approach should it use, and what limits apply?</p>
+      <details><summary>Show the model answer</summary>
+        <p>It should publish a custom high-resolution metric by setting the storage resolution to 1 in PutMetricData. High resolution is available only for custom metrics, and data points under 60 seconds are kept for three hours, so the team must read the data during or soon after the sale.</p>
+        <p>Every PutMetricData call is charged, so publishing every second raises the cost. A high-resolution alarm can use a period of 10, 20, or 30 seconds and costs more than a regular alarm.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Outline the steps to get memory and disk utilization from a Linux Amazon EC2 instance into CloudWatch, and say where the metrics appear.</p>
+      <details><summary>Show the model answer</summary>
+        <p>First, create an IAM role that includes the CloudWatchAgentServerPolicy managed policy, and attach it to the instance. Second, install the CloudWatch agent. Third, create a configuration file that collects memory and disk metrics, using the wizard or by hand. Optionally, store the file in Systems Manager Parameter Store so many instances share it. Finally, start the agent with the configuration.</p>
+        <p>The metrics appear in the CWAgent namespace by default, unless the configuration sets a different namespace.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">Design a dashboard for the FlashCart sale-day war room. The resources are in two Regions, and the payments team uses a separate AWS account. Which features do you use, and how do you let an executive without an AWS account watch it?</p>
+      <details><summary>Show the model answer</summary>
+        <p>Build a custom dashboard, starting from automatic dashboards for the services involved. Widgets can name different Regions, so one dashboard can show both. For the payments account, set up cross-account observability with a monitoring account and a sharing account, then name the account and Region in each widget.</p>
+        <p>Use metric math if a widget needs combined values. To let the executive watch without an AWS account, share the dashboard by email address or through a public link. Shared dashboards are read-only, and sharing can be revoked at any time.</p>
+      </details>
+    </li>
+    <li>
+      <p class="q">FlashCart wants an error rate that no AWS service publishes, and wants all its CloudWatch metrics in a third-party analytics tool. Explain how to meet both needs.</p>
+      <details><summary>Show the model answer</summary>
+        <p>For the error rate, use metric math to divide a metric that counts failed requests by a metric that counts all requests and multiply by 100. The result is calculated when requested, so no new metric is published.</p>
+        <p>For the third-party tool, create a metric stream. Use the quick partner setup if the provider supports it, or a custom setup with an Amazon Data Firehose delivery stream. Include or exclude namespaces with filters to control volume and cost.</p>
+      </details>
+    </li>
+  </ol>
+</section>
+
+    <footer>
+      <p>Copyright © 2026 Per Scholas. All rights reserved.</p>
+      <p>Sources: AWS documentation; content paraphrased from course slides by Stephane Maarek and by Chetan Agrawal. Diagrams are original to this course.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  var panels = tabs.map(function (t) { return document.getElementById(t.getAttribute('aria-controls')); });
+  var live = document.getElementById('live');
+  var current = 0;
+
+  function label(i) { return tabs[i].textContent.trim(); }
+
+  function show(i, opts) {
+    opts = opts || {};
+    if (i < 0 || i >= tabs.length) { return; }
+    current = i;
+    tabs.forEach(function (t, k) {
+      var on = k === i;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.setAttribute('tabindex', on ? '0' : '-1');
+      panels[k].classList.toggle('active', on);
+    });
+    if (!opts.keepScroll) { window.scrollTo(0, 0); }
+    if (opts.focusTab) { tabs[i].focus(); }
+    if (opts.focusHeading) {
+      var h = panels[i].querySelector('h1');
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    }
+    if (opts.updateHash) {
+      try { history.replaceState(null, '', '#' + panels[i].id); } catch (e) {}
+    }
+    if (live) {
+      live.textContent = '';
+      setTimeout(function () { live.textContent = 'Tab ' + (i + 1) + ' of ' + tabs.length + ': ' + label(i); }, 50);
+    }
+  }
+
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { show(i, { updateHash: true }); });
+    t.addEventListener('keydown', function (e) {
+      var n = null;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { n = (i + 1) % tabs.length; }
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { n = (i - 1 + tabs.length) % tabs.length; }
+      else if (e.key === 'Home') { n = 0; }
+      else if (e.key === 'End') { n = tabs.length - 1; }
+      if (n !== null) { e.preventDefault(); show(n, { focusTab: true, updateHash: true, keepScroll: true }); }
+    });
+  });
+
+  panels.forEach(function (p, i) {
+    var nav = document.createElement('div');
+    nav.className = 'panel-nav';
+    var prev = document.createElement('button');
+    var next = document.createElement('button');
+    prev.type = 'button'; next.type = 'button';
+    if (i > 0) {
+      prev.textContent = '\u2190 Previous: ' + label(i - 1);
+      prev.addEventListener('click', function () { show(i - 1, { updateHash: true, focusHeading: true }); });
+    } else { prev.style.visibility = 'hidden'; prev.setAttribute('aria-hidden', 'true'); prev.tabIndex = -1; }
+    if (i < panels.length - 1) {
+      next.textContent = 'Next: ' + label(i + 1) + ' \u2192';
+      next.addEventListener('click', function () { show(i + 1, { updateHash: true, focusHeading: true }); });
+    } else { next.style.visibility = 'hidden'; next.setAttribute('aria-hidden', 'true'); next.tabIndex = -1; }
+    nav.appendChild(prev); nav.appendChild(next);
+    p.appendChild(nav);
+  });
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) { return; }
+    var id = a.getAttribute('href').slice(1);
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { e.preventDefault(); show(idx, { updateHash: true, focusHeading: true }); }
+  });
+
+  function fromHash() {
+    var id = window.location.hash.replace('#', '');
+    var idx = panels.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) { show(idx, { keepScroll: true }); }
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+</body>
+</html>

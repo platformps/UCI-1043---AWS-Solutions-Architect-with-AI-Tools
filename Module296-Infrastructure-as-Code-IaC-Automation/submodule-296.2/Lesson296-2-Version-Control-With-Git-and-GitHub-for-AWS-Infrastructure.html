@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Lesson 296.3 - Git Workflows for AWS Infrastructure Code and Documentation</title>
+<title>Lesson 296.2 - Version Control With Git and GitHub for AWS Infrastructure</title>
 <style>
 :root{
   box-sizing:border-box;
@@ -13,7 +13,7 @@
   --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
   --prob-bg:#ffeef7; --prob-bd:#611940;
   --warn-bg:#fff1dc; --warn-bd:#d47c00;
-  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --tip-bg:#e5fe77; --tip-bd:#7a8f00; --svb-bg:#f7eef3; --h34:#7a2455;
   --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
   --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
 }
@@ -23,7 +23,7 @@
     --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
     --prob-bg:#2b1722; --prob-bd:#f0b3d3;
     --warn-bg:#352711; --warn-bd:#e39a2d;
-    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --tip-bg:#2e1a28; --tip-bd:#f0b8d6; --svb-bg:#2e1a28; --h34:#f5c8df;
     --exam-bg:#12291a; --exam-bd:#5cc36a;
     --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
   }
@@ -33,7 +33,7 @@
   --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
   --prob-bg:#2b1722; --prob-bd:#f0b3d3;
   --warn-bg:#352711; --warn-bd:#e39a2d;
-  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --tip-bg:#2e1a28; --tip-bd:#f0b8d6; --svb-bg:#2e1a28; --h34:#f5c8df;
   --exam-bg:#12291a; --exam-bd:#5cc36a;
   --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
 }
@@ -145,7 +145,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
 <div class="wrap">
 <header class="pagehead">
   <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
-  <h1 class="title">Git Workflows for AWS Infrastructure Code and Documentation</h1>
+  <h1 class="title">Version Control With Git and GitHub for AWS Infrastructure</h1>
   <p>Use Git to manage AWS architecture documentation, Python scripts, Terraform files, and CloudFormation templates: branches, pull requests, protected branches, what to commit, automated checks, and deployments from Git.</p>
 </header>
 
@@ -159,8 +159,9 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
       <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. What Belongs in the Repository</button></li>
       <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. Working With Infrastructure, Scripts, and Documentation</button></li>
       <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab5" id="b5">5. Automating Checks and Deployments</button></li>
-      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab6" id="b6">6. Comparison &amp; Scenarios</button></li>
-      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab7" id="b7">7. Knowledge Check</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab6" id="b6">6. Using GitHub With AWS</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab7" id="b7">7. Lesson Summary</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab8" id="b8">8. Knowledge Check</button></li>
     </ul>
   </nav>
   <div class="pager" id="pagerTop">
@@ -179,7 +180,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
   <h2>Lesson Overview</h2>
   <h3>Infrastructure as Code (IaC) Automation</h3>
   <p>Module 296, Infrastructure as Code (IaC) Automation, covers how to define, deploy, and manage AWS infrastructure with templates and code. This lesson covers the habit that makes all of it safe for a team: keeping every file in Git and changing it through a reviewed workflow.</p>
-  <p>CloudFormation templates, Terraform files, Python scripts, and architecture documents are all text. Text can be versioned, compared, reviewed, and restored. This lesson explains the core Git ideas, the GitHub flow, how to protect the main branch, what belongs in a repository and what never does, how each type of file is checked, and how checks and deployments run automatically from Git without long-lived AWS keys. It also shows how CloudFormation Git sync deploys a stack from a repository. The last tabs prepare you for the AWS Certified Solutions Architect – Associate (SAA-C03) exam.</p>
+  <p>CloudFormation templates, Terraform files, Python scripts, and architecture documents are all text. Text can be versioned, compared, reviewed, and restored. This lesson explains the core Git ideas, the GitHub flow, how to protect the main branch, what belongs in a repository and what never does, how each type of file is checked, and how checks and deployments run automatically from Git without long-lived AWS keys. It also shows how CloudFormation Git sync deploys a stack from a repository, where GitHub connects to AWS services, and how cloud engineers and solutions architects use GitHub with AWS. The last tabs prepare you for the AWS Certified Solutions Architect – Associate (SAA-C03) exam.</p>
   <p>The tabs in this lesson cover the following topics:</p>
   <ul>
     <li><strong>Tab 1:</strong> why version control for infrastructure, Git concepts and commands, and where the Git repository lives.</li>
@@ -187,8 +188,9 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <li><strong>Tab 3:</strong> a repository layout, what to commit and what never to commit, the .gitignore file, and keeping secrets out of Git.</li>
     <li><strong>Tab 4:</strong> how to work with CloudFormation files, Terraform files, Python scripts, and architecture documentation.</li>
     <li><strong>Tab 5:</strong> local checks, pull request checks, deployments from Git, CloudFormation Git sync, access without long-lived keys, and rollback.</li>
-    <li><strong>Tab 6:</strong> the SAA-C03 cheat sheet, exam scenarios, and the lesson summary.</li>
-    <li><strong>Tab 7:</strong> open-ended Knowledge Check questions with model answers.</li>
+    <li><strong>Tab 6:</strong> where GitHub connects to AWS, the AWS services that can use a GitHub repository, how GitHub Actions reaches AWS, and how a cloud engineer and a solutions architect use GitHub with AWS.</li>
+    <li><strong>Tab 7:</strong> the file type comparison, exam scenarios, and the lesson summary.</li>
+    <li><strong>Tab 8:</strong> open-ended Knowledge Check questions with model answers.</li>
   </ul>
 
   <h2>Table of Contents</h2>
@@ -199,14 +201,15 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">What Belongs in the Repository</button>.</li>
     <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Working With Infrastructure, Scripts, and Documentation</button>.</li>
     <li><button type="button" class="linkbtn" data-go="5" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Automating Checks and Deployments</button>.</li>
-    <li><button type="button" class="linkbtn" data-go="6" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
-    <li><button type="button" class="linkbtn" data-go="7" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="6" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Using GitHub With AWS</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="7" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Lesson Summary</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="8" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
   </ol>
 
   <h2>Introduction</h2>
   <p>A template on a laptop is a risk. Nobody else can see it, nobody reviews it, and nobody can say which version is running in production. Exam questions about this topic ask how a team stores and changes infrastructure safely, which AWS service hosts Git repositories, how a stack updates when a template changes, and how a pipeline gets AWS access without keys.</p>
   <p>This lesson follows FlashCart Inc. through the Problem Statement of each tab. It assumes CloudFormation from Lesson 296.1.</p>
-  <p>Use the tab list on the left, or the Previous and Next buttons, to move through the lesson. Each topic tab opens with a Problem Statement and ends with exam traps, keyword triggers, and resource links. The Knowledge Check is the last tab.</p>
+  <p>Use the tab list on the left, or the Previous and Next buttons, to move through the lesson. Each topic tab opens with a Problem Statement and ends with an interview preparation question and resource links. The Knowledge Check is the last tab.</p>
 
   <h2>Learning Objectives</h2>
   <p>By the end of this lesson, learners will be able to:</p>
@@ -314,7 +317,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
   </ul>
 
   <div class="qbox">
-    <h3>Exam-Style Question</h3>
+    <h3>Interview Preparation Question</h3>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> A company stores its CloudFormation templates on engineers’ laptops. Production broke after an engineer deployed an outdated copy. The company needs a history of changes and a way to review a change before it is deployed. Which solution fits best?</p>
     <ul class="opts">
@@ -336,25 +339,6 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     </tbody>
   </table></div>
     </details>
-  </div>
-  <div class="callout warn">
-    <h4>Exam Trap</h4>
-    <p>Remember these points:</p>
-    <ul>
-      <li>Version control gives history, review, rollback, and collaboration for every infrastructure file.</li>
-      <li>A branch lets you change files without touching main. A pull request is the place for review before a merge.</li>
-      <li>AWS CodeCommit is the AWS-managed Git service. It is available to new customers again since November 24, 2025.</li>
-    </ul>
-  </div>
-  <div class="callout tip">
-    <h4>Memory Hook</h4>
-    <p>If it is not in Git, it did not happen, and nobody can undo it.</p>
-  </div>
-  <div class="callout exam">
-    <h4>SAA-C03 Keyword Triggers</h4>
-    <p><strong>Trigger 1:</strong> “Store infrastructure templates with history and review”<br>→ A Git repository with pull requests</p>
-    <p><strong>Trigger 2:</strong> “AWS-managed Git repository with IAM access control”<br>→ AWS CodeCommit</p>
-    <p><strong>Trigger 3:</strong> “Undo a bad change and keep the history”<br>→ git revert</p>
   </div>
   <div class="res">
     <h2>Useful Resources</h2>
@@ -467,7 +451,7 @@ git revert -m 1 HEAD
   </ul>
 
   <div class="qbox">
-    <h3>Exam-Style Question</h3>
+    <h3>Interview Preparation Question</h3>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> A team wants every change to its production templates to be reviewed and tested before it is merged, and wants engineers to be unable to push directly to the main branch. Which Git practice fits best?</p>
     <ul class="opts">
@@ -489,26 +473,6 @@ git revert -m 1 HEAD
     </tbody>
   </table></div>
     </details>
-  </div>
-  <div class="callout warn">
-    <h4>Exam Trap</h4>
-    <p>Remember these points:</p>
-    <ul>
-      <li>The GitHub flow: branch, commit, pull request, review and checks, merge, deploy, and delete the branch.</li>
-      <li>Protect main with required reviews and required status checks. Do not allow direct pushes or force pushes.</li>
-      <li>Undo a change on a shared branch with git revert. Do not rewrite shared history.</li>
-    </ul>
-  </div>
-  <div class="callout tip">
-    <h4>Memory Hook</h4>
-    <p>Branch, review, merge, deploy. Revert, never rewrite.</p>
-  </div>
-  <div class="callout exam">
-    <h4>SAA-C03 Keyword Triggers</h4>
-    <p><strong>Trigger 1:</strong> “Every change must be reviewed before it reaches main”<br>→ Branch protection with required pull request reviews</p>
-    <p><strong>Trigger 2:</strong> “Block a merge until tests pass”<br>→ Required status checks</p>
-    <p><strong>Trigger 3:</strong> “Reverse a bad change and keep the history”<br>→ git revert</p>
-    <p><strong>Trigger 4:</strong> “Short-lived branches and pull requests with an always-deployable main”<br>→ GitHub flow</p>
   </div>
   <div class="res">
     <h2>Useful Resources</h2>
@@ -622,7 +586,7 @@ __pycache__/
   </ul>
 
   <div class="qbox">
-    <h3>Exam-Style Question</h3>
+    <h3>Interview Preparation Question</h3>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> A developer accidentally committed an IAM access key to a public repository. What should the company do first?</p>
     <ul class="opts">
@@ -644,26 +608,6 @@ __pycache__/
     </tbody>
   </table></div>
     </details>
-  </div>
-  <div class="callout warn">
-    <h4>Exam Trap</h4>
-    <p>Remember these points:</p>
-    <ul>
-      <li>Never commit access keys, passwords, private keys, or Terraform state. Use .gitignore, git-secrets, and secret scanning.</li>
-      <li>A leaked key is compromised. Deactivate it in IAM. Deleting the commit is not enough.</li>
-      <li>Commit .terraform.lock.hcl. Do not commit .tfstate files or .tfvars files that hold secrets.</li>
-    </ul>
-  </div>
-  <div class="callout tip">
-    <h4>Memory Hook</h4>
-    <p>Ignore the state, hide the keys, keep the lock file, and keep the docs next to the code.</p>
-  </div>
-  <div class="callout exam">
-    <h4>SAA-C03 Keyword Triggers</h4>
-    <p><strong>Trigger 1:</strong> “Prevent credentials from being committed”<br>→ git-secrets, and secret scanning with push protection</p>
-    <p><strong>Trigger 2:</strong> “A key was pushed to a public repository”<br>→ Deactivate the key in IAM</p>
-    <p><strong>Trigger 3:</strong> “Where to keep a database password for a template”<br>→ AWS Secrets Manager with a dynamic reference</p>
-    <p><strong>Trigger 4:</strong> “Run a script on AWS without stored keys”<br>→ An IAM role or temporary credentials</p>
   </div>
   <div class="res">
     <h2>Useful Resources</h2>
@@ -797,7 +741,7 @@ flowchart LR
   </table></div>
 
   <div class="qbox">
-    <h3>Exam-Style Question</h3>
+    <h3>Interview Preparation Question</h3>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> Two engineers run terraform apply on the same project at the same time, and the state file is corrupted. The state is stored in a local file that is committed to Git. What should the team do to prevent this?</p>
     <ul class="opts">
@@ -819,25 +763,6 @@ flowchart LR
     </tbody>
   </table></div>
     </details>
-  </div>
-  <div class="callout warn">
-    <h4>Exam Trap</h4>
-    <p>Remember these points:</p>
-    <ul>
-      <li>CloudFormation files: cfn-lint, validate-template, and a change set in the pull request. Terraform files: fmt, validate, and plan.</li>
-      <li>Terraform state goes in a remote backend with locking, such as S3 with use_lockfile, and never in Git.</li>
-      <li>Python scripts use a role or temporary credentials and no stored keys. Architecture documents live in the repository and change with the infrastructure.</li>
-    </ul>
-  </div>
-  <div class="callout tip">
-    <h4>Memory Hook</h4>
-    <p>Lint the template, plan the Terraform, role the script, and diff the docs.</p>
-  </div>
-  <div class="callout exam">
-    <h4>SAA-C03 Keyword Triggers</h4>
-    <p><strong>Trigger 1:</strong> “Check a CloudFormation template before a merge”<br>→ cfn-lint, validate-template, and a change set</p>
-    <p><strong>Trigger 2:</strong> “Share Terraform state in a team on AWS”<br>→ S3 backend with encryption, versioning, and locking</p>
-    <p><strong>Trigger 3:</strong> “Record why an architecture decision was made”<br>→ Architectural decision record in the repository</p>
   </div>
   <div class="res">
     <h2>Useful Resources</h2>
@@ -971,7 +896,7 @@ jobs:
   </ul>
 
   <div class="qbox">
-    <h3>Exam-Style Question</h3>
+    <h3>Interview Preparation Question</h3>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> A company wants its CloudFormation stack to update automatically when an engineer merges a change to the template in a GitHub repository, and wants to see the planned changes in the pull request. Which solution fits best?</p>
     <ul class="opts">
@@ -994,26 +919,6 @@ jobs:
   </table></div>
     </details>
   </div>
-  <div class="callout warn">
-    <h4>Exam Trap</h4>
-    <p>Remember these points:</p>
-    <ul>
-      <li>Run checks locally with hooks and again on every pull request, and block merges until the required checks pass.</li>
-      <li>Do not store AWS access keys in the Git host. Use OIDC and an IAM role with a trust condition on the repository and branch.</li>
-      <li>CloudFormation Git sync updates a stack when you commit the template or the deployment file to the monitored branch.</li>
-    </ul>
-  </div>
-  <div class="callout tip">
-    <h4>Memory Hook</h4>
-    <p>Check twice, merge once, deploy from main, and keep no stored keys in the pipeline.</p>
-  </div>
-  <div class="callout exam">
-    <h4>SAA-C03 Keyword Triggers</h4>
-    <p><strong>Trigger 1:</strong> “Update a CloudFormation stack when a template changes in Git”<br>→ CloudFormation Git sync</p>
-    <p><strong>Trigger 2:</strong> “A pipeline needs AWS access with no stored keys”<br>→ OIDC with an IAM role</p>
-    <p><strong>Trigger 3:</strong> “Block merges until tests pass”<br>→ Required status checks on the protected branch</p>
-    <p><strong>Trigger 4:</strong> “Undo a bad deployment”<br>→ Revert the commit, and deploy again</p>
-  </div>
   <div class="res">
     <h2>Useful Resources</h2>
     <ul>
@@ -1026,9 +931,167 @@ jobs:
 
 <!-- ============ TAB 6 ============ -->
 <section class="tab" id="tab6" role="tabpanel" aria-labelledby="b6">
-  <h1 class="tabh">6. Comparison &amp; Scenarios</h1>
+  <h1 class="tabh">6. Using GitHub With AWS</h1>
 
-  <h2>6.1 Comparing the File Types in Git</h2>
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart keeps its application code, CloudFormation templates, Terraform files, and architecture documents in GitHub. The engineering manager has a new request: a merge to main should lead to a change in AWS, and nobody should type deployment commands by hand.</p>
+    <p>The manager also asks two questions. Which AWS services can read from GitHub? And what does each person do: the cloud engineer who builds the automation, and the solutions architect who designs it?</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Explain the two ways that GitHub and AWS connect.</li>
+      <li>Name AWS services that can use a GitHub repository, and say what each one does with it.</li>
+      <li>Describe how a cloud engineer and a solutions architect each use GitHub with AWS.</li>
+    </ul>
+  </div>
+
+  <h2>6.1 Where GitHub Fits in an AWS Environment</h2>
+  <p>GitHub holds the source of truth: application code, infrastructure files, workflows, and documents. AWS runs what those files describe. The two connect in two directions.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Direction</th><th>How it connects</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td><strong>AWS reads from GitHub</strong></td><td>You create a connection with AWS CodeConnections. It authorizes AWS to read a repository, through an app that you install in GitHub.</td><td>AWS CodePipeline, CloudFormation Git sync, AWS App Runner, and AWS Service Catalog.</td></tr>
+      <tr><td><strong>GitHub calls AWS</strong></td><td>A GitHub Actions workflow runs in GitHub, gets a short-lived OpenID Connect (OIDC) token, and assumes an Identity and Access Management (IAM) role (section 5.4).</td><td>Deploy a stack, copy files to Amazon S3, update an Amazon ECS service, or run Terraform.</td></tr>
+      </tbody>
+  </table></div>
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 960 330" role="img" aria-label="Two ways that GitHub and AWS connect. In the top path, AWS reads from GitHub: a FlashCart repository in GitHub is linked through an AWS CodeConnections connection to AWS services such as CodePipeline, CloudFormation Git sync, App Runner, and Service Catalog. In the bottom path, GitHub calls AWS: a GitHub Actions workflow gets a short-lived OpenID Connect token, assumes an IAM role, and changes AWS resources."><defs><marker id="gh6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs>
+<rect class="sv-boxb" x="10" y="125" width="190" height="80" rx="8"/><text class="sv-tb" x="105" y="160" text-anchor="middle">GitHub repository</text><text class="sv-t" x="105" y="182" text-anchor="middle">code, templates, workflows</text>
+<text class="sv-tb" x="290" y="22" text-anchor="start">AWS reads from GitHub</text>
+<rect class="sv-box" x="290" y="34" width="190" height="80" rx="8"/><text class="sv-tb" x="385" y="68" text-anchor="middle">AWS CodeConnections</text><text class="sv-t" x="385" y="90" text-anchor="middle">a connection to GitHub</text>
+<rect class="sv-boxg" x="560" y="34" width="390" height="80" rx="8"/><text class="sv-tb" x="755" y="62" text-anchor="middle">AWS services read the repository</text><text class="sv-t" x="755" y="84" text-anchor="middle">CodePipeline, CloudFormation Git sync,</text><text class="sv-t" x="755" y="102" text-anchor="middle">App Runner, Service Catalog</text>
+<text class="sv-tb" x="290" y="222" text-anchor="start">GitHub calls AWS</text>
+<rect class="sv-box" x="290" y="234" width="190" height="80" rx="8"/><text class="sv-tb" x="385" y="268" text-anchor="middle">GitHub Actions</text><text class="sv-t" x="385" y="290" text-anchor="middle">workflow gets a token</text>
+<rect class="sv-box" x="540" y="234" width="190" height="80" rx="8"/><text class="sv-tb" x="635" y="268" text-anchor="middle">IAM role</text><text class="sv-t" x="635" y="290" text-anchor="middle">trusts GitHub OIDC</text>
+<rect class="sv-boxg" x="790" y="234" width="160" height="80" rx="8"/><text class="sv-tb" x="870" y="268" text-anchor="middle">AWS resources</text><text class="sv-t" x="870" y="290" text-anchor="middle">stacks, S3, ECS</text>
+<line class="sv-line" x1="201" y1="150" x2="288" y2="84" marker-end="url(#gh6)"/><line class="sv-line" x1="201" y1="180" x2="288" y2="266" marker-end="url(#gh6)"/>
+<line class="sv-line" x1="481" y1="74" x2="558" y2="74" marker-end="url(#gh6)"/><line class="sv-line" x1="481" y1="274" x2="538" y2="274" marker-end="url(#gh6)"/><line class="sv-line" x1="731" y1="274" x2="788" y2="274" marker-end="url(#gh6)"/>
+<text class="sv-tm" x="480" y="168" text-anchor="middle">Both paths use temporary credentials and reviewed changes.</text></svg>
+    </div>
+    <figcaption>Image 6a — Two ways that GitHub and AWS connect (Original diagram for this course.)</figcaption>
+  </figure>
+  <p>In both directions, the files in GitHub change only through reviewed pull requests, and AWS access uses temporary credentials.</p>
+
+  <h2>6.2 AWS Services That Can Use a GitHub Repository</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Service</th><th>What it does with GitHub</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td><strong>AWS CloudFormation Git sync</strong></td><td>Watches a branch of the repository, and updates the stack when you commit a change to the template or the deployment file.</td><td>Infrastructure stacks that follow the main branch (section 5.5).</td></tr>
+      <tr><td><strong>AWS CodePipeline</strong></td><td>Uses GitHub as the source of a pipeline. A push or a merge starts the pipeline, which can build, test, wait for approval, and deploy.</td><td>A release pipeline with stages and a manual approval.</td></tr>
+      <tr><td><strong>AWS CodeBuild</strong></td><td>Builds and tests code from the repository. It can also run GitHub Actions jobs as self-hosted runners, so the jobs run in your AWS account with native integration with IAM, AWS Secrets Manager, AWS CloudTrail, and Amazon Virtual Private Cloud (Amazon VPC).</td><td>Build and test jobs, and Actions jobs that need private network access.</td></tr>
+      <tr><td><strong>AWS App Runner</strong></td><td>Deploys a web application from a private GitHub repository, through a connection.</td><td>A simple web application or API without servers to manage.</td></tr>
+      <tr><td><strong>AWS Service Catalog</strong></td><td>Syncs products to template files that you manage in a GitHub repository.</td><td>A governed catalog of approved templates.</td></tr>
+      <tr><td><strong>Amazon SageMaker</strong></td><td>A machine learning project can use a GitHub repository for its code.</td><td>Machine learning operations (MLOps) projects.</td></tr>
+      <tr><td><strong>AWS Amplify Hosting</strong></td><td>Connects to a GitHub repository, builds the site, and publishes it when you push.</td><td>Front-end web sites.</td></tr>
+      </tbody>
+  </table></div>
+  <p>AWS CodeCommit is the AWS-managed Git repository (section 1.4). GitHub is another host, and the services above can use it. Integrations change, so check the AWS documentation for the current list.</p>
+  <h3>Tools That Deploy From GitHub</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Tool</th><th>How GitHub is used</th></tr></thead>
+    <tbody>
+      <tr><td><strong>AWS Cloud Development Kit (AWS CDK)</strong></td><td>CDK Pipelines can use a GitHub repository as the source of a pipeline, through a connection.</td></tr>
+      <tr><td><strong>Terraform</strong></td><td>A GitHub Actions workflow runs <code>terraform plan</code> on pull requests and <code>terraform apply</code> from main. The state stays out of Git (section 3.2).</td></tr>
+      <tr><td><strong>AWS Serverless Application Model (AWS SAM)</strong></td><td>The SAM command line can generate pipeline files for GitHub Actions.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.3 How GitHub Actions Reaches AWS</h2>
+  <p>A GitHub Actions workflow is a YAML file in the repository. It runs when an event happens, such as a pull request or a merge to main.</p>
+  <ol>
+    <li>Add GitHub’s OIDC provider to IAM once for the account.</li>
+    <li>Create an IAM role whose trust policy allows only your repository and branch.</li>
+    <li>In the workflow, give the job the <strong>id-token: write</strong> permission, and use the AWS credentials action, aws-actions/configure-aws-credentials, to assume the role.</li>
+    <li>Run the commands. The credentials expire when the job ends.</li>
+  </ol>
+  <ul>
+    <li>Use a read-only role for pull request checks and a separate role for deployments from main.</li>
+    <li>If a job needs private resources in a VPC, run it on a CodeBuild-hosted GitHub Actions runner instead of a GitHub-hosted runner.</li>
+  </ul>
+
+  <h2>6.4 How a Cloud Engineer Uses GitHub With AWS</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Task</th><th>What the cloud engineer does</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Store the code</strong></td><td>Keeps CloudFormation templates, Terraform files, scripts, and documents in repositories with a layout that the team understands (section 3.1).</td></tr>
+      <tr><td><strong>Connect the two sides</strong></td><td>Creates the connection, or the OIDC provider and the IAM role, and grants only the permissions that the job needs.</td></tr>
+      <tr><td><strong>Build the automation</strong></td><td>Writes the workflow or the pipeline: lint, plan, approve, and deploy (section 5.1).</td></tr>
+      <tr><td><strong>Protect the main branch</strong></td><td>Requires pull requests, reviews, and passing checks before a merge (section 2.4).</td></tr>
+      <tr><td><strong>Handle secrets</strong></td><td>Keeps keys out of the repository, uses roles and AWS Secrets Manager, and replaces anything that leaks (section 3.4).</td></tr>
+      <tr><td><strong>Operate and recover</strong></td><td>Watches deployments, uses the Git history to find who changed what, and rolls back by reverting the commit and deploying again (section 5.6).</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.5 How a Solutions Architect Uses GitHub With AWS</h2>
+  <p>The solutions architect designs the path from GitHub to AWS and explains the trade-offs. The cloud engineer then builds it.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Decision</th><th>Options</th><th>What the architect weighs</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Where the pipeline runs</strong></td><td>GitHub Actions, or CodePipeline with CodeBuild.</td><td>Where the team already works, where approvals and audit records should live, and who maintains the pipeline.</td></tr>
+      <tr><td><strong>Where jobs run</strong></td><td>GitHub-hosted runners, self-hosted runners, or CodeBuild-hosted runners.</td><td>Whether jobs need private network access, and how much runner maintenance the team accepts.</td></tr>
+      <tr><td><strong>How GitHub gets access to AWS</strong></td><td>OIDC with an IAM role, not stored keys.</td><td>Short-lived credentials, least privilege, and one role for each environment.</td></tr>
+      <tr><td><strong>Account layout</strong></td><td>Separate AWS accounts for development, test, and production.</td><td>A role for each account, and an approval step before production.</td></tr>
+      <tr><td><strong>Governance</strong></td><td>Protected branches, required reviews, code owners, and environment approvals.</td><td>Separation of duties, and an audit trail in GitHub and in AWS CloudTrail.</td></tr>
+      <tr><td><strong>Which GitHub offering</strong></td><td>GitHub.com, GitHub Enterprise Cloud, or GitHub Enterprise Server.</td><td>Compliance rules, where the code may be stored, and which AWS services support that offering.</td></tr>
+      <tr><td><strong>Failure and recovery</strong></td><td>Revert and redeploy, and backups of state.</td><td>How fast a change can be undone, and what happens if GitHub is not available.</td></tr>
+      </tbody>
+  </table></div>
+
+  <h2>6.6 Choosing an Approach</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Need</th><th>Choose</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Update a CloudFormation stack when its template changes in a branch, with the least setup.</td><td>CloudFormation Git sync</td><td>No pipeline to build. AWS watches the repository.</td></tr>
+      <tr><td>A release pipeline inside AWS with stages and a manual approval.</td><td>CodePipeline with a GitHub source</td><td>Stages, approvals, and AWS service roles.</td></tr>
+      <tr><td>The team already writes workflows in GitHub Actions.</td><td>GitHub Actions with OIDC and an IAM role</td><td>Workflows stay next to the code, and there are no stored keys.</td></tr>
+      <tr><td>Actions jobs must reach private resources in a VPC.</td><td>A CodeBuild-hosted GitHub Actions runner</td><td>Jobs run in your account with IAM, Secrets Manager, and VPC integration.</td></tr>
+      <tr><td>Deploy a web application from a private repository with little setup.</td><td>AWS App Runner, or Amplify Hosting for a front-end site</td><td>AWS builds and deploys from the repository.</td></tr>
+      <tr><td>A catalog of approved templates that live in a repository.</td><td>Service Catalog Git sync</td><td>The templates stay in Git.</td></tr>
+      </tbody>
+  </table></div>
+
+
+  <div class="qbox">
+    <h3>Interview Preparation Question</h3>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company runs its GitHub Actions workflows on GitHub-hosted runners. A deployment job must now reach a database in a private subnet and read a secret from AWS Secrets Manager. The company does not want to manage servers for runners. Which solution fits best?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Configure an AWS CodeBuild project as a self-hosted GitHub Actions runner.</li>
+      <li><strong>B.</strong> Store IAM user access keys in GitHub secrets, and open the database to the internet.</li>
+      <li><strong>C.</strong> Run the workflow by hand from an engineer’s laptop.</li>
+      <li><strong>D.</strong> Copy the repository into an S3 bucket, and start a function by hand.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> A CodeBuild-hosted runner runs the job in the company’s AWS account, with integration with IAM, Secrets Manager, and a VPC, and without servers to manage.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>The runner has private network access and uses IAM and Secrets Manager.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Stored keys are long-lived, and opening the database to the internet is a security risk.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>A manual run skips review and leaves no record.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>It is manual, and it does not run the workflow in the VPC.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+  <div class="res">
+    <h2>Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">AWS</span> <a href="https://docs.aws.amazon.com/dtconsole/latest/userguide/integrations-connections.html" target="_blank" rel="noopener">Product and service integrations with AWS CodeConnections</a></li>
+      <li><span class="lbl">AWS</span> <a href="https://docs.aws.amazon.com/codebuild/latest/userguide/action-runner-overview.html" target="_blank" rel="noopener">Self-hosted GitHub Actions runners in AWS CodeBuild</a></li>
+      <li><span class="lbl">AWS</span> <a href="https://docs.aws.amazon.com/codepipeline/latest/userguide/action-reference-CodestarConnectionSource.html" target="_blank" rel="noopener">CodeStarSourceConnection source action for GitHub in AWS CodePipeline</a></li>
+      <li><span class="lbl">GitHub</span> <a href="https://docs.github.com/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services" target="_blank" rel="noopener">Configuring OpenID Connect in Amazon Web Services</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 7 ============ -->
+<section class="tab" id="tab7" role="tabpanel" aria-labelledby="b7">
+  <h1 class="tabh">7. Lesson Summary</h1>
+
+  <h2>7.1 Comparing the File Types in Git</h2>
   <div class="tw"><table>
     <thead><tr><th></th><th>CloudFormation</th><th>Terraform</th><th>Python scripts</th><th>Architecture documents</th></tr></thead>
     <tbody>
@@ -1039,32 +1102,7 @@ jobs:
     </tbody>
   </table></div>
 
-  <h2>6.2 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
-  <div class="tw"><table>
-    <thead><tr><th>#</th><th>Scenario keywords</th><th>Answer</th></tr></thead>
-    <tbody>
-      <tr><td>1</td><td>Keep infrastructure templates with history and review</td><td>A Git repository with pull requests</td></tr>
-      <tr><td>2</td><td>AWS-managed Git repository</td><td>AWS CodeCommit (available to new customers again since November 24, 2025)</td></tr>
-      <tr><td>3</td><td>Branch-based workflow with short-lived branches and pull requests</td><td>GitHub flow</td></tr>
-      <tr><td>4</td><td>Force every change to be reviewed before merge</td><td>Protected branch with required pull request reviews</td></tr>
-      <tr><td>5</td><td>Block a merge until tests pass</td><td>Required status checks</td></tr>
-      <tr><td>6</td><td>Require approval from the team that owns the files</td><td>Code owners</td></tr>
-      <tr><td>7</td><td>Reverse a bad change on a shared branch</td><td>git revert</td></tr>
-      <tr><td>8</td><td>Stop credentials from being committed</td><td>git-secrets and secret scanning</td></tr>
-      <tr><td>9</td><td>An access key was committed to a public repository</td><td>Deactivate it in IAM at once</td></tr>
-      <tr><td>10</td><td>Files never to commit</td><td>Access keys, passwords, .pem files, Terraform state, and secret variable files</td></tr>
-      <tr><td>11</td><td>Terraform file to commit for consistent provider versions</td><td>.terraform.lock.hcl</td></tr>
-      <tr><td>12</td><td>Terraform state for a team on AWS</td><td>S3 backend with encryption, versioning, and locking</td></tr>
-      <tr><td>13</td><td>Check a CloudFormation template before merge</td><td>cfn-lint, validate-template, and a change set</td></tr>
-      <tr><td>14</td><td>Update a stack when a template changes in a Git repository</td><td>CloudFormation Git sync</td></tr>
-      <tr><td>15</td><td>CI job needs AWS access without stored keys</td><td>OIDC with an IAM role</td></tr>
-      <tr><td>16</td><td>Record why an architecture decision was made</td><td>Architectural decision record (ADR)</td></tr>
-      <tr><td>17</td><td>Keep documents accurate</td><td>Docs as code in the same repository, changed in the same pull request</td></tr>
-      <tr><td>18</td><td>Script needs AWS access without keys</td><td>An IAM role or temporary credentials with the default credential chain</td></tr>
-    </tbody>
-  </table></div>
-
-  <h2>6.3 Exam Scenarios</h2>
+  <h2>7.2 Exam Scenarios</h2>
   <div class="qbox">
     <h3>Scenario 1</h3>
     <p class="origin">Written for this course.</p>
@@ -1102,7 +1140,7 @@ jobs:
     </details>
   </div>
 
-  <h2>6.4 Lesson Summary</h2>
+  <h2>7.3 Lesson Summary</h2>
   <ul>
     <li>Version control gives infrastructure history, review, rollback, and collaboration. The same Git workflow applies to CloudFormation files, Terraform files, Python scripts, and architecture documents.</li>
     <li>The GitHub flow uses a short-lived branch, small commits, a pull request, review and checks, a merge, a deployment, and branch deletion. Protect main with required reviews and status checks, and undo a change with git revert.</li>
@@ -1110,15 +1148,11 @@ jobs:
     <li>Check CloudFormation files with cfn-lint, validate-template, and a change set. Check Terraform files with fmt, validate, and plan, and keep state in a locked S3 backend. Write Python scripts without keys, and keep documents as code.</li>
     <li>Run checks locally and on every pull request. Deploy from main with CloudFormation Git sync or a pipeline, and give the pipeline access with OIDC and an IAM role, not stored keys.</li>
   </ul>
-  <div class="callout tip">
-    <h4>Memory Hook</h4>
-    <p>Branch, review, merge, deploy. Ignore the state, hide the keys, and keep the docs next to the code.</p>
-  </div>
 </section>
 
-<!-- ============ TAB 7 ============ -->
-<section class="tab" id="tab7" role="tabpanel" aria-labelledby="b7">
-  <h1 class="tabh">7. Knowledge Check</h1>
+<!-- ============ TAB 8 ============ -->
+<section class="tab" id="tab8" role="tabpanel" aria-labelledby="b8">
+  <h1 class="tabh">8. Knowledge Check</h1>
 
   <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
 
@@ -1162,6 +1196,12 @@ jobs:
     <summary>Question 7: Design a repository and a workflow for FlashCart’s CloudFormation, Terraform, Python, and architecture documents.</summary>
     <p><em>Maps to:</em> Objective 7 (Synthesis).</p>
     <p>Use one repository with folders for CloudFormation, Terraform, scripts, and docs, a README, and a .gitignore that excludes state, keys, and variable files. Use the GitHub flow with a protected main branch, required reviews, code owners for each area, and required checks: cfn-lint, validate-template, terraform fmt, validate, and plan, a Python linter and tests, and a secret scan. Run the checks locally with a hook and on every pull request through OIDC roles. Deploy from main with CloudFormation Git sync for stacks and a pipeline for Terraform with S3 state and locking, and revert the commit to roll back. Keep ADRs and diagrams as code in the same pull request as the change.</p>
+  </details>
+
+  <details>
+    <summary>Question 8: Explain where GitHub connects to AWS, and how a cloud engineer and a solutions architect each use it.</summary>
+    <p><em>Maps to:</em> Objective 6 (Analysis).</p>
+    <p>GitHub connects to AWS in two directions. AWS reads from GitHub through an AWS CodeConnections connection, which services such as CodePipeline, CloudFormation Git sync, App Runner, and Service Catalog use. GitHub calls AWS when a GitHub Actions workflow gets an OIDC token and assumes an IAM role, so no long-lived keys are stored. The cloud engineer builds this: connections, roles, workflows or pipelines, branch protection, and rollback. The solutions architect designs it: where the pipeline and the jobs run, how access works, how accounts are laid out, what governance applies, and how the team recovers from a failure.</p>
   </details>
 
 </section>

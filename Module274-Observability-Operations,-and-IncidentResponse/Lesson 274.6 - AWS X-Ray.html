@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Lesson 296.2 - AWS X-Ray</title>
+<title>Lesson 274.6 - AWS X-Ray</title>
 <style>
 :root{
   box-sizing:border-box;
@@ -13,7 +13,7 @@
   --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
   --prob-bg:#ffeef7; --prob-bd:#611940;
   --warn-bg:#fff1dc; --warn-bd:#d47c00;
-  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --tip-bg:#e5fe77; --tip-bd:#7a8f00; --svb-bg:#f7eef3; --h34:#7a2455;
   --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
   --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
 }
@@ -23,7 +23,7 @@
     --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
     --prob-bg:#2b1722; --prob-bd:#f0b3d3;
     --warn-bg:#352711; --warn-bd:#e39a2d;
-    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --tip-bg:#2e1a28; --tip-bd:#f0b8d6; --svb-bg:#2e1a28; --h34:#f5c8df;
     --exam-bg:#12291a; --exam-bd:#5cc36a;
     --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
   }
@@ -33,7 +33,7 @@
   --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
   --prob-bg:#2b1722; --prob-bd:#f0b3d3;
   --warn-bg:#352711; --warn-bd:#e39a2d;
-  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --tip-bg:#2e1a28; --tip-bd:#f0b8d6; --svb-bg:#2e1a28; --h34:#f5c8df;
   --exam-bg:#12291a; --exam-bd:#5cc36a;
   --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
 }
@@ -88,6 +88,7 @@ tbody tr:nth-child(even){background:var(--surface)}
 .exam{background:var(--exam-bg);border-color:var(--exam-bd)}
 .qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
 .qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
 .qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
 .opts{list-style:none;padding:0}
 .opts li{padding:6px 0}
@@ -176,8 +177,8 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
   <h1 class="tabh">Overview and Objectives</h1>
 
   <h2>Lesson Overview</h2>
-  <h3>Infrastructure as Code (IaC) Automation</h3>
-  <p>Module 296, Infrastructure as Code (IaC) Automation, covers how to define, deploy, and manage AWS infrastructure with templates and code. This lesson covers AWS X-Ray, the service that traces a request as it travels through the parts of an application. It also shows how to turn tracing on with CloudFormation, so that every environment is traced the same way.</p>
+  <h3>Observability, Operations, and Incident Response</h3>
+  <p>Module 274, Observability, Operations, and Incident Response, covers how to see, understand, and prove what happens in an AWS workload. This lesson covers AWS X-Ray, the service that traces a request as it travels through the parts of an application. It adds traces to the metrics, logs, API activity, and configuration data of the earlier lessons in this module.</p>
   <p>A modern application is many services that call each other. When a customer says that checkout is slow, logs and metrics tell you that something is slow, but not where. A trace follows one request from the first service to the last and shows how long each step took. This lesson explains the parts of a trace, how a request is sampled, how Lambda, API Gateway, and other compute send trace data, how to read the service map, and what tracing costs. It also explains that AWS has put the X-Ray SDKs and daemon into maintenance mode and recommends OpenTelemetry. The last tabs prepare you for the AWS Certified Solutions Architect – Associate (SAA-C03) exam.</p>
   <p>The tabs in this lesson cover the following topics:</p>
   <ul>
@@ -202,7 +203,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
 
   <h2>Introduction</h2>
   <p>A single customer request can cross a load balancer, an API, several functions or containers, a queue, and a database. If it is slow, the cause can be in any of them. Exam questions often describe this situation and ask which service finds the bottleneck, how to trace a Lambda function, or how to limit the cost of tracing.</p>
-  <p>This lesson follows FlashCart Inc. through the Problem Statement of each tab. It assumes Lambda and API Gateway from Lesson 273.1 and Lesson 273.2, and CloudFormation from Lesson 296.1.</p>
+  <p>This lesson follows FlashCart Inc. through the Problem Statement of each tab. It assumes Lambda and API Gateway from Lesson 273.1 and Lesson 273.2, and CloudWatch from Lesson 274.1 and Lesson 274.2.</p>
   <p>Use the tab list on the left, or the Previous and Next buttons, to move through the lesson. Each topic tab opens with a Problem Statement and ends with exam traps, keyword triggers, and resource links. The Knowledge Check is the last tab.</p>
 
   <h2>Learning Objectives</h2>
@@ -303,7 +304,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
   </ul>
 
   <div class="qbox">
-    <h3>Exam-Style Question</h3>
+    <h2>1.5 Exam-Style Question</h2>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> A company runs a microservices application. Customers report slow checkouts, but each team’s metrics and logs look normal. The company needs to find which service in the request path adds the delay. Which service fits best?</p>
     <ul class="opts">
@@ -346,7 +347,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <p><strong>Trigger 3:</strong> “Debug increased error rates across services”<br>→ AWS X-Ray service map and traces</p>
   </div>
   <div class="res">
-    <h2>Useful Resources</h2>
+    <h2>1.6 Useful Resources</h2>
     <ul>
       <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html" target="_blank" rel="noopener">What is AWS X-Ray?</a></li>
       <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html" target="_blank" rel="noopener">AWS X-Ray concepts</a></li>
@@ -484,7 +485,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
         Version: 1
 </code></pre>
   <ul>
-    <li>This sample is based on the example in the CloudFormation documentation. It traces every POST request to a path that starts with /checkout, with a reservoir of five requests each second. The names and values are examples.</li>
+    <li>This sample is based on the example in the CloudFormation documentation. CloudFormation is covered in Lesson 296.1. It traces every POST request to a path that starts with /checkout, with a reservoir of five requests each second. The names and values are examples.</li>
   </ul>
 
   <h2>2.7 Filter Expressions and Groups</h2>
@@ -501,7 +502,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
   </ul>
 
   <div class="qbox">
-    <h3>Exam-Style Question</h3>
+    <h2>2.9 Exam-Style Question</h2>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> A team wants to find all traces for requests that belong to one customer tier, and it wants the console to search by that value. Which approach fits best?</p>
     <ul class="opts">
@@ -545,7 +546,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <p><strong>Trigger 4:</strong> “The header that carries the trace ID”<br>→ X-Amzn-Trace-Id</p>
   </div>
   <div class="res">
-    <h2>Useful Resources</h2>
+    <h2>2.10 Useful Resources</h2>
     <ul>
       <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html" target="_blank" rel="noopener">AWS X-Ray concepts</a></li>
       <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/xray/latest/devguide/xray-api-segmentdocuments.html" target="_blank" rel="noopener">AWS X-Ray segment documents</a></li>
@@ -586,7 +587,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <li>AWS X-Ray is moving to <strong>OpenTelemetry (OTel)</strong> as its primary instrumentation standard. OpenTelemetry is an open-source standard for tracing and observability.</li>
     <li>OpenTelemetry uses <strong>spans</strong> instead of segments and subsegments.</li>
     <li>You can send OpenTelemetry traces to X-Ray with the <strong>AWS Distro for OpenTelemetry (ADOT)</strong>, or with native OpenTelemetry and the Amazon CloudWatch OTel endpoint. The console experience stays the same.</li>
-    <li>Since August 2025, X-Ray also accepts trace IDs created with OpenTelemetry or any other framework that follows the W3C Trace Context specification.</li>
+    <li>Since October 2023, X-Ray also accepts trace IDs created with OpenTelemetry or any other framework that follows the W3C Trace Context specification.</li>
   </ul>
   <div class="tw"><table>
     <thead><tr><th>Phase</th><th>Dates</th><th>What AWS provides</th></tr></thead>
@@ -653,28 +654,28 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
   <h2>3.5 Tracing for Amazon API Gateway</h2>
   <ul>
     <li>You turn on X-Ray tracing for an API Gateway stage. API Gateway then samples requests with the sampling rules, adds the tracing header, and puts a node for the stage on the service map.</li>
-    <li>In CloudFormation, the AWS::ApiGateway::Stage resource has the TracingEnabled property for this setting.</li>
+    <li>In CloudFormation (Lesson 296.1), the AWS::ApiGateway::Stage resource has the TracingEnabled property for this setting.</li>
     <li>With Lambda behind the stage, the map shows the stage, the Lambda service, and the function as connected nodes.</li>
   </ul>
 
   <h2>3.6 Hands-On Lab</h2>
   <div class="lab-box">
-    <p class="lab-title">GLAB 296.2.1 — Create a Sample Web Application and Monitor It in AWS X-Ray</p>
+    <p class="lab-title">GLAB 274.6.1 — Create a Sample Web Application and Monitor It in AWS X-Ray</p>
     <p class="lab-sub">Lab Overview:</p>
     <p>This lab gives you hands-on practice with creating a sample web application and monitoring it in AWS X-Ray. You can start the following lab:</p>
     <ul>
-      <li><a class="lab-link" href="https://business.whizlabs.com/labs/create-a-sample-web-application-and-monitor-it-in-aws-x-ray" target="_blank" rel="noopener">GLAB 296.2.1 — Create a Sample Web Application and Monitor It in AWS X-Ray</a>.</li>
+      <li><a class="lab-link" href="https://business.whizlabs.com/labs/create-a-sample-web-application-and-monitor-it-in-aws-x-ray" target="_blank" rel="noopener">GLAB 274.6.1 — Create a Sample Web Application and Monitor It in AWS X-Ray</a>.</li>
     </ul>
   </div>
   <div class="lab-expectation">
     <p><strong>Important Lab Expectation</strong></p>
     <p>You must submit proof of completion of the lab on Canvas using the following document:</p>
-    <p><a href="https://docs.google.com/document/d/1BlWigYhLaMi9UDEwck8npfqrWSLFM7WCs2JVQLfMAPI/edit?usp=sharing" target="_blank" rel="noopener">POC 296.2.1: Hands-On Labs Validation</a>.</p>
+    <p><a href="https://docs.google.com/document/d/1BlWigYhLaMi9UDEwck8npfqrWSLFM7WCs2JVQLfMAPI/edit?usp=sharing" target="_blank" rel="noopener">POC 274.6.1: Hands-On Labs Validation</a>.</p>
     <p>If you do not complete the lab during class time, you must finish it after class. Failing to complete all labs before the next session may cause you to fall behind.</p>
   </div>
 
   <div class="qbox">
-    <h3>Exam-Style Question</h3>
+    <h2>3.7 Exam-Style Question</h2>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> A company wants X-Ray traces for an AWS Lambda function that is invoked through Amazon API Gateway. Traces do not appear for the function, and its tracing mode shows PassThrough. What should the company do?</p>
     <ul class="opts">
@@ -718,7 +719,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <p><strong>Trigger 4:</strong> “Newer instrumentation standard for X-Ray”<br>→ OpenTelemetry with the AWS Distro for OpenTelemetry</p>
   </div>
   <div class="res">
-    <h2>Useful Resources</h2>
+    <h2>3.8 Useful Resources</h2>
     <ul>
       <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/xray/latest/devguide/xray-daemon-eos.html" target="_blank" rel="noopener">X-Ray SDK and daemon end of support timeline</a></li>
       <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-migration.html" target="_blank" rel="noopener">Migrating from X-Ray instrumentation to OpenTelemetry instrumentation</a></li>
@@ -809,7 +810,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
   </ul>
 
   <div class="qbox">
-    <h3>Exam-Style Question</h3>
+    <h2>4.6 Exam-Style Question</h2>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> An operations team wants an alarm when the number of traces with server errors rises for the checkout service. Which approach fits best?</p>
     <ul class="opts">
@@ -853,7 +854,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <p><strong>Trigger 4:</strong> “Use your own key to encrypt trace data”<br>→ AWS KMS key in the X-Ray encryption settings</p>
   </div>
   <div class="res">
-    <h2>Useful Resources</h2>
+    <h2>4.7 Useful Resources</h2>
     <ul>
       <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html" target="_blank" rel="noopener">AWS X-Ray concepts</a></li>
       <li><span class="lbl">Pricing</span> <a href="https://aws.amazon.com/xray/pricing/" target="_blank" rel="noopener">AWS X-Ray pricing</a></li>
@@ -910,7 +911,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
 
   <h2>5.3 Exam Scenarios</h2>
   <div class="qbox">
-    <h3>Scenario 1</h3>
+    <h3>5.4.1 Scenario 1</h3>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> A serverless application uses API Gateway, Lambda, DynamoDB, and SNS. Users report that some requests take much longer than others, and the team cannot tell which part is slow.</p>
     <details>
@@ -919,7 +920,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     </details>
   </div>
   <div class="qbox">
-    <h3>Scenario 2</h3>
+    <h3>5.4.2 Scenario 2</h3>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> A company runs containers on Amazon ECS and needs traces from the application code. The application is written in Java.</p>
     <details>
@@ -928,7 +929,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     </details>
   </div>
   <div class="qbox">
-    <h3>Scenario 3</h3>
+    <h3>5.4.3 Scenario 3</h3>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> The cost of X-Ray is higher than expected for a busy website that traces all requests.</p>
     <details>
@@ -937,7 +938,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     </details>
   </div>
   <div class="qbox">
-    <h3>Scenario 4</h3>
+    <h3>5.4.4 Scenario 4</h3>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> The security team wants to know who changed the X-Ray encryption settings, and wants traces encrypted with a key that the company controls.</p>
     <details>
