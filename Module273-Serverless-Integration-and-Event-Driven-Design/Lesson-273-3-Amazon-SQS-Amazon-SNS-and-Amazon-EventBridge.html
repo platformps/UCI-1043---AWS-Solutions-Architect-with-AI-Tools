@@ -180,7 +180,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
 
   <h2>Lesson Overview</h2>
   <h3>Serverless, Integration, and Event-Driven Design</h3>
-  <p>Module 273, Serverless, Integration, and Event-Driven Design, covers serverless compute, application integration, and event-driven architectures on AWS. This lesson covers the three services that decouple applications: Amazon SQS, Amazon SNS, and Amazon EventBridge.</p>
+  <p>Module 273, Serverless, Integration, and Event-Driven Design, covers serverless compute, application integration, and event-driven architectures on AWS. This lesson covers the three services that decouple applications: Amazon SQS, Amazon SNS, and Amazon EventBridge. It also introduces Amazon SES, the service that sends email from an application.</p>
   <figure>
     <div class="figwrap">
     <svg style="min-width:883px" viewBox="0 0 772 490" role="img" aria-label="Map of AWS serverless services in eight groups: compute with AWS Lambda and AWS Fargate, API and front door with Amazon API Gateway and Lambda function URLs, messaging and events with Amazon SQS, Amazon SNS, and Amazon EventBridge, orchestration with AWS Step Functions, data with Amazon DynamoDB and Amazon S3, streaming with Kinesis Data Streams and Amazon Data Firehose, identity with Amazon Cognito, and edge with Lambda@Edge and CloudFront Functions. Amazon SQS, Amazon SNS, and Amazon EventBridge, the topics of this lesson, are highlighted.">
@@ -262,7 +262,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <li><strong>Tab 1:</strong> why decoupling matters, and the queue, publish/subscribe, and event bus models.</li>
     <li><strong>Tab 2:</strong> standard and FIFO queues, queue settings, the visibility timeout, long polling, delay queues, and dead-letter queues.</li>
     <li><strong>Tab 3:</strong> scaling consumers with Auto Scaling and Lambda, common patterns, security, and large messages.</li>
-    <li><strong>Tab 4:</strong> topics and subscriptions, fan-out with SQS, message filtering, FIFO topics, and delivery.</li>
+    <li><strong>Tab 4:</strong> topics and subscriptions, fan-out with SQS, message filtering, FIFO topics, delivery, and sending email with Amazon SES.</li>
     <li><strong>Tab 5:</strong> event buses, rules and event patterns, targets, schedules, archive and replay, the schema registry, and Pipes.</li>
     <li><strong>Tab 6:</strong> choosing and combining SQS, SNS, and EventBridge, when to use Kinesis, and Amazon MQ for existing message brokers.</li>
     <li><strong>Tab 7:</strong> what you pay for and how to lower the cost.</li>
@@ -294,7 +294,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
   <ol>
     <li>Define queues, publish/subscribe, and event buses, and identify when to decouple applications.</li>
     <li>Implement SQS with dead-letter queues, long polling, and consumers that scale with Lambda or Auto Scaling.</li>
-    <li>Apply SNS fan-out to SQS queues with message filtering.</li>
+    <li>Apply SNS fan-out to SQS queues with message filtering, and send application email with Amazon SES.</li>
     <li>Use EventBridge rules, event patterns, schedules, and archive and replay to route events.</li>
     <li>Distinguish standard and FIFO queues, and select queue settings for a workload.</li>
     <li>Compare SQS, SNS, and EventBridge, and justify the choice for a scenario.</li>
@@ -310,7 +310,10 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
       <tr><td>AMQP</td><td>Advanced Message Queuing Protocol</td></tr>
       <tr><td>API</td><td>Application programming interface</td></tr>
       <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>DKIM</td><td>DomainKeys Identified Mail</td></tr>
       <tr><td>DLQ</td><td>Dead-letter queue</td></tr>
+      <tr><td>DMARC</td><td>Domain-based Message Authentication, Reporting, and Conformance</td></tr>
+      <tr><td>DNS</td><td>Domain Name System</td></tr>
       <tr><td>EBS</td><td>Amazon Elastic Block Store</td></tr>
       <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
       <tr><td>EFS</td><td>Amazon Elastic File System</td></tr>
@@ -323,8 +326,11 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
       <tr><td>MQTT</td><td>Message Queuing Telemetry Transport</td></tr>
       <tr><td>NMS</td><td>.NET Message Service</td></tr>
       <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SES</td><td>Amazon Simple Email Service</td></tr>
       <tr><td>SMS</td><td>Short Message Service</td></tr>
+      <tr><td>SMTP</td><td>Simple Mail Transfer Protocol</td></tr>
       <tr><td>SNS</td><td>Amazon Simple Notification Service</td></tr>
+      <tr><td>SPF</td><td>Sender Policy Framework</td></tr>
       <tr><td>SQS</td><td>Amazon Simple Queue Service</td></tr>
       <tr><td>SSE</td><td>Server-side encryption</td></tr>
       <tr><td>STOMP</td><td>Simple Text Oriented Messaging Protocol</td></tr>
@@ -807,15 +813,66 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
   </ul>
 
 
-  <h2>4.5 Hands-On Labs</h2>
+  <h2>4.5 Amazon SES: Sending Email From Your Application</h2>
+  <ul>
+    <li><strong>Amazon Simple Email Service (Amazon SES)</strong> is a managed email service. An application uses it to send, and to receive, email such as order confirmations, password resets, receipts, and marketing messages.</li>
+    <li>SNS can also send email, but SNS sends a <strong>notification</strong> to the subscribers of a topic. SES sends <strong>application email to customers</strong>, from your own address or domain.</li>
+  </ul>
+
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>Amazon SNS email</th><th>Amazon SES</th></tr></thead>
+    <tbody>
+      <tr><td>Purpose</td><td>Notifications to the subscribers of a topic</td><td>Transactional and marketing email to customers</td></tr>
+      <tr><td>Recipients</td><td>Each recipient subscribes and confirms the subscription</td><td>Any address, once the account is out of the sandbox</td></tr>
+      <tr><td>Sender</td><td>An Amazon SNS address</td><td>Your own verified email address or domain</td></tr>
+      <tr><td>Message</td><td>The text of the notification</td><td>A full email, with HTML, attachments, and templates</td></tr>
+    </tbody>
+  </table></div>
+
+  <p><strong>How sending works</strong></p>
+  <ol>
+    <li><strong>Verify an identity.</strong> Prove that you own the sender email address, or verify the whole domain so that you can send from any address in it.</li>
+    <li><strong>Authenticate the domain.</strong> SES signs messages with DomainKeys Identified Mail (DKIM). You add Domain Name System (DNS) records for DKIM, Sender Policy Framework (SPF), and Domain-based Message Authentication, Reporting, and Conformance (DMARC), so that receiving mail systems trust your email.</li>
+    <li><strong>Send.</strong> Use the console, the AWS SDKs and the API, or the Simple Mail Transfer Protocol (SMTP) interface.</li>
+    <li><strong>Watch the feedback.</strong> Track bounces and complaints, and keep both rates low to protect your sender reputation.</li>
+  </ol>
+
+  <p><strong>The sandbox</strong></p>
+  <div class="tw"><table>
+    <thead><tr><th>Account state</th><th>Who you can send to</th><th>Limits</th></tr></thead>
+    <tbody>
+      <tr><td>Sandbox. Every new account starts here, in each Region.</td><td>Verified email addresses and domains, and the mailbox simulator</td><td>At most 200 messages per 24-hour period, and 1 message per second</td></tr>
+      <tr><td>Production. You request production access.</td><td>Any address</td><td>Higher limits that depend on your use case</td></tr>
+    </tbody>
+  </table></div>
+  <p>Source: Amazon SES Developer Guide, Request production access (moving out of the Amazon SES sandbox).</p>
+
+  <p><strong>Events, suppression, and receiving email</strong></p>
+  <ul>
+    <li>A <strong>configuration set</strong> has <strong>event destinations</strong> that publish sending events, such as delivery, bounce, and complaint, to Amazon SNS, Amazon CloudWatch, Amazon Data Firehose, or Amazon EventBridge.</li>
+    <li>The <strong>suppression list</strong> keeps the addresses that bounced or complained, so that you stop sending to them.</li>
+    <li>SES can also <strong>receive email</strong> for your domain. A <strong>receipt rule</strong> runs actions on each message, such as saving it to an S3 bucket, calling a Lambda function, or publishing to an SNS topic.</li>
+    <li>SES charges for the messages that you send and receive. Check the Amazon SES pricing page for the current prices.</li>
+  </ul>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 290" role="img" aria-label="The FlashCart order email flow. The order service publishes to an SNS topic, an SQS queue buffers the email jobs, a Lambda function builds the email, and Amazon SES sends it to the customer. Amazon SES publishes bounce and complaint events to a second SNS topic, and a Lambda function that subscribes to that topic stops sending to the address."><defs><marker id="ses1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-box" x="10" y="20" width="130" height="80" rx="6"/><text class="sv-tb" x="75.0" y="56.0" text-anchor="middle">Order service</text><text class="sv-t" x="75.0" y="74.0" text-anchor="middle">Publishes orders</text><rect class="sv-box" x="164" y="20" width="130" height="80" rx="6"/><text class="sv-tb" x="229.0" y="56.0" text-anchor="middle">SNS topic</text><text class="sv-t" x="229.0" y="74.0" text-anchor="middle">Order events</text><rect class="sv-box" x="318" y="20" width="130" height="80" rx="6"/><text class="sv-tb" x="383.0" y="56.0" text-anchor="middle">SQS queue</text><text class="sv-t" x="383.0" y="74.0" text-anchor="middle">Buffers email jobs</text><rect class="sv-box" x="472" y="20" width="130" height="80" rx="6"/><text class="sv-tb" x="537.0" y="56.0" text-anchor="middle">Lambda function</text><text class="sv-t" x="537.0" y="74.0" text-anchor="middle">Builds the email</text><rect class="sv-boxg" x="626" y="20" width="130" height="80" rx="6"/><text class="sv-tb" x="691.0" y="56.0" text-anchor="middle">Amazon SES</text><text class="sv-t" x="691.0" y="74.0" text-anchor="middle">Sends the email</text><rect class="sv-box" x="780" y="20" width="130" height="80" rx="6"/><text class="sv-tb" x="845.0" y="56.0" text-anchor="middle">Customer</text><text class="sv-t" x="845.0" y="74.0" text-anchor="middle">Gets the email</text><line class="sv-line" x1="144" y1="60" x2="160" y2="60" marker-end="url(#ses1)"/><line class="sv-line" x1="298" y1="60" x2="314" y2="60" marker-end="url(#ses1)"/><line class="sv-line" x1="452" y1="60" x2="468" y2="60" marker-end="url(#ses1)"/><line class="sv-line" x1="606" y1="60" x2="622" y2="60" marker-end="url(#ses1)"/><line class="sv-line" x1="760" y1="60" x2="776" y2="60" marker-end="url(#ses1)"/><line class="sv-line" x1="691" y1="104" x2="691" y2="166" marker-end="url(#ses1)"/><text class="sv-t" x="705" y="140">Events</text><rect class="sv-boxb" x="626" y="170" width="130" height="100" rx="6"/><text class="sv-tb" x="691.0" y="207.0" text-anchor="middle">SNS topic</text><text class="sv-t" x="691.0" y="225.0" text-anchor="middle">Bounces and</text><text class="sv-t" x="691.0" y="243.0" text-anchor="middle">complaints</text><line class="sv-line" x1="622" y1="220" x2="544" y2="220" marker-end="url(#ses1)"/><rect class="sv-box" x="380" y="170" width="160" height="100" rx="6"/><text class="sv-tb" x="460.0" y="207.0" text-anchor="middle">Lambda function</text><text class="sv-t" x="460.0" y="225.0" text-anchor="middle">Stops sending to</text><text class="sv-t" x="460.0" y="243.0" text-anchor="middle">the address</text></svg>
+    </div>
+    <figcaption>Image 4f — Order email with Amazon SES: a queue buffers the work, and the bounce and complaint events come back through a topic. (Original diagram for this course.)</figcaption>
+  </figure>
+
+
+  <h2>4.6 Hands-On Labs</h2>
   <div class="lab-box">
     <p class="lab-title">Hands-On Labs</p>
     <p class="lab-sub">Lab Overview:</p>
-    <p>These labs give you practice with creating SNS topics and subscriptions, and with sending an email notification when an event happens in an S3 bucket.</p>
+    <p>These labs give you practice with creating SNS topics and subscriptions, with sending an email notification when an event happens in an S3 bucket, and with sending email through Amazon SES.</p>
     <p class="lab-sub">You can start the following labs:</p>
     <ul>
       <li><a class="lab-link" href="https://business.whizlabs.com/labs/creating-and-subscribing-to-sns-topics-adding-sns-event-for-s3-bucket" target="_blank" rel="noopener">GLAB 273.3.5 &mdash; Creating and Subscribing to SNS Topics, Adding SNS Event for S3 Bucket</a>.</li>
       <li><a class="lab-link" href="https://business.whizlabs.com/labs/configure-email-notification-on-s3-bucket-event-amazon-sns-challenge" target="_blank" rel="noopener">GLAB 273.3.6 &mdash; Configure Email Notification on S3 Bucket Event &ndash; Amazon SNS Challenge</a>.</li>
+      <li><a class="lab-link" href="https://business.whizlabs.com/labs/introduction-to-amazon-simple-email-service-ses" target="_blank" rel="noopener">GLAB 273.3.7 &mdash; Introduction to Amazon Simple Email Service SES</a>.</li>
     </ul>
   </div>
   <div class="lab-expectation">
@@ -823,6 +880,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <p>You must submit proof of completion of each lab on Canvas using the following documents:</p>
     <p><a href="https://docs.google.com/document/d/1cyLunPhTDKoKZlEMOgPfSmDdqrJApK-XxSyP4zj1AOo/edit?usp=sharing" target="_blank" rel="noopener noreferrer"><strong>POC 273.3.5: Hands-On Labs Validation</strong></a></p>
     <p><a href="https://docs.google.com/document/d/1PJtGzL_X7Hp4hQz_x79VSE3HzQ6HcCP4KyR2MPJXDo8/edit?usp=sharing" target="_blank" rel="noopener noreferrer"><strong>POC 273.3.6: Hands-On Labs Validation</strong></a></p>
+    <p><a href="https://docs.google.com/document/d/19dHYgGCuzCZJW6JmYSTTPNsoYLFVVFR8HDIECxGUXy0/edit?usp=sharing" target="_blank" rel="noopener noreferrer"><strong>POC 273.3.7: Hands-On Labs Validation</strong></a></p>
     <p>If you do not complete all labs during class time, you must finish them after class. Failing to complete all labs before the next session may cause you to fall behind.</p>
   </div>
 
@@ -858,6 +916,8 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
       <li><strong>Only some messages</strong> to a subscriber = a <strong>filter policy</strong> on the subscription.</li>
       <li><strong>Fan-out with order and no duplicates</strong> = <strong>SNS FIFO topic</strong> with <strong>SQS FIFO queues</strong>.</li>
       <li>The queue needs an <strong>SQS access policy</strong> that allows the topic to send to it.</li>
+      <li><strong>Email to customers from your own domain</strong> = <strong>SES</strong>. <strong>Notifications to the subscribers of a topic</strong> = <strong>SNS</strong>.</li>
+      <li>A <strong>new SES account is in the sandbox</strong>, in each Region: it sends only to verified addresses, at most 200 messages per 24 hours, and 1 message per second. <strong>Request production access</strong> to send to anyone.</li>
     </ul>
   </div>
   <div class="callout tip">
@@ -869,7 +929,9 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <p><strong>Trigger 1:</strong> "Send one message to several systems that each process it"<br>→ SNS topic with SQS subscriptions (fan-out)</p>
     <p><strong>Trigger 2:</strong> "Subscriber needs only some of the messages"<br>→ SNS subscription filter policy</p>
     <p><strong>Trigger 3:</strong> "Same S3 event to several queues"<br>→ S3 event notification to SNS, then fan-out</p>
-    <p><strong>Trigger 4:</strong> "Email or SMS notification from an application"<br>→ Amazon SNS</p>
+    <p><strong>Trigger 4:</strong> "Email or SMS notification to the subscribers of a topic"<br>→ Amazon SNS</p>
+    <p><strong>Trigger 5:</strong> "Send order confirmations or marketing email to customers from the company’s own domain"<br>→ Amazon SES</p>
+    <p><strong>Trigger 6:</strong> "Incoming email must be saved to S3 or must start a Lambda function"<br>→ Amazon SES receipt rules</p>
   </div>
   <div class="res">
     <h2>Useful Resources</h2>
@@ -877,6 +939,10 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
       <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/sns/latest/dg/welcome.html" target="_blank" rel="noopener">What is Amazon SNS?</a></li>
       <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/sns/latest/dg/sns-message-filtering.html" target="_blank" rel="noopener">Amazon SNS message filtering</a></li>
       <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/sns/latest/dg/large-message-payloads.html" target="_blank" rel="noopener">Publishing large messages with Amazon SNS</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/ses/latest/DeveloperGuide/Welcome.html" target="_blank" rel="noopener">What Is Amazon SES?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html" target="_blank" rel="noopener">Request Production Access (Moving Out of the Amazon SES Sandbox)</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/ses/latest/DeveloperGuide/quotas.html" target="_blank" rel="noopener">Service Quotas in Amazon SES</a></li>
+      <li><span class="lbl">Tutorial</span> <a href="https://aws.amazon.com/getting-started/hands-on/send-an-email-with-amazon-ses" target="_blank" rel="noopener">Send an Email with Amazon SES</a></li>
     </ul>
   </div>
 </section>
@@ -1180,7 +1246,8 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
       <tr><td>Amazon SQS</td><td>The number of requests (send, receive, and delete). FIFO requests cost more than standard requests. Each 64 KB chunk of a payload counts as one request.</td></tr>
       <tr><td>Amazon SNS</td><td>The number of messages published, and the deliveries by protocol. SMS and mobile push are priced separately.</td></tr>
       <tr><td>Amazon EventBridge</td><td>Custom, partner, and cross-account events, archive storage, replays, Pipes requests, and Scheduler invocations. Events from AWS services to the default bus are free.</td></tr>
-      <tr><td>All three</td><td>Data transfer, and the AWS KMS requests when you use a KMS key.</td></tr>
+      <tr><td>Amazon SES</td><td>The messages that you send and receive, and the size of the attachments. Optional features, such as dedicated IP addresses, cost extra. Check the Amazon SES pricing page for the current prices.</td></tr>
+      <tr><td>SQS, SNS, and EventBridge</td><td>Data transfer, and the AWS KMS requests when you use a KMS key.</td></tr>
     </tbody>
   </table></div>
 
@@ -1190,7 +1257,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <li>Use <strong>batch</strong> APIs to send, receive, and delete up to 10 messages per request.</li>
     <li>Use <strong>filter policies</strong> and <strong>event patterns</strong>, so consumers and functions run only for the messages they need.</li>
     <li>Archive only the events that you need to replay.</li>
-    <li>Check the SQS, SNS, and EventBridge pricing pages for the current prices.</li>
+    <li>Check the SQS, SNS, EventBridge, and SES pricing pages for the current prices.</li>
   </ul>
 
   <div class="qbox">
@@ -1269,6 +1336,8 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
       <tr><td>16</td><td>Replay past events</td><td>EventBridge archive and replay</td></tr>
       <tr><td>17</td><td>More than 5 targets for one rule</td><td>Target an SNS topic and fan out</td></tr>
       <tr><td>18</td><td>Migrate a RabbitMQ or ActiveMQ application without rewriting it</td><td>Amazon MQ</td></tr>
+      <tr><td>19</td><td>Send email to customers from the company’s own domain, with bounce and complaint tracking</td><td>Amazon SES</td></tr>
+      <tr><td>20</td><td>A new SES account can send only to verified addresses</td><td>The SES sandbox. Request production access.</td></tr>
     </tbody>
   </table></div>
 
@@ -1305,6 +1374,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <li>SQS standard queues give nearly unlimited throughput with at-least-once delivery, and FIFO queues give strict order and deduplication. The visibility timeout, retention, delay, long polling, and dead-letter queues control how messages are processed.</li>
     <li>Consumers scale with the queue: EC2 Auto Scaling on ApproximateNumberOfMessagesVisible, or Lambda event source mappings. Messages can be up to 1 MiB, and larger payloads go to S3 with the Extended Client Library.</li>
     <li>SNS pushes one message to many subscribers. SNS and SQS fan-out decouples every consumer, filter policies send each subscriber only what it needs, and FIFO topics keep the order.</li>
+    <li>Amazon SES sends and receives email for an application. Verify an identity, authenticate the domain, and request production access to leave the sandbox. Publish bounce and complaint events to SNS or other destinations.</li>
     <li>EventBridge routes AWS, SaaS, and custom events with rules and patterns to up to 5 targets per rule, and adds schedules, archive and replay, a schema registry, Pipes, and cross-account buses.</li>
     <li>Amazon MQ is the managed ActiveMQ or RabbitMQ broker for applications that use open messaging protocols and must move to AWS without a rewrite.</li>
   </ul>
@@ -1360,6 +1430,12 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <summary>Question 7: Design the order event flow for FlashCart: the order service publishes once, the payment, email, and analytics consumers each process every order at their own pace, the warehouse receives only large orders, a nightly cleanup runs without servers, and failed messages are kept.</summary>
     <p><em>Maps to:</em> Objective 7 (Synthesis).</p>
     <p>Publish each order to an SNS topic and subscribe one SQS queue per consumer, each with a dead-letter queue and an access policy for the topic. Add a filter policy to the warehouse subscription so it receives only orders above the value. Let Lambda event source mappings process the queues, with the queue visibility timeout longer than the function timeout and partial batch responses. Use an SQS FIFO queue, or an SNS FIFO topic with FIFO queues, for any consumer that needs strict order. Run the nightly cleanup with EventBridge Scheduler, and send AWS service events, such as EC2 state changes, through EventBridge rules to SNS for the operations team.</p>
+  </details>
+
+  <details>
+    <summary>Question 8: Explain when to use Amazon SES instead of Amazon SNS to send email, and what the SES sandbox limits.</summary>
+    <p><em>Maps to:</em> Objective 3 (Application).</p>
+    <p>Use SNS to send a notification to the subscribers of a topic, who subscribe and confirm. Use SES to send application email to customers from your own verified address or domain, with HTML, attachments, templates, and bounce and complaint tracking. A new SES account starts in the sandbox in each Region: it can send only to verified addresses and domains, at most 200 messages per 24 hours, and 1 message per second. To send to any address, request production access.</p>
   </details>
 
 </section>

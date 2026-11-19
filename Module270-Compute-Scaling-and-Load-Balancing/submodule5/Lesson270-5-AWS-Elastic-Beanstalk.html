@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 270.5 - AWS Elastic Beanstalk</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">AWS Elastic Beanstalk</h1>
+  <p>Deploy a web application with AWS Elastic Beanstalk, choose a deployment policy, and decide when it fits better than EC2 with Auto Scaling, containers, or AWS Lambda.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. Elastic Beanstalk Fundamentals</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Deployments, Configuration, and Operations</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Comparison &amp; Scenarios</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab4" id="b4">4. Knowledge Check</button></li>
+
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <p>In this module, you learned the pieces of a scalable web tier: the load balancer (lessons 270.1 and 270.2), the Auto Scaling group, and the launch template (lesson 270.4). AWS Elastic Beanstalk builds and runs those pieces for you, so that a team uploads code and does not assemble the infrastructure by hand.</p>
+  <p>This lesson explains what Elastic Beanstalk creates, how its applications, environments, and platforms fit together, how its five deployment policies update a running application, and when to choose it over Amazon EC2 with Auto Scaling, containers, or AWS Lambda. The last two tabs give a cheat sheet for the AWS Certified Solutions Architect – Associate (SAA-C03) exam and check what you learned.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> what Elastic Beanstalk is, the resources that it builds, applications, versions, environments, platforms, and the two environment tiers.</li>
+    <li><strong>Tab 2:</strong> the five deployment policies and blue/green deployments, configuration, platform updates, health, databases, and pricing, with a hands-on lab.</li>
+    <li><strong>Tab 3:</strong> a comparison of Elastic Beanstalk with the other ways to run an application, the SAA-C03 cheat sheet, and the lesson summary.</li>
+    <li><strong>Tab 4:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Elastic Beanstalk Fundamentals</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Deployments, Configuration, and Operations</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Comparison &amp; Scenarios</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="4" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define AWS Elastic Beanstalk, and identify the AWS resources that it creates and manages for an application.</li>
+    <li>Describe applications, application versions, environments, environment tiers, and platforms.</li>
+    <li>Differentiate a web server environment from a worker environment, and a single-instance environment from a load-balanced environment.</li>
+    <li>Compare the five deployment policies and blue/green deployments by downtime, capacity, and rollback.</li>
+    <li>Apply configuration options, saved configurations, and managed platform updates to operate an environment.</li>
+    <li>Select Elastic Beanstalk, Amazon EC2 with Auto Scaling, containers, or AWS Lambda for a workload, and justify the choice.</li>
+    <li>Design a safe deployment and database setup for a production web application on Elastic Beanstalk.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>AZ</td><td>Availability Zone</td></tr>
+      <tr><td>CNAME</td><td>Canonical name record</td></tr>
+      <tr><td>DNS</td><td>Domain Name System</td></tr>
+      <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+      <tr><td>IAM</td><td>AWS Identity and Access Management</td></tr>
+      <tr><td>PaaS</td><td>Platform as a service</td></tr>
+      <tr><td>RDS</td><td>Amazon Relational Database Service</td></tr>
+      <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
+      <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SQS</td><td>Amazon Simple Queue Service</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. Elastic Beanstalk Fundamentals</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s small web team has written a new storefront in Python. The team knows that a production site needs a load balancer, an Auto Scaling group, and monitoring, and it has no time to build and maintain them by hand before the next sale.</p>
+    <p>The team wants to upload its code and let AWS set up the rest, and it still wants to see and control the instances that run the application.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Name the AWS service that does this, and list the resources that it builds.</li>
+      <li>Explain how an application, a version, and an environment relate to each other.</li>
+      <li>Choose between a web server environment and a worker environment for a background job.</li>
+    </ul>
+  </div>
+
+  <h2>1.1 What AWS Elastic Beanstalk Is</h2>
+  <ul>
+    <li><strong>AWS Elastic Beanstalk</strong> is a platform as a service (PaaS). You upload your application code, and Elastic Beanstalk provisions the capacity, load balancing, automatic scaling, and health monitoring for it.</li>
+    <li>You keep control. The resources that it creates are normal AWS resources in your account, so you can see and change them.</li>
+    <li>There is <strong>no additional charge</strong> for Elastic Beanstalk. You pay for the AWS resources that your application uses, such as Amazon EC2 instances and the load balancer. Check the pricing page for details.</li>
+    <li>It supports <strong>Go, Java, .NET, Node.js, PHP, Python, Ruby, and Docker</strong> applications.</li>
+  </ul>
+
+  <h2>1.2 What It Builds for You</h2>
+  <ul>
+    <li><strong>Amazon EC2 instances</strong> that run your application, and the security groups for them (lesson 269.1).</li>
+    <li>An <strong>Auto Scaling group</strong> (lesson 270.4), so the environment adds and removes instances with the load.</li>
+    <li>A <strong>load balancer</strong>, an Application Load Balancer by default (lesson 270.2), in a load-balanced environment.</li>
+    <li><strong>Amazon CloudWatch</strong> alarms for scaling and health (lesson 274.1), and an <strong>Amazon S3</strong> bucket that stores the application versions (lesson 271.2).</li>
+    <li>Elastic Beanstalk creates and updates these resources through <strong>AWS CloudFormation</strong> (lesson 296.1).</li>
+  </ul>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 310" role="img" aria-label="Your code, packaged as an application version, goes into an Elastic Beanstalk environment. The environment contains an Application Load Balancer, an Auto Scaling group with three EC2 instances that run your application, and security groups and CloudWatch alarms. Users reach the application through the load balancer."><defs><marker id="eb1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-box" x="10" y="110" width="150" height="80" rx="6"/><text class="sv-tb" x="85.0" y="146.0" text-anchor="middle">Your code</text><text class="sv-t" x="85.0" y="164.0" text-anchor="middle">An application version</text><line class="sv-line" x1="164" y1="150" x2="214" y2="150" marker-end="url(#eb1)"/><rect class="sv-dash" x="220" y="10" width="520" height="290" rx="8"/><text class="sv-tb" x="480" y="36" text-anchor="middle">Elastic Beanstalk environment</text><rect class="sv-boxb" x="250" y="52" width="460" height="50" rx="6"/><text class="sv-tb" x="480.0" y="73.0" text-anchor="middle">Application Load Balancer</text><text class="sv-t" x="480.0" y="91.0" text-anchor="middle">Lesson 270.2</text><rect class="sv-dash" x="250" y="118" width="460" height="120" rx="8"/><text class="sv-tb" x="480" y="140" text-anchor="middle">Auto Scaling group (lesson 270.4)</text><rect class="sv-boxg" x="265" y="152" width="130" height="70" rx="6"/><text class="sv-tb" x="330.0" y="183.0" text-anchor="middle">EC2 instance</text><text class="sv-t" x="330.0" y="201.0" text-anchor="middle">Your application</text><rect class="sv-boxg" x="415" y="152" width="130" height="70" rx="6"/><text class="sv-tb" x="480.0" y="183.0" text-anchor="middle">EC2 instance</text><text class="sv-t" x="480.0" y="201.0" text-anchor="middle">Your application</text><rect class="sv-boxg" x="565" y="152" width="130" height="70" rx="6"/><text class="sv-tb" x="630.0" y="183.0" text-anchor="middle">EC2 instance</text><text class="sv-t" x="630.0" y="201.0" text-anchor="middle">Your application</text><rect class="sv-box" x="250" y="252" width="460" height="36" rx="6"/><text class="sv-t" x="480.0" y="275.0" text-anchor="middle">Security groups and Amazon CloudWatch alarms</text><line class="sv-line" x1="764" y1="150" x2="716" y2="150" marker-end="url(#eb1)"/><rect class="sv-box" x="770" y="100" width="140" height="100" rx="6"/><text class="sv-tb" x="840.0" y="137.0" text-anchor="middle">Users</text><text class="sv-t" x="840.0" y="155.0" text-anchor="middle">Reach the</text><text class="sv-t" x="840.0" y="173.0" text-anchor="middle">load balancer</text></svg>
+    </div>
+    <figcaption>Image 1a — What Elastic Beanstalk builds around your code: a load balancer, an Auto Scaling group with instances, and the supporting settings. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>1.3 Applications, Versions, Environments, and Platforms</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Concept</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td>Application</td><td>A logical collection of Elastic Beanstalk components: versions, environments, and configurations. It works like a folder.</td></tr>
+      <tr><td>Application version</td><td>A specific, labeled iteration of deployable code. A version is stored in Amazon S3, and you can deploy any version again.</td></tr>
+      <tr><td>Environment</td><td>The set of AWS resources that runs one application version. An application can have several environments, for example development, test, and production.</td></tr>
+      <tr><td>Platform</td><td>The operating system, the language runtime, the web server, and the Elastic Beanstalk components that run the application, for example Python on Amazon Linux 2023.</td></tr>
+      <tr><td>Saved configuration</td><td>A set of environment settings that you can save and use to create or update an environment.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>1.4 Environment Types and Tiers</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Choice</th><th>Options</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><td>Environment type</td><td><strong>Single instance</strong>: one EC2 instance and no load balancer. <strong>Load balanced</strong>: a load balancer and an Auto Scaling group across several Availability Zones.</td><td>Single instance for development and testing. Load balanced for production.</td></tr>
+      <tr><td>Tier</td><td><strong>Web server environment</strong>: serves HTTP requests from users.</td><td>A website or an API.</td></tr>
+      <tr><td>Tier</td><td><strong>Worker environment</strong>: reads messages from an Amazon SQS queue (lesson 273.3) and sends each one to your application for processing.</td><td>Background jobs, such as sending a report or resizing images.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>1.5 Platforms and Their Life Cycle</h2>
+  <ul>
+    <li>Each platform is released in <strong>platform branches</strong>, for example a Python version on an operating system. Elastic Beanstalk retires a branch when one of its components reaches end of life.</li>
+    <li>Current Linux platforms run on <strong>Amazon Linux 2023</strong>. Elastic Beanstalk set the status of all Amazon Linux 2 branches to <strong>retired</strong> on August 6, 2026, after Amazon Linux 2 reached end of life. Elastic Beanstalk retired the Amazon Linux AMI branches on July 18, 2022.</li>
+    <li>Check the <strong>platform release schedule</strong> before you choose a platform branch, because the dates change.</li>
+  </ul>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li>Elastic Beanstalk is <strong>not serverless</strong>. Your application runs on EC2 instances that you pay for.</li>
+      <li>There is <strong>no charge for the service</strong> itself. The charge is for the resources.</li>
+      <li>A <strong>database inside the environment</strong> is deleted when the environment is terminated (section 2.4).</li>
+      <li>Elastic Beanstalk is for <strong>applications</strong>. AWS CloudFormation is for describing any set of resources.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Upload code. Elastic Beanstalk builds the stack.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Upload code and let AWS handle provisioning, load balancing, scaling, and monitoring, and keep control of the resources”<br>→ AWS Elastic Beanstalk</p>
+    <p><strong>Trigger 2:</strong> “Background jobs that read from a queue in an Elastic Beanstalk application”<br>→ A worker environment</p>
+    <p><strong>Trigger 3:</strong> “A developer wants an environment for testing with no load balancer, at low cost”<br>→ A single-instance environment</p>
+    <p><strong>Trigger 4:</strong> “Describe and version any set of AWS resources as code”<br>→ AWS CloudFormation</p>
+  </div>
+
+  <div class="qbox">
+    <h2>1.6 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A small team has built a Python web application. The team wants AWS to handle the provisioning, load balancing, automatic scaling, and health monitoring. The team also wants to keep access to the underlying EC2 instances. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Upload the code to AWS Lambda, and put Amazon API Gateway in front of it.</li>
+      <li><strong>B.</strong> Upload the code to AWS Elastic Beanstalk, and use a load-balanced web server environment.</li>
+      <li><strong>C.</strong> Launch EC2 instances, and build the load balancer, Auto Scaling group, and alarms by hand.</li>
+      <li><strong>D.</strong> Package the application as a container, and run it on AWS Fargate with Amazon ECS.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> Elastic Beanstalk builds and manages the infrastructure from the uploaded code, and the instances stay in the account.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Lambda is serverless, so there are no instances to access. It also needs a code change.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>It provisions, balances, scales, and monitors the application, and the EC2 instances stay visible and under control.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>It meets the access requirement, but the team builds and maintains everything by hand.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Fargate has no instances to access, and the team must package a container.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>1.7 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/Welcome.html" target="_blank" rel="noopener">What Is AWS Elastic Beanstalk?</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.html" target="_blank" rel="noopener">Elastic Beanstalk Concepts</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts-webserver.html" target="_blank" rel="noopener">Web Server Environments</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts-worker.html" target="_blank" rel="noopener">Worker Environments</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/platforms-schedule.html" target="_blank" rel="noopener">Elastic Beanstalk Platform Release Schedule</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Deployments, Configuration, and Operations</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>FlashCart’s storefront now runs on Elastic Beanstalk with six instances. The team must release a fix before the next flash sale. A release that takes the site offline, or that leaves it with half its capacity, is not acceptable.</p>
+    <p>The team also stores the order data in a database that it created inside the environment, and it asks whether that is wise.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Compare the deployment policies for downtime, capacity, and rollback.</li>
+      <li>Explain how a blue/green deployment works.</li>
+      <li>Say where the production database should live.</li>
+    </ul>
+  </div>
+
+  <h2>2.1 The Five Deployment Policies</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Policy</th><th>How it works</th><th>Available in</th></tr></thead>
+    <tbody>
+      <tr><td>All at once</td><td>Deploys the new version to every instance at the same time. It is the fastest, and the environment is briefly unavailable.</td><td>Load-balanced and single-instance environments</td></tr>
+      <tr><td>Rolling</td><td>Deploys in batches. Each batch is out of service while it updates, so capacity drops during the deployment.</td><td>Load-balanced environments</td></tr>
+      <tr><td>Rolling with an additional batch</td><td>Launches a new batch of instances first, so full capacity stays in service, and then deploys in batches.</td><td>Load-balanced environments</td></tr>
+      <tr><td>Immutable</td><td>Launches a second Auto Scaling group with the new version. When the new instances pass health checks, they replace the old ones. To roll back, Elastic Beanstalk ends the new group.</td><td>Load-balanced and single-instance environments</td></tr>
+      <tr><td>Traffic splitting</td><td>Launches new instances like an immutable deployment, and sends a set percentage of traffic to them for a set time. It is a canary test.</td><td>Load-balanced environments with an Application Load Balancer</td></tr>
+    </tbody>
+  </table></div>
+  <p>Source: AWS Elastic Beanstalk Developer Guide, Deploying applications to Elastic Beanstalk environments.</p>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 240" role="img" aria-label="The five Elastic Beanstalk deployment policies from left to right. All at once is the fastest and causes brief downtime. Rolling updates in batches with reduced capacity. Rolling with an additional batch keeps full capacity. Immutable builds a new Auto Scaling group, keeps full capacity, and rolls back by removing the new group. Traffic splitting sends a share of traffic to the new version on an Application Load Balancer. Deployments get slower and safer from left to right."><defs><marker id="eb2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxw" x="8" y="10" width="170" height="150" rx="6"/><text class="sv-tb" x="93" y="34" text-anchor="middle">All at once</text><text class="sv-t" x="93" y="72" text-anchor="middle">Fastest</text><text class="sv-t" x="93" y="94" text-anchor="middle">Brief downtime</text><text class="sv-t" x="93" y="116" text-anchor="middle">Rollback: redeploy</text><rect class="sv-box" x="189" y="10" width="170" height="150" rx="6"/><text class="sv-tb" x="274" y="34" text-anchor="middle">Rolling</text><text class="sv-t" x="274" y="72" text-anchor="middle">Batches</text><text class="sv-t" x="274" y="94" text-anchor="middle">Reduced capacity</text><text class="sv-t" x="274" y="116" text-anchor="middle">Rollback: redeploy</text><rect class="sv-box" x="370" y="10" width="170" height="150" rx="6"/><text class="sv-tb" x="455" y="34" text-anchor="middle">Rolling with an</text><text class="sv-tb" x="455" y="52" text-anchor="middle">additional batch</text><text class="sv-t" x="455" y="78" text-anchor="middle">Batches</text><text class="sv-t" x="455" y="100" text-anchor="middle">Full capacity</text><text class="sv-t" x="455" y="122" text-anchor="middle">Rollback: redeploy</text><rect class="sv-boxb" x="551" y="10" width="170" height="150" rx="6"/><text class="sv-tb" x="636" y="34" text-anchor="middle">Immutable</text><text class="sv-t" x="636" y="72" text-anchor="middle">New Auto Scaling group</text><text class="sv-t" x="636" y="94" text-anchor="middle">Full capacity</text><text class="sv-t" x="636" y="116" text-anchor="middle">Rollback: remove</text><text class="sv-t" x="636" y="138" text-anchor="middle">the new group</text><rect class="sv-boxg" x="732" y="10" width="170" height="150" rx="6"/><text class="sv-tb" x="817" y="34" text-anchor="middle">Traffic splitting</text><text class="sv-t" x="817" y="72" text-anchor="middle">Canary test</text><text class="sv-t" x="817" y="94" text-anchor="middle">Full capacity</text><text class="sv-t" x="817" y="116" text-anchor="middle">Rollback: reroute traffic</text><line class="sv-line" x1="60" y1="196" x2="860" y2="196" marker-end="url(#eb2)"/><text class="sv-t" x="460" y="228" text-anchor="middle">Slower and safer. More capacity in use.</text></svg>
+    </div>
+    <figcaption>Image 2a — The deployment policies compared by downtime, capacity, and rollback. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h2>2.2 Blue/Green Deployments</h2>
+  <ul>
+    <li>A <strong>blue/green deployment</strong> is not one of the five policies. You clone the environment, deploy the new version to the clone (the green environment), and test it.</li>
+    <li>When the new version works, you <strong>swap the environment URLs</strong> (the CNAMEs), so the DNS name points to the green environment. To roll back, swap again.</li>
+    <li>It avoids any mix of old and new versions on one environment, and it costs a second environment while both run. DNS records are covered in lesson 269.9.</li>
+  </ul>
+
+  <h2>2.3 Configuration, Updates, and Health</h2>
+  <ul>
+    <li><strong>Configuration options</strong> set the instance type, scaling limits, load balancer, and environment properties. Use the <strong>.ebextensions</strong> folder or <strong>saved configurations</strong> to keep settings with the application.</li>
+    <li><strong>Managed platform updates</strong> apply platform updates in a maintenance window that you choose.</li>
+    <li><strong>Health reporting</strong> shows the state of the environment. <strong>Enhanced health reporting</strong> adds detail about the instances and the application.</li>
+    <li>Instances use an <strong>IAM instance profile</strong> (lesson 267.5) to call other AWS services, such as Amazon S3.</li>
+  </ul>
+
+  <h2>2.4 Keep the Production Database Outside the Environment</h2>
+  <ul>
+    <li>You can add an Amazon RDS database to an environment, but its life cycle is <strong>tied to the environment</strong>. Terminate the environment, and the database is deleted.</li>
+    <li>For production, create the database <strong>outside Elastic Beanstalk</strong> (lesson 272.1), and give the application its connection details with environment properties. A blue/green swap then keeps the data.</li>
+  </ul>
+
+  <h2>2.5 Pricing</h2>
+  <ul>
+    <li>Elastic Beanstalk has no charge. You pay for the EC2 instances, the load balancer, the storage, and the other resources of the environment.</li>
+    <li>Immutable, traffic-splitting, and blue/green deployments run extra instances while they deploy, so they cost more for that time. Check the Elastic Beanstalk and EC2 pricing pages for current prices.</li>
+  </ul>
+
+  <h2>2.6 Hands-On Lab</h2>
+  <div class="lab-box">
+    <p class="lab-title">Hands-On Lab</p>
+    <p class="lab-sub">Lab Overview:</p>
+    <p>In this lab, you deploy a sample application with AWS Elastic Beanstalk, and you see how the service builds the environment that runs it.</p>
+    <p class="lab-sub">You can start the following lab:</p>
+    <ul>
+      <li><a class="lab-link" href="https://business.whizlabs.com/labs/introduction-to-aws-elastic-beanstalk" target="_blank" rel="noopener">GLAB 270.5.1 &mdash; Introduction to AWS Elastic Beanstalk</a>.</li>
+    </ul>
+  </div>
+  <div class="lab-expect">
+    <p><strong>Important Lab Expectation</strong></p>
+    <p>You must submit proof of completion of GLAB 270.5.1 on Canvas using the following document:</p>
+    <p><strong><a href="https://docs.google.com/document/d/1vI-lrFGjKJ6RuupBXxR21pytmN8o7nnyLyxFxNHhMqE/edit?usp=sharing" target="_blank" rel="noopener">POC 270.5.1: Hands-On Labs Validation</a></strong></p>
+    <p>If you do not complete the lab during class time, you must finish it after class. Failing to complete the lab before the next session may cause you to fall behind.</p>
+  </div>
+
+  <div class="callout warn">
+    <h4>Exam Trap</h4>
+    <p>Remember these points:</p>
+    <ul>
+      <li><strong>All at once</strong> causes downtime. Use it for development only.</li>
+      <li><strong>Rolling</strong> reduces capacity during the deployment. <strong>Rolling with an additional batch</strong> and <strong>immutable</strong> keep full capacity.</li>
+      <li><strong>Immutable</strong> rolls back fastest, because Elastic Beanstalk only ends the new Auto Scaling group.</li>
+      <li><strong>Traffic splitting</strong> needs an <strong>Application Load Balancer</strong>.</li>
+      <li><strong>Blue/green</strong> is done by swapping CNAMEs between two environments. It is not a deployment policy setting.</li>
+    </ul>
+  </div>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Rolling replaces a few at a time. Immutable builds a new group.</p>
+  </div>
+  <div class="callout exam">
+    <h4>SAA-C03 Keyword Triggers</h4>
+    <p><strong>Trigger 1:</strong> “Deploy with no downtime and keep full capacity, with the quickest rollback”<br>→ Immutable deployment</p>
+    <p><strong>Trigger 2:</strong> “Send 10 percent of traffic to the new version first, as a canary test”<br>→ Traffic splitting deployment</p>
+    <p><strong>Trigger 3:</strong> “Test the new version on a separate environment, and then switch users with no mix of versions”<br>→ Blue/green deployment: swap the environment URLs</p>
+    <p><strong>Trigger 4:</strong> “The database must survive when the environment is deleted”<br>→ Create the database outside Elastic Beanstalk</p>
+    <p><strong>Trigger 5:</strong> “Update the platform automatically in a maintenance window”<br>→ Managed platform updates</p>
+  </div>
+
+  <div class="qbox">
+    <h2>2.7 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A company runs a production web application on a load-balanced Elastic Beanstalk environment. A new release must keep full capacity during the deployment, and the team must be able to roll back quickly by removing the new instances. Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> All at once.</li>
+      <li><strong>B.</strong> Rolling.</li>
+      <li><strong>C.</strong> Rolling with an additional batch.</li>
+      <li><strong>D.</strong> Immutable.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: D.</strong> An immutable deployment launches a second Auto Scaling group with full capacity, and it rolls back by ending that group.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>It causes brief downtime and replaces all instances at once.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Capacity drops while each batch updates.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>It keeps full capacity, but a rollback needs another deployment.</td></tr>
+      <tr><td>D</td><td>Correct</td><td>It keeps full capacity, and the rollback only ends the new Auto Scaling group.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>2.8 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.deploy-existing-version.html" target="_blank" rel="noopener">Deploying Applications to Elastic Beanstalk Environments</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.rolling-version-deploy.html" target="_blank" rel="noopener">Deployment Policies and Settings</a></li>
+      <li><span class="lbl">Blog</span> <a href="https://aws.amazon.com/blogs/dotnet/seamless-production-deployment-with-elastic-beanstalk" target="_blank" rel="noopener">Seamless Production Deployment with Elastic Beanstalk</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/elasticbeanstalk/pricing/" target="_blank" rel="noopener">AWS Elastic Beanstalk Pricing</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Comparison &amp; Scenarios</h1>
+
+  <h2>3.1 Elastic Beanstalk Compared With Other Ways to Run an Application</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Option</th><th>What you manage</th><th>Best for</th></tr></thead>
+    <tbody>
+      <tr><td>AWS Elastic Beanstalk</td><td>Your code and its settings. AWS builds and manages the load balancer, Auto Scaling group, and instances.</td><td>Web applications and APIs in common languages, when the team wants to deploy code and keep the instances.</td></tr>
+      <tr><td>Amazon EC2 with an Auto Scaling group and a load balancer (lessons 270.2 and 270.4)</td><td>Everything: instances, scaling, deployments, and patching.</td><td>Full control, or a setup that Elastic Beanstalk cannot express.</td></tr>
+      <tr><td>Containers on Amazon ECS or AWS Fargate (lesson 273.5)</td><td>Container images and task definitions.</td><td>Container workloads and microservices.</td></tr>
+      <tr><td>AWS Lambda (lesson 273.1)</td><td>Only the function code.</td><td>Event-driven code with no servers to manage.</td></tr>
+      <tr><td>AWS CloudFormation (lesson 296.1)</td><td>A template for any set of resources.</td><td>Repeatable infrastructure as code. Elastic Beanstalk uses it internally.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>3.2 SAA-C03 Exam Cheat Sheet and Decision Rules</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Scenario keywords</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Upload code, and AWS handles provisioning, balancing, scaling, and monitoring</td><td>Elastic Beanstalk</td></tr>
+      <tr><td>2</td><td>Keep control of the underlying EC2 instances</td><td>Elastic Beanstalk, not Lambda or Fargate</td></tr>
+      <tr><td>3</td><td>Platform as a service for a web application</td><td>Elastic Beanstalk</td></tr>
+      <tr><td>4</td><td>Background jobs that read from a queue</td><td>Worker environment</td></tr>
+      <tr><td>5</td><td>Cheapest environment for development</td><td>Single-instance environment</td></tr>
+      <tr><td>6</td><td>No downtime, full capacity, and the fastest rollback</td><td>Immutable deployment</td></tr>
+      <tr><td>7</td><td>Canary test with a share of traffic</td><td>Traffic splitting (needs an Application Load Balancer)</td></tr>
+      <tr><td>8</td><td>Zero downtime with no mix of versions</td><td>Blue/green: swap the environment URLs</td></tr>
+      <tr><td>9</td><td>The database must outlive the environment</td><td>Create it outside Elastic Beanstalk</td></tr>
+      <tr><td>10</td><td>Describe any resources as code</td><td>AWS CloudFormation</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>3.3 Lesson Summary</h2>
+  <p>This lesson covered the following points:</p>
+  <ul>
+    <li>AWS Elastic Beanstalk deploys and runs an application on a load balancer, an Auto Scaling group, and EC2 instances that it builds for you. There is no charge for the service, only for the resources.</li>
+    <li>An application has versions and environments. An environment runs one version on a platform, as a single-instance or a load-balanced environment, in a web server or a worker tier.</li>
+    <li>The five deployment policies are all at once, rolling, rolling with an additional batch, immutable, and traffic splitting. Blue/green is done by swapping the URLs of two environments.</li>
+    <li>Current Linux platforms run on Amazon Linux 2023, and the Amazon Linux 2 branches were retired on August 6, 2026.</li>
+    <li>Keep the production database outside the environment, because a database inside it is deleted with the environment.</li>
+  </ul>
+  <div class="callout tip">
+    <h4>Memory Hook</h4>
+    <p>Pick Elastic Beanstalk when the team wants to ship code and keep the instances.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 4 ============ -->
+
+<section class="tab" id="tab4" role="tabpanel" aria-labelledby="b4">
+  <h1 class="tabh">4. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: Define AWS Elastic Beanstalk, and list the resources that it builds.</summary>
+    <p><em>Maps to:</em> Objective 1 (Comprehension).</p>
+    <p>Elastic Beanstalk is a platform as a service. You upload your code, and it provisions the capacity, load balancing, scaling, and health monitoring. It builds EC2 instances and their security groups, an Auto Scaling group, a load balancer in a load-balanced environment, CloudWatch alarms, and an S3 bucket for the versions, and it manages them with CloudFormation. There is no charge for the service, only for the resources.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Explain how an application, an application version, an environment, and a platform relate to each other.</summary>
+    <p><em>Maps to:</em> Objective 2 (Comprehension).</p>
+    <p>An application is a logical collection of versions, environments, and configurations. A version is a labeled iteration of deployable code that is stored in S3. An environment is the set of AWS resources that runs one version. The platform is the operating system, runtime, and web server that the environment uses.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: When do you use a worker environment, and when a single-instance environment?</summary>
+    <p><em>Maps to:</em> Objective 3 (Analysis).</p>
+    <p>Use a worker environment for background jobs, because it reads messages from an SQS queue and sends each one to the application. Use a single-instance environment for development and testing, because it has one instance and no load balancer, so it costs less. Use a load-balanced web server environment for production.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Compare the five deployment policies by downtime, capacity, and rollback.</summary>
+    <p><em>Maps to:</em> Objective 4 (Analysis).</p>
+    <p>All at once is the fastest and causes brief downtime. Rolling deploys in batches and reduces capacity. Rolling with an additional batch keeps full capacity. Immutable launches a second Auto Scaling group, keeps full capacity, and rolls back by ending the new group. Traffic splitting sends a share of traffic to new instances as a canary test, and it needs an Application Load Balancer.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: Which platform branches should a new environment use, and how do you operate it safely?</summary>
+    <p><em>Maps to:</em> Objective 5 (Application).</p>
+    <p>Choose a current platform branch on Amazon Linux 2023, because Elastic Beanstalk retired the Amazon Linux 2 branches on August 6, 2026. Check the platform release schedule for retirement dates. Keep settings in .ebextensions or saved configurations, turn on managed platform updates for a maintenance window, and use enhanced health reporting to watch the environment.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: A team needs a production web application with fast, safe releases and a database that keeps its data. Design the setup, and say when Elastic Beanstalk is the wrong choice.</summary>
+    <p><em>Maps to:</em> Objectives 6 and 7 (Evaluation and Synthesis).</p>
+    <p>Use a load-balanced web server environment with an immutable deployment policy, or blue/green deployments for the safest switch. Create the RDS database outside the environment, and pass its connection details as environment properties, so that the data survives a terminated environment. Elastic Beanstalk is the wrong choice when the workload is event-driven code, which fits Lambda, when it is built from containers and microservices, which fits ECS or Fargate, or when the team needs infrastructure that it cannot express in Elastic Beanstalk settings.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>
