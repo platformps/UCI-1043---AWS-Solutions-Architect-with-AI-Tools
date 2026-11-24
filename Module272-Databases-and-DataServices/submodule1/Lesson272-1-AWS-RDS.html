@@ -259,6 +259,8 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
       <tr><td>KMS</td><td>AWS Key Management Service</td></tr>
       <tr><td>PITR</td><td>Point-in-time restore</td></tr>
       <tr><td>RDS</td><td>Amazon Relational Database Service</td></tr>
+      <tr><td>RPO</td><td>Recovery point objective</td></tr>
+      <tr><td>RTO</td><td>Recovery time objective</td></tr>
       <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
       <tr><td>SQL</td><td>Structured Query Language</td></tr>
       <tr><td>SSD</td><td>Solid state drive</td></tr>
@@ -1409,6 +1411,26 @@ INSERT INTO products VALUES (1001, 'Widget', 9.99);</code></pre>
     <li><strong>Multi-AZ</strong> gives availability and automatic failover. A <strong>read replica</strong> gives read scaling and a possible disaster recovery copy. A <strong>backup</strong> gives recovery from deletion, corruption, or historical errors.</li>
     <li><strong>Replication alone</strong> does not protect against every logical error, because an unwanted change is replicated too.</li>
   </ul>
+
+  <h3>6.6.1 Recovery Objectives: RPO and RTO</h3>
+  <p>Requirements for recovering a database are often stated as two objectives. The <strong>recovery point objective (RPO)</strong> is how much data you can afford to lose, measured as time. The <strong>recovery time objective (RTO)</strong> is how long you can afford to be down. A smaller RPO and RTO cost more, so each database gets the objectives that its business value justifies. The table shows how each RDS capability affects the two objectives.</p>
+  <div class="tw"><table>
+    <thead><tr><th>RDS capability</th><th>Effect on the RPO (data loss)</th><th>Effect on the RTO (time to recover)</th></tr></thead>
+    <tbody>
+      <tr><td>Multi-AZ DB instance</td><td>Close to zero, because RDS replicates to the standby synchronously.</td><td>Automatic failover, typically 60 to 120 seconds.</td></tr>
+      <tr><td>Multi-AZ DB cluster</td><td>Very small, because replication is semisynchronous: a change is committed only after at least one reader acknowledges it.</td><td>Automatic failover, typically under 35 seconds.</td></tr>
+      <tr><td>Read replica</td><td>Greater than zero, because replication is asynchronous. A replica can lag, and changes that it has not received are lost if you promote it.</td><td>You must promote the replica, and then point the application to it.</td></tr>
+      <tr><td>Automated backup with point-in-time restore</td><td>Up to about five minutes of data, because RDS uploads transaction logs to Amazon S3 every five minutes. The latest restorable time is typically within the last five minutes.</td><td>A restore creates a new DB instance, so the time depends on the size of the database and the number of logs to apply.</td></tr>
+      <tr><td>Manual snapshot, including a copy in another Region</td><td>All the data written since the snapshot was taken.</td><td>A restore creates a new DB instance, so the time depends on the size of the database. A cross-Region copy also needs time to complete.</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li>A <strong>low RPO</strong> needs a second copy that stays current, such as a Multi-AZ standby. A backup returns the database to an earlier time, so it cannot give an RPO of zero.</li>
+    <li>A <strong>low RTO</strong> needs a standby that is already running, such as a Multi-AZ standby. A restore from a backup creates a new database, so it takes longer.</li>
+    <li>The times in the table are typical values. The actual times depend on the database activity and the size of the database.</li>
+    <li>The four disaster recovery strategies, and the cross-Region options of each AWS database, are taught in Lesson 272.18 (Database Disaster Recovery).</li>
+  </ul>
+  <p><strong>Reference:</strong> <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.Failover.html" target="_blank" rel="noopener">Failing over a Multi-AZ DB instance for Amazon RDS</a>, <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts-failover.html" target="_blank" rel="noopener">Failing over a Multi-AZ DB cluster for Amazon RDS</a>, and <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIT.html" target="_blank" rel="noopener">Restoring a DB instance to a specified time for Amazon RDS</a>.</p>
 
   <h2>6.7 Hands-On Lab</h2>
   <div class="lab-box">
