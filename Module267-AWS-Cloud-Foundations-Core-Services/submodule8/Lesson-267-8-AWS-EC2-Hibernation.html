@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 267.8 - AWS EC2 Hibernation</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">AWS EC2 Hibernation</h1>
+  <p>Learn how EC2 Hibernation saves the RAM of an instance to an encrypted EBS root volume, what it requires, what it costs while an instance is hibernated, and what happens to IP addresses.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. How EC2 Hibernation Works</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Billing, IP Addresses, and the Lab</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Knowledge Check</button></li>
+
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <p>In this lesson, you learn the mechanics of Amazon EC2 Hibernation and how the system memory (RAM) is written to an encrypted EBS root volume. You also learn how instance states move between running, stopping, and stopped, and what the move does to private, public, and Elastic IP addresses when the instance restarts.</p>
+  <p>This lesson supports the Module 267 scenario, in which you help RetailCloud. The last tab checks what you learned.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> what EC2 hibernation is, what happens when you hibernate an instance, the requirements, and the limitations.</li>
+    <li><strong>Tab 2:</strong> billing while an instance is hibernated, use cases, the behavior of IP addresses, and the hands-on lab.</li>
+    <li><strong>Tab 3:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">How EC2 Hibernation Works</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Billing, IP Addresses, and the Lab</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Identify the key prerequisites and limitations for enabling EC2 Hibernation.</li>
+    <li>Explain the internal mechanism of EC2 hibernation.</li>
+    <li>Differentiate the behavior of private IPs, automatic public IPs, and Elastic IPs when an EC2 instance is hibernated and restarted.</li>
+    <li>Analyze the billing and financial impacts of hibernated instances, distinguishing between paused compute charges ($0 per hour) and ongoing EBS storage charges.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>AMI</td><td>Amazon Machine Image</td></tr>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>EBS</td><td>Amazon Elastic Block Store</td></tr>
+      <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+      <tr><td>GiB</td><td>Gibibyte</td></tr>
+      <tr><td>IPv4</td><td>Internet Protocol version 4</td></tr>
+      <tr><td>IPv6</td><td>Internet Protocol version 6</td></tr>
+      <tr><td>RAM</td><td>Random access memory</td></tr>
+      <tr><td>RHEL</td><td>Red Hat Enterprise Linux</td></tr>
+      <tr><td>SAA-C03</td><td>The code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>vCPU</td><td>Virtual central processing unit</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. How EC2 Hibernation Works</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>You work as a junior AWS solutions architect at RetailCloud, a fast-growing e-commerce platform, under the guidance of a lead architect. To save costs, developers turn off the non-production testing environments every night. However, reloading heavy software dependencies each morning takes over 20 minutes.</p>
+    <p>Your lead architect assigns you to preserve the state of these environments and reduce their startup times, without paying for compute while the instances are paused. Before you change anything, you need answers to the questions below. This lesson explains how Amazon EC2 Hibernation answers them.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>How can an instance save the contents of its memory so that it resumes where it left off?</li>
+      <li>What must be true of an instance and its root volume before hibernation works?</li>
+      <li>What happens to the private, public, and Elastic IP addresses of an instance that is hibernated and started?</li>
+      <li>What does RetailCloud pay for while an instance is hibernated?</li>
+    </ul>
+  </div>
+
+  <h2>1.1 Overview of Amazon EC2 Hibernation</h2>
+  <p><strong>EC2 Hibernation</strong> is an instance management feature that saves the in-memory state (RAM) of a running virtual server to its persistent EBS root volume before the instance powers down.</p>
+  <ul>
+    <li><strong>Initiating hibernation:</strong> when you issue a hibernate request, EC2 signals the operating system to freeze the application processes and write the current contents of the system RAM to the root Amazon Elastic Block Store (EBS) volume.</li>
+    <li><strong>Instance state:</strong> the instance moves from running to stopping to stopped.</li>
+  </ul>
+
+  <h2>1.2 What Happens When You Hibernate an Instance?</h2>
+  <p>The diagram shows a basic overview of the hibernation process for EC2 instances.</p>
+
+  <figure>
+    <div class="figwrap"><img src="data:image/webp;base64,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" alt="A diagram of the hibernation process for an EC2 instance. A running instance has RAM and a root EBS volume that is encrypted. When you hibernate it, the instance moves to stopping, and the contents of the RAM are saved to the root EBS volume. After the shutdown, the instance is stopped, and the RAM contents stay on the volume. When you start it, the instance returns to running. The stopping and stopped steps are marked as hibernation." style="display:block;max-width:340px;height:auto;margin:0 auto"></div>
+    <figcaption>Image 1a — The hibernation process for an EC2 instance.</figcaption>
+  </figure>
+
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 225" role="img" aria-label="The hibernation steps. The instance is running, and its RAM holds the application state. When you hibernate it, the instance moves to stopping, and the operating system freezes the processes and writes the RAM to the encrypted root EBS volume. When the shutdown is complete, the instance is stopped, the RAM contents stay on the root volume, and there is no compute charge. When you start it, the operating system reads the RAM back from the volume and resumes the processes."><defs><marker id="h1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxg" x="10" y="50" width="208" height="130" rx="8"/><text class="sv-tb" x="114" y="80" text-anchor="middle">Running</text><text class="sv-t" x="114" y="108" text-anchor="middle">RAM holds the</text><text class="sv-t" x="114" y="130" text-anchor="middle">application state</text><line class="sv-line" x1="222" y1="115" x2="238" y2="115" marker-end="url(#h1)"/><rect class="sv-box" x="242" y="50" width="208" height="130" rx="8"/><text class="sv-tb" x="346" y="80" text-anchor="middle">Stopping</text><text class="sv-t" x="346" y="108" text-anchor="middle">The OS freezes processes</text><text class="sv-t" x="346" y="130" text-anchor="middle">and writes the RAM to the</text><text class="sv-t" x="346" y="152" text-anchor="middle">encrypted root EBS volume</text><line class="sv-line" x1="454" y1="115" x2="470" y2="115" marker-end="url(#h1)"/><rect class="sv-boxb" x="474" y="50" width="208" height="130" rx="8"/><text class="sv-tb" x="578" y="80" text-anchor="middle">Stopped</text><text class="sv-t" x="578" y="108" text-anchor="middle">The RAM contents stay</text><text class="sv-t" x="578" y="130" text-anchor="middle">on the root volume.</text><text class="sv-t" x="578" y="152" text-anchor="middle">No compute charge</text><line class="sv-line" x1="686" y1="115" x2="702" y2="115" marker-end="url(#h1)"/><rect class="sv-boxg" x="706" y="50" width="208" height="130" rx="8"/><text class="sv-tb" x="810" y="80" text-anchor="middle">Running again</text><text class="sv-t" x="810" y="108" text-anchor="middle">The OS reads the RAM</text><text class="sv-t" x="810" y="130" text-anchor="middle">back from the volume</text><text class="sv-t" x="810" y="152" text-anchor="middle">and resumes the processes</text><text class="sv-t" x="125" y="36" text-anchor="middle">Hibernate</text><text class="sv-t" x="560" y="36" text-anchor="middle">Shutdown is complete</text><text class="sv-t" x="900" y="36" text-anchor="end">Start</text><rect class="sv-dash" x="242" y="46" width="438" height="140" rx="10"/><text class="sv-tb" x="461" y="204" text-anchor="middle">Hibernation: stopping and stopped</text></svg>
+    </div>
+    <figcaption>Image 1b — The steps of EC2 hibernation. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <p>When you hibernate an instance, the following happens:</p>
+  <ul>
+    <li>The instance moves to the <strong>stopping</strong> state. Amazon EC2 signals the operating system to perform hibernation (suspend-to-disk). The hibernation freezes all of the processes, saves the contents of the RAM to the EBS root volume, and then performs a regular shutdown.</li>
+    <li>After the shutdown is complete, the instance moves to the <strong>stopped</strong> state.</li>
+    <li>Any EBS volumes remain attached to the instance, and their data persists, including the saved contents of the RAM.</li>
+    <li>Any Amazon EC2 instance store volumes remain attached to the instance, but the data on the instance store volumes is lost.</li>
+    <li>In most cases, AWS migrates the instance to a new underlying host computer when it starts. The same happens when you stop and start an instance.</li>
+    <li>When you start the instance, it boots, and the operating system reads in the contents of the RAM from the EBS root volume before it unfreezes the processes to resume their state.</li>
+    <li>The instance keeps its private IPv4 addresses and any IPv6 addresses, and it keeps them when it starts again.</li>
+    <li>Amazon EC2 releases the public IPv4 address. When the instance starts, Amazon EC2 assigns a new public IPv4 address.</li>
+    <li>The instance keeps its associated Elastic IP addresses. You are charged for any Elastic IP addresses that are associated with a hibernated instance.</li>
+  </ul>
+  <p>For how hibernation differs from reboot, stop, and terminate, see <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html#lifecycle-differences" target="_blank" rel="noopener">Differences between instance states</a>.</p>
+  <p><strong>Advantage:</strong> hibernation preserves the running process state and the in-memory datasets. The application resumes from its previous state when it starts, without repeating long initialization steps.</p>
+
+  <h2>1.3 Hibernation Requirements: Good to Know</h2>
+  <p>You must enable hibernation when you <strong>launch</strong> the instance. You <strong>cannot</strong> enable it later on an existing instance, whether the instance is running or stopped. The instance must also have:</p>
+  <ul>
+    <li><strong>A supported AMI:</strong> a hardware virtual machine (HVM) AMI that supports hibernation. Supported AMIs include Amazon Linux, Ubuntu, and Windows images. Check the AWS documentation for the current list.</li>
+    <li><strong>A supported instance type:</strong> an instance family that supports hibernation. Bare metal instances are not supported.</li>
+    <li><strong>A root volume</strong> that is an EBS volume, not an instance store volume. It must be encrypted, and it must be large enough to hold the contents of the RAM and your expected usage. AWS allocates space on the root volume at launch to store the RAM.</li>
+    <li><strong>A purchase option:</strong> On-Demand Instances and Spot Instances support hibernation.</li>
+    <li><strong>An instance RAM size</strong> of less than 150 GiB for a Linux instance, and 16 GiB or less for a Windows instance.</li>
+    <li><strong>A hibernation period</strong> of no more than 60 days. AWS does not support keeping an instance hibernated for longer. To keep the instance longer, start the hibernated instance, stop it, and start it again.</li>
+  </ul>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 285" role="img" aria-label="Six requirements for hibernation. It must be enabled at launch, and you cannot enable it later on an existing instance. The instance needs a supported HVM AMI and instance type, and bare metal is not supported. The root volume must be an encrypted EBS volume that is large enough to hold the RAM, and not an instance store volume. Linux RAM must be less than 150 GiB, and Windows RAM must be 16 GiB or less. The purchase option must be On-Demand or Spot. An instance can stay hibernated for no longer than 60 days, and after that you start it, stop it, and start it again."><defs><marker id="h2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxw" x="10" y="20" width="286" height="112" rx="8"/><text class="sv-tb" x="153" y="50" text-anchor="middle">Enabled at launch</text><text class="sv-t" x="153" y="80" text-anchor="middle">You cannot enable it later</text><text class="sv-t" x="153" y="104" text-anchor="middle">on an existing instance</text><rect class="sv-box" x="312" y="20" width="286" height="112" rx="8"/><text class="sv-tb" x="455" y="50" text-anchor="middle">Supported AMI and instance type</text><text class="sv-t" x="455" y="80" text-anchor="middle">An HVM AMI that supports</text><text class="sv-t" x="455" y="104" text-anchor="middle">hibernation; no bare metal</text><rect class="sv-boxb" x="614" y="20" width="286" height="112" rx="8"/><text class="sv-tb" x="757" y="50" text-anchor="middle">Encrypted EBS root volume</text><text class="sv-t" x="757" y="80" text-anchor="middle">Large enough to hold the RAM</text><text class="sv-t" x="757" y="104" text-anchor="middle">Not an instance store volume</text><rect class="sv-box" x="10" y="150" width="286" height="112" rx="8"/><text class="sv-tb" x="153" y="180" text-anchor="middle">RAM size limit</text><text class="sv-t" x="153" y="210" text-anchor="middle">Linux: less than 150 GiB</text><text class="sv-t" x="153" y="234" text-anchor="middle">Windows: 16 GiB or less</text><rect class="sv-box" x="312" y="150" width="286" height="112" rx="8"/><text class="sv-tb" x="455" y="180" text-anchor="middle">Purchase option</text><text class="sv-t" x="455" y="210" text-anchor="middle">On-Demand Instances</text><text class="sv-t" x="455" y="234" text-anchor="middle">and Spot Instances</text><rect class="sv-box" x="614" y="150" width="286" height="112" rx="8"/><text class="sv-tb" x="757" y="180" text-anchor="middle">Hibernation period</text><text class="sv-t" x="757" y="210" text-anchor="middle">No longer than 60 days</text><text class="sv-t" x="757" y="234" text-anchor="middle">Then start, stop, and start</text></svg>
+    </div>
+    <figcaption>Image 1c — The requirements for EC2 hibernation. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <p>For the current rules, see <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/hibernating-prerequisites.html" target="_blank" rel="noopener">Prerequisites for EC2 instance hibernation</a>.</p>
+
+  <h2>1.4 Limitations</h2>
+  <p>These limitations also apply. They come from the AWS documentation on how hibernation works:</p>
+  <ul>
+    <li>While an instance is hibernated, you cannot modify it. For example, you cannot change its instance type, which you can do for a stopped instance that is not hibernated.</li>
+    <li>You cannot hibernate an instance that is in an Auto Scaling group or that Amazon ECS uses.</li>
+    <li>You cannot hibernate an instance that boots in UEFI mode with UEFI Secure Boot enabled.</li>
+    <li>Data on instance store volumes is lost when the instance hibernates.</li>
+    <li>AWS regularly updates its platform with upgrades and security patches. These can conflict with hibernated instances, and AWS notifies you about critical updates that require a start.</li>
+  </ul>
+  <p>For more information, see <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-hibernate-overview.html" target="_blank" rel="noopener">How Amazon EC2 instance hibernation works</a>.</p>
+
+  <h2>1.5 Exam-Style Questions</h2>
+  <p>These two questions are new for this lesson.</p>
+  <div class="qbox">
+    <h2>1.5.1 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A team has a running EC2 instance that was launched without hibernation support. The team wants the instance to hibernate every night. What should the team do? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Stop the instance, and enable hibernation in the console.</li>
+      <li><strong>B.</strong> Modify the instance attribute on the running instance to enable hibernation.</li>
+      <li><strong>C.</strong> Launch a new instance with hibernation enabled and an encrypted EBS root volume.</li>
+      <li><strong>D.</strong> Attach an instance store volume to hold the RAM.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> You can enable hibernation only when you launch an instance. You cannot enable it on an existing instance, whether it is running or stopped.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>You cannot enable hibernation on a stopped instance.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>You cannot enable hibernation on a running instance.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>A new instance, launched with hibernation enabled and an encrypted root volume, can hibernate.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>The RAM is saved to the encrypted EBS root volume. Instance store data is lost when an instance hibernates.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="qbox">
+    <h2>1.5.2 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> Which root volume configuration supports EC2 hibernation? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> An instance store volume that is large enough for the RAM.</li>
+      <li><strong>B.</strong> An unencrypted EBS volume.</li>
+      <li><strong>C.</strong> An encrypted EBS volume that is large enough to hold the RAM.</li>
+      <li><strong>D.</strong> Any EBS volume, because the RAM is saved elsewhere.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> The root volume must be an encrypted EBS volume that is large enough to hold the RAM contents.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>The root volume cannot be an instance store volume.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>The root volume must be encrypted, so that the RAM contents are protected.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>An encrypted EBS root volume, large enough for the RAM, meets the requirement.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>The RAM is saved to the EBS root volume, so its type and size matter.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>1.6 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html" target="_blank" rel="noopener">Hibernate Your Amazon EC2 Instance</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-hibernate-overview.html" target="_blank" rel="noopener">How Amazon EC2 Instance Hibernation Works</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/hibernating-prerequisites.html" target="_blank" rel="noopener">Prerequisites for EC2 Instance Hibernation</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Billing, IP Addresses, and the Lab</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>RetailCloud&#8217;s finance team asks what the company pays for while a test instance is hibernated. The developers ask whether the instance keeps its addresses when they start it each morning.</p>
+    <p>The architect explains the billing rules and the behavior of each kind of IP address, and then has the developers practice in a lab.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Explain what AWS charges while an instance is hibernated.</li>
+      <li>Describe what happens to private, public, and Elastic IP addresses.</li>
+      <li>Match hibernation to the right use case.</li>
+    </ul>
+  </div>
+
+  <h2>2.1 Billing While an Instance Is Hibernated</h2>
+  <p>While the instance is in the stopped state, <strong>compute charges (vCPU and RAM) are paused ($0 per hour)</strong>. You pay only for the EBS volume storage that the OS and the saved RAM contents occupy. You also pay for the public IPv4 charge on any Elastic IP addresses that stay associated with the instance. AWS does not charge for the data transfer when the contents of the RAM move to the EBS root volume.</p>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 305" role="img" aria-label="What you pay for while an instance is hibernated. Not charged: EC2 compute usage, the transfer of the RAM to the root volume, and an automatically assigned public IPv4 address, which AWS releases when the instance stops. Still charged: EBS volume storage, including the saved RAM contents, and Elastic IP addresses that stay associated, which carry the public IPv4 address charge. Data on instance store volumes is lost when an instance hibernates."><defs><marker id="h3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxg" x="10" y="20" width="440" height="230" rx="8"/><text class="sv-tb" x="230" y="50" text-anchor="middle">Not charged while hibernated (stopped)</text><text class="sv-t" x="230" y="88" text-anchor="middle">EC2 compute (vCPU and RAM) usage: $0 per hour</text><text class="sv-t" x="230" y="118" text-anchor="middle">The transfer of RAM to the root volume</text><text class="sv-t" x="230" y="148" text-anchor="middle">An automatically assigned public IPv4 address,</text><text class="sv-t" x="230" y="178" text-anchor="middle">which AWS releases when the instance stops</text><rect class="sv-boxw" x="470" y="20" width="440" height="230" rx="8"/><text class="sv-tb" x="690" y="50" text-anchor="middle">Still charged while hibernated</text><text class="sv-t" x="690" y="88" text-anchor="middle">EBS volume storage: the OS, your data,</text><text class="sv-t" x="690" y="118" text-anchor="middle">and the saved RAM contents</text><text class="sv-t" x="690" y="148" text-anchor="middle">Elastic IP addresses that stay associated</text><text class="sv-t" x="690" y="178" text-anchor="middle">(the public IPv4 address charge)</text><text class="sv-t" x="460" y="280" text-anchor="middle">Instance store data is lost when an instance hibernates.</text></svg>
+    </div>
+    <figcaption>Image 2a — Charges while an instance is hibernated. (Original diagram for this course.)</figcaption>
+  </figure>
+
+
+  <h2>2.2 Use Cases of Hibernation</h2>
+  <ul>
+    <li>Long-running processing.</li>
+    <li>Saving the RAM state.</li>
+    <li>Services that take time to initialize.</li>
+  </ul>
+
+  <h2>2.3 Real-World Hibernation Scenario</h2>
+  <p>A data analyst uses a memory-intensive application that takes 20 minutes to load datasets and prepare its working environment. At the end of the day, the analyst hibernates the EC2 instance instead of stopping it. AWS saves the contents of the RAM to the encrypted root EBS volume.</p>
+  <p>The next morning, the analyst starts the instance. The application and the datasets resume from their previous state, which reduces the startup time. The company does not pay EC2 compute charges while the instance is hibernated, but it continues to pay for the EBS storage.</p>
+  <p>For more information, see the <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html" target="_blank" rel="noopener">EC2 hibernation documentation</a>.</p>
+
+  <h2>2.4 Combined Scenario: IP Addresses After Stop or Hibernate</h2>
+  <p>A company runs an application server with a private IP address of 10.0.1.25, an automatic public IP address of 3.95.15.155, and an optional Elastic IP address of 18.210.40.50. If the instance is stopped or hibernated and then restarted:</p>
+  <div class="tw"><table>
+    <thead><tr><th>Address</th><th>Example</th><th>After a restart</th></tr></thead>
+    <tbody>
+      <tr><td>Private IP</td><td>10.0.1.25</td><td>Remains 10.0.1.25.</td></tr>
+      <tr><td>Automatic public IP</td><td>3.95.15.155</td><td>AWS releases it and normally replaces it with a new address.</td></tr>
+      <tr><td>Elastic IP</td><td>18.210.40.50</td><td>Remains 18.210.40.50, as long as it stays associated.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>2.5 Hands-On Lab</h2>
+  <div class="lab-box">
+    <p class="lab-title">Hands-On Lab</p>
+    <p class="lab-sub">Lab Overview:</p>
+    <p>In this guided lab, you hibernate an Amazon EC2 instance in the Whizlabs environment. The lab gives you hands-on practice with the feature that the problem statement describes: saving the memory (RAM) of a running instance to its encrypted EBS root volume, so that the instance can resume where it left off.</p>
+    <p class="lab-sub">Lab purpose:</p>
+    <ul>
+      <li><strong>Apply the requirements:</strong> connect the hibernation requirements in section 1.3, which are hibernation enabled at launch and an encrypted EBS root volume, to what you see in the console.</li>
+      <li><strong>Observe the process:</strong> follow the instance through the running, stopping, and stopped states, and then start it again.</li>
+      <li><strong>Relate hibernation to cost:</strong> connect a hibernated instance to the billing rules in this lesson: no compute charge while the instance is stopped, and continuing EBS storage charges.</li>
+    </ul>
+    <p class="lab-sub">You can start the following lab:</p>
+    <ul>
+      <li><a class="lab-link" href="https://business.whizlabs.com/labs/hibernating-an-ec2-instance" target="_blank" rel="noopener">GLAB 267.8.1 &mdash; Hibernating an EC2 Instance</a>.</li>
+    </ul>
+  </div>
+  <div class="lab-expectation">
+    <p><strong>Important Lab Expectation</strong></p>
+    <p>You must submit proof of completion of GLAB 267.8.1 on Canvas using the following document:</p>
+    <p><strong><a href="https://docs.google.com/document/d/1cx1Ox6JG2z1CY2tZ4-Cw7mO10ctwRGXM-UhFAtMEU0U/edit?usp=sharing" target="_blank" rel="noopener">POC 267.8.1: Hands-On Labs Validation</a></strong></p>
+    <p>If you do not complete the lab during class time, you must finish it after class. Failing to complete the lab before the next session may cause you to fall behind.</p>
+  </div>
+
+  <h2>2.6 Exam Tips</h2>
+  <ul>
+    <li><strong>Internal VPC communication:</strong> private IP.</li>
+    <li><strong>Temporary internet connectivity:</strong> automatic public IP.</li>
+    <li><strong>Persistent public IPv4 address:</strong> Elastic IP.</li>
+    <li><strong>Move a public IP to a replacement instance:</strong> Elastic IP.</li>
+    <li><strong>Preserve RAM and running processes:</strong> hibernate.</li>
+    <li><strong>Preserve disk data but not RAM:</strong> stop.</li>
+    <li><strong>Hibernated instance:</strong> no compute charge while stopped, but EBS storage charges continue.</li>
+    <li><strong>Private IP after stop and start:</strong> remains the same.</li>
+    <li><strong>Automatic public IP after stop and start:</strong> usually changes.</li>
+    <li><strong>Elastic IP after stop and start:</strong> remains the same.</li>
+    <li><strong>Public IPv4 addresses:</strong> incur charges, including Elastic IP addresses.</li>
+  </ul>
+  <p><strong>Memory aid:</strong> a private IP stays with the instance, an automatic public IP can change, an Elastic IP remains static, and hibernation preserves RAM on EBS.</p>
+
+  <h2>2.7 Exam-Style Questions</h2>
+  <p>The first question comes from the course lesson document. The second question is new for this lesson.</p>
+  <div class="qbox">
+    <h2>2.7.1 Exam-Style Question</h2>
+    <p class="origin">From the course lesson document.</p>
+    <p><strong>Scenario:</strong> A company runs a memory-intensive analytics application on an Amazon EC2 instance that was launched with hibernation enabled and uses an encrypted EBS root volume. Each morning the application takes 20 minutes to load its datasets into memory. The company wants to avoid paying for compute overnight and wants the application to resume in its loaded state each morning. Which action meets these requirements? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Stop the instance each night and start it each morning.</li>
+      <li><strong>B.</strong> Hibernate the instance each night and start it each morning.</li>
+      <li><strong>C.</strong> Terminate the instance each night and launch a new one each morning.</li>
+      <li><strong>D.</strong> Reboot the instance each night and leave it running.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> Hibernation saves the contents of the RAM to the encrypted EBS root volume before the shutdown, so the application resumes in its loaded state, and compute charges are paused while the instance is stopped.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Stopping the instance does not preserve the RAM.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>Hibernation saves the RAM to the root volume, and compute charges are paused while the instance is stopped.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>Terminating the instance removes it, and the new instance would have to load its datasets again.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Rebooting keeps the instance running, so compute charges continue.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="qbox">
+    <h2>2.7.2 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> Which charges apply while an EC2 instance is hibernated? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> EC2 compute charges and EBS storage charges.</li>
+      <li><strong>B.</strong> No charges at all.</li>
+      <li><strong>C.</strong> EBS storage charges, and the public IPv4 charge for associated Elastic IP addresses.</li>
+      <li><strong>D.</strong> Only the charge for the saved RAM data transfer.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> Compute charges are paused, but EBS storage, which includes the saved RAM, and the public IPv4 charge for associated Elastic IP addresses continue.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Compute charges are paused while the instance is stopped.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>EBS volumes, including the saved RAM, and associated Elastic IP addresses are still charged.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>EBS storage and associated Elastic IP addresses are charged, and compute is not.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>AWS does not charge for the data transfer of the RAM to the root volume.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+
+  <h2>2.8 Lesson Summary</h2>
+  <p>In this lesson, you learned the following:</p>
+  <ul>
+    <li>EC2 Hibernation saves the contents of an instance&#8217;s memory (RAM) to its encrypted Amazon EBS root volume before the instance shuts down, so the instance can resume where it left off.</li>
+    <li>When you hibernate an instance, it moves from running to stopping to stopped. When you start it, the operating system reads the saved RAM back from the root volume and resumes the processes.</li>
+    <li>Hibernation must be enabled when the instance is launched. You cannot enable it later on an existing instance.</li>
+    <li>The instance needs a supported Amazon Machine Image (AMI), an encrypted EBS root volume that is large enough to hold the saved RAM, and a RAM size and hibernation period within the supported limits.</li>
+    <li>A hibernated instance keeps its private IPv4 address and its Elastic IP addresses. AWS releases an automatically assigned public IPv4 address and assigns a new one when the instance starts.</li>
+    <li>While an instance is hibernated and stopped, compute charges are paused. You continue to pay for EBS storage, including the saved RAM, and for public IPv4 addresses, including Elastic IP addresses that remain associated.</li>
+    <li>Hibernation suits long-running processes and applications that take a long time to initialize.</li>
+  </ul>
+  <div class="res">
+    <h2>2.9 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html" target="_blank" rel="noopener">Hibernate Your Amazon EC2 Instance</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-hibernate-overview.html" target="_blank" rel="noopener">How Amazon EC2 Instance Hibernation Works</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: What happens to the system RAM when an Amazon EC2 instance is hibernated?</summary>
+    <p><em>Maps to:</em> Objective 2 (Comprehension).</p>
+    <p>The operating system writes the current contents of the system RAM to the encrypted EBS root volume before the instance moves to the stopped state. When you start the instance, the operating system reads the contents back and resumes the processes.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Can you enable hibernation on an existing EC2 instance after it has been launched?</summary>
+    <p><em>Maps to:</em> Objective 1 (Knowledge).</p>
+    <p>No. You must enable hibernation when you launch the instance. You cannot enable it later on an existing instance, whether it is running or stopped.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: What are the billing impacts while an EC2 instance remains hibernated?</summary>
+    <p><em>Maps to:</em> Objective 4 (Analysis).</p>
+    <p>EC2 compute charges (vCPU and RAM) are paused ($0 per hour). Standard EBS storage charges continue for the root volume and the saved RAM contents, and the public IPv4 charge continues for any Elastic IP address that stays associated.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: How do private IPs, automatic public IPs, and Elastic IPs behave after a hibernated instance is restarted?</summary>
+    <p><em>Maps to:</em> Objective 3 (Comparison).</p>
+    <p>The private IP and the Elastic IP stay the same, as long as the Elastic IP stays associated. AWS releases an automatically assigned public IP address when the instance stops, and it usually assigns a different one when the instance starts.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: What is the main advantage of EC2 Hibernation for an application that takes a long time to boot or initialize?</summary>
+    <p><em>Maps to:</em> Objective 2 (Comprehension).</p>
+    <p>Hibernation preserves the running process state and the in-memory datasets. The application resumes from its previous state when the instance starts, without repeating the long initialization steps.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: List the main prerequisites and limitations of EC2 hibernation.</summary>
+    <p><em>Maps to:</em> Objective 1 (Knowledge and Comprehension).</p>
+    <p>Hibernation must be enabled at launch. The instance needs a supported AMI and instance type, an encrypted EBS root volume that is large enough for the RAM, and a RAM size of less than 150 GiB on Linux or 16 GiB or less on Windows. It works with On-Demand and Spot Instances, and AWS does not support keeping an instance hibernated for more than 60 days. You cannot modify a hibernated instance, you cannot hibernate an instance in an Auto Scaling group, and instance store data is lost.</p>
+  </details>
+
+  <details>
+    <summary>Question 7: A company wants to avoid paying for compute overnight, and wants an application with a 20-minute startup to resume in its loaded state. What would you recommend, and what will the company still pay for?</summary>
+    <p><em>Maps to:</em> Objectives 2 and 4 (Application).</p>
+    <p>Launch the instance with hibernation enabled and an encrypted EBS root volume, hibernate it each night, and start it each morning. The company does not pay compute charges while the instance is stopped. It still pays for the EBS storage, including the saved RAM, and for any Elastic IP address that stays associated.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>

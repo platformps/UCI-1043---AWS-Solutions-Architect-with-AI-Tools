@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 267.6 - AWS SDK</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}pre.cmd{background:rgba(97,25,64,.07);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:.95rem;line-height:1.55;margin:10px 0}pre.cmd code{background:none;padding:0;white-space:pre}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">AWS SDK</h1>
+  <p>Learn what an AWS software development kit is, how an SDK request works, how the SDK compares with the console, the CLI, and the API, and how to handle credentials safely.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. AWS SDK Basics</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Boto3 and Credentials</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Knowledge Check</button></li>
+
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <p>This lesson introduces the AWS Software Development Kit (SDK). You learn how developers interact with AWS services directly from application code, in programming languages such as Python.</p>
+  <p>The AWS SDK is outside the scope of the AWS Certified Solutions Architect – Associate (SAA-C03) exam, but it is useful to know, and it helps you prepare for job interviews. The lesson supports the Module 267 scenario, in which you help RetailCloud. The last tab checks what you learned.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> what an AWS SDK is, what it can do, how a request works, and how the SDK compares with the console, the CLI, and the API.</li>
+    <li><strong>Tab 2:</strong> a Boto3 example for Amazon S3, the order-processing scenario with Amazon DynamoDB, and the credential best practices.</li>
+    <li><strong>Tab 3:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">AWS SDK Basics</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Boto3 and Credentials</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Explain what an AWS SDK is and identify its primary purpose.</li>
+    <li>Differentiate the AWS SDK from the AWS Management Console, the AWS CLI, and the underlying AWS APIs.</li>
+    <li>Recognize common AWS SDK implementations (such as Python Boto3) and outline their capabilities across services including S3, DynamoDB, SQS, SNS, Lambda, and EC2.</li>
+    <li>Explain the SDK request workflow.</li>
+    <li>Write Python code using Boto3 to perform operations.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>API</td><td>Application programming interface</td></tr>
+      <tr><td>AWS</td><td>Amazon Web Services</td></tr>
+      <tr><td>CLI</td><td>Command line interface</td></tr>
+      <tr><td>EC2</td><td>Amazon Elastic Compute Cloud</td></tr>
+      <tr><td>IAM</td><td>AWS Identity and Access Management</td></tr>
+      <tr><td>JSON</td><td>JavaScript Object Notation</td></tr>
+      <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
+      <tr><td>SAA-C03</td><td>The code for the AWS Certified Solutions Architect – Associate exam</td></tr>
+      <tr><td>SDK</td><td>Software development kit</td></tr>
+      <tr><td>SNS</td><td>Amazon Simple Notification Service</td></tr>
+      <tr><td>SQS</td><td>Amazon Simple Queue Service</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. AWS SDK Basics</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>You have joined RetailCloud, an online retail company, as a cloud developer. The company has a web application that receives customer orders. Today, someone enters each order by hand in the AWS Management Console, which is slow and does not scale.</p>
+    <p>The lead architect asks you to find out how the application can talk to AWS services directly from its own code.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Explain what an AWS SDK is.</li>
+      <li>Compare the SDK with the console, the CLI, and the API.</li>
+      <li>Describe how an SDK request flows from the application to the AWS service.</li>
+    </ul>
+  </div>
+
+  <h2>1.1 Introduction to the AWS Software Development Kit (SDK)</h2>
+  <p>An <strong>AWS Software Development Kit (AWS SDK)</strong> is a collection of programming libraries and tools that lets developers interact with AWS services directly from application code. Instead of managing AWS resources manually through the Management Console, or entering AWS CLI commands, a developer can use an AWS SDK to program AWS services in a familiar programming language.</p>
+  <p>AWS provides SDKs for languages such as Python, Java, JavaScript and TypeScript, .NET, PHP, Ruby, and more. For example, the AWS SDK for Python is commonly called <a href="https://docs.aws.amazon.com/boto3/latest/" target="_blank" rel="noopener">Boto3</a>.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Language</th><th>AWS SDK</th></tr></thead>
+    <tbody>
+      <tr><td>Python</td><td>Boto3, the AWS SDK for Python</td></tr>
+      <tr><td>Java</td><td>AWS SDK for Java</td></tr>
+      <tr><td>JavaScript and TypeScript, including Node.js</td><td>AWS SDK for JavaScript</td></tr>
+      <tr><td>.NET, including C#</td><td>AWS SDK for .NET</td></tr>
+      <tr><td>Go</td><td>AWS SDK for Go</td></tr>
+      <tr><td>Ruby</td><td>AWS SDK for Ruby</td></tr>
+      <tr><td>PHP</td><td>AWS SDK for PHP</td></tr>
+      <tr><td>C++</td><td>AWS SDK for C++</td></tr>
+      <tr><td>Kotlin</td><td>AWS SDK for Kotlin</td></tr>
+    </tbody>
+  </table></div>
+  <p>Examples of AWS SDKs by language. AWS offers more, and each SDK has major versions, so check the AWS tools page for the current ones.</p>
+
+  <h2>1.2 What Can an AWS SDK Do?</h2>
+  <p>Applications can use AWS SDKs to:</p>
+  <ul>
+    <li>Upload and download objects from Amazon S3.</li>
+    <li>Read and write items in DynamoDB.</li>
+    <li>Send messages to Amazon SQS.</li>
+    <li>Publish notifications through Amazon SNS.</li>
+    <li>Invoke Lambda functions.</li>
+    <li>Start or stop EC2 instances.</li>
+    <li>Retrieve secrets from AWS Secrets Manager.</li>
+    <li>Access AWS service APIs.</li>
+    <li>Handle AWS authentication, requests, responses, retries, and errors.</li>
+  </ul>
+
+  <h2>1.3 How an AWS SDK Works</h2>
+  <p>When an application uses an AWS SDK:</p>
+  <ol>
+    <li>The application obtains AWS credentials.</li>
+    <li>The SDK creates a request to an AWS service API.</li>
+    <li>IAM evaluates whether the identity has permission.</li>
+    <li>The AWS service processes an authorized request.</li>
+    <li>The SDK returns the result to the application.</li>
+  </ol>
+
+  <figure>
+    <div class="figwrap"><img src="data:image/webp;base64,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" alt="The flow of an AWS SDK request in five boxes: Application code, AWS SDK, AWS service API, IAM authorization, and AWS resource. A line from the AWS resource returns to the application code." style="display:block;max-width:100%;height:auto;margin:0 auto"></div>
+    <figcaption>Image 1a — The flow of an AWS SDK request.</figcaption>
+  </figure>
+
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 215" role="img" aria-label="The five steps of an AWS SDK request. Step 1: the application obtains AWS credentials. Step 2: the SDK creates a request to an AWS service API. Step 3: IAM evaluates whether the identity has permission. Step 4: the AWS service processes the authorized request. Step 5: the SDK returns the result to the application. The SDK does not provide permissions. The permissions come from the IAM user or role whose credentials the application uses."><defs><marker id="s1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-box" x="10" y="20" width="166" height="134" rx="8"/><text class="sv-tb" x="93" y="50" text-anchor="middle">Step 1</text><text class="sv-t" x="93" y="82" text-anchor="middle">The application</text><text class="sv-t" x="93" y="104" text-anchor="middle">obtains AWS</text><text class="sv-t" x="93" y="126" text-anchor="middle">credentials</text><line class="sv-line" x1="178" y1="87" x2="190" y2="87" marker-end="url(#s1)"/><rect class="sv-box" x="192" y="20" width="166" height="134" rx="8"/><text class="sv-tb" x="275" y="50" text-anchor="middle">Step 2</text><text class="sv-t" x="275" y="82" text-anchor="middle">The SDK creates</text><text class="sv-t" x="275" y="104" text-anchor="middle">a request to an</text><text class="sv-t" x="275" y="126" text-anchor="middle">AWS service API</text><line class="sv-line" x1="360" y1="87" x2="372" y2="87" marker-end="url(#s1)"/><rect class="sv-boxg" x="374" y="20" width="166" height="134" rx="8"/><text class="sv-tb" x="457" y="50" text-anchor="middle">Step 3</text><text class="sv-t" x="457" y="82" text-anchor="middle">IAM evaluates</text><text class="sv-t" x="457" y="104" text-anchor="middle">whether the identity</text><text class="sv-t" x="457" y="126" text-anchor="middle">has permission</text><line class="sv-line" x1="542" y1="87" x2="554" y2="87" marker-end="url(#s1)"/><rect class="sv-box" x="556" y="20" width="166" height="134" rx="8"/><text class="sv-tb" x="639" y="50" text-anchor="middle">Step 4</text><text class="sv-t" x="639" y="82" text-anchor="middle">The AWS service</text><text class="sv-t" x="639" y="104" text-anchor="middle">processes the</text><text class="sv-t" x="639" y="126" text-anchor="middle">authorized request</text><line class="sv-line" x1="724" y1="87" x2="736" y2="87" marker-end="url(#s1)"/><rect class="sv-box" x="738" y="20" width="166" height="134" rx="8"/><text class="sv-tb" x="821" y="50" text-anchor="middle">Step 5</text><text class="sv-t" x="821" y="82" text-anchor="middle">The SDK returns</text><text class="sv-t" x="821" y="104" text-anchor="middle">the result to the</text><text class="sv-t" x="821" y="126" text-anchor="middle">application</text><text class="sv-t" x="460" y="190" text-anchor="middle">The SDK does not provide permissions. The permissions come from the IAM user or role whose credentials the application uses.</text></svg>
+    </div>
+    <figcaption>Image 1b — The five steps of an AWS SDK request. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <p>The SDK does not provide permissions by itself. The application receives permissions from the IAM user or role whose credentials it uses.</p>
+
+  <h2>1.4 The Console, the CLI, the SDK, and the API Compared</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Interface</th><th>Primary purpose</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>AWS Management Console</td><td>Manage resources through a graphical browser interface.</td><td>A technician manually creates an S3 bucket.</td></tr>
+      <tr><td>AWS CLI</td><td>Manage resources by using terminal commands and scripts.</td><td>A script uploads nightly backups to S3.</td></tr>
+      <tr><td>AWS SDK</td><td>Integrate AWS services into application code.</td><td>A Python application saves orders in DynamoDB.</td></tr>
+      <tr><td>AWS API</td><td>The underlying service operations that the console, the CLI, and the SDK call.</td><td>An application sends a PutItem request to DynamoDB.</td></tr>
+    </tbody>
+  </table></div>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 305" role="img" aria-label="The AWS Management Console, the AWS CLI, and the AWS SDK all call the underlying AWS APIs. Requests are checked by IAM authorization before the AWS services process them. The console is for manual work in a browser, the CLI is for terminal commands and scripts, and the SDK is for application code."><defs><marker id="s2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-box" x="10" y="10" width="250" height="80" rx="8"/><text class="sv-tb" x="135.0" y="36" text-anchor="middle">AWS Management Console</text><text class="sv-t" x="135.0" y="60" text-anchor="middle">Manual work in a browser</text><rect class="sv-box" x="10" y="110" width="250" height="80" rx="8"/><text class="sv-tb" x="135.0" y="136" text-anchor="middle">AWS CLI</text><text class="sv-t" x="135.0" y="160" text-anchor="middle">Terminal commands and scripts</text><rect class="sv-boxb" x="10" y="210" width="250" height="80" rx="8"/><text class="sv-tb" x="135.0" y="236" text-anchor="middle">AWS SDK</text><text class="sv-t" x="135.0" y="260" text-anchor="middle">Application code</text><line class="sv-line" x1="264" y1="50" x2="336" y2="130" marker-end="url(#s2)"/><line class="sv-line" x1="264" y1="150" x2="336" y2="150" marker-end="url(#s2)"/><line class="sv-line" x1="264" y1="250" x2="336" y2="170" marker-end="url(#s2)"/><rect class="sv-boxg" x="340" y="100" width="200" height="100" rx="8"/><text class="sv-tb" x="440.0" y="126" text-anchor="middle">AWS APIs</text><text class="sv-t" x="440.0" y="150" text-anchor="middle">The underlying service</text><text class="sv-t" x="440.0" y="172" text-anchor="middle">operations</text><line class="sv-line" x1="544" y1="150" x2="606" y2="150" marker-end="url(#s2)"/><rect class="sv-boxw" x="610" y="100" width="150" height="100" rx="8"/><text class="sv-tb" x="685.0" y="126" text-anchor="middle">IAM</text><text class="sv-t" x="685.0" y="150" text-anchor="middle">authorization</text><line class="sv-line" x1="764" y1="150" x2="826" y2="150" marker-end="url(#s2)"/><rect class="sv-box" x="830" y="100" width="80" height="100" rx="8"/><text class="sv-tb" x="870.0" y="126" text-anchor="middle">AWS</text><text class="sv-tb" x="870" y="150" text-anchor="middle">services</text></svg>
+    </div>
+    <figcaption>Image 1c — Three ways to reach the AWS APIs, all subject to IAM authorization. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <p>All four interfaces are subject to IAM authorization.</p>
+
+  <h2>1.5 Exam-Style Questions</h2>
+  <p>These four questions come from the course lesson document.</p>
+  <div class="qbox">
+    <h2>1.5.1 Exam-Style Question</h2>
+    <p class="origin">From the course lesson document.</p>
+    <p><strong>Scenario:</strong> What is an AWS SDK? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> A graphical console for managing AWS resources in a browser.</li>
+      <li><strong>B.</strong> A command-line tool for running AWS commands in a terminal.</li>
+      <li><strong>C.</strong> A collection of libraries for calling AWS services from code.</li>
+      <li><strong>D.</strong> A web service that stores the source code of an application.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> An AWS SDK is a collection of programming libraries and tools that lets developers interact with AWS services directly from application code.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>The AWS Management Console is the graphical browser interface.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>The AWS CLI is the terminal tool.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>An AWS SDK is a collection of libraries for calling AWS services from code.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>An SDK does not store source code. It is a set of libraries that code uses.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="qbox">
+    <h2>1.5.2 Exam-Style Question</h2>
+    <p class="origin">From the course lesson document.</p>
+    <p><strong>Scenario:</strong> Which statement describes the primary purpose of the AWS SDK compared with the other AWS interfaces? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> It integrates AWS services into application code.</li>
+      <li><strong>B.</strong> It manages resources through a graphical browser interface.</li>
+      <li><strong>C.</strong> It manages resources with terminal commands and scripts.</li>
+      <li><strong>D.</strong> It defines the underlying service operations that the others call.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> The AWS SDK integrates AWS services into application code.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>The SDK integrates AWS services into application code.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>That describes the AWS Management Console.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>That describes the AWS CLI.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>That describes the AWS API.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="qbox">
+    <h2>1.5.3 Exam-Style Question</h2>
+    <p class="origin">From the course lesson document.</p>
+    <p><strong>Scenario:</strong> Which name refers to the AWS SDK for Python? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Flask.</li>
+      <li><strong>B.</strong> Boto3.</li>
+      <li><strong>C.</strong> Django.</li>
+      <li><strong>D.</strong> NumPy.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> The AWS SDK for Python is commonly called Boto3.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Flask is a Python web framework.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>Boto3 is the AWS SDK for Python.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>Django is a Python web framework.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>NumPy is a Python library for numerical computing.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="qbox">
+    <h2>1.5.4 Exam-Style Question</h2>
+    <p class="origin">From the course lesson document.</p>
+    <p><strong>Scenario:</strong> An AWS SDK request has just been created by the SDK for an AWS service API. What happens next? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> The application obtains AWS credentials.</li>
+      <li><strong>B.</strong> The AWS service returns the result to the application.</li>
+      <li><strong>C.</strong> The AWS service processes the authorized request.</li>
+      <li><strong>D.</strong> IAM evaluates whether the identity has permission.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: D.</strong> The request flow has five steps. After the SDK creates the request, IAM evaluates whether the identity has permission.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>The application obtains credentials in step 1, before the request is created.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>The SDK returns the result in step 5, at the end.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>The service processes the request in step 4, after IAM has authorized it.</td></tr>
+      <tr><td>D</td><td>Correct</td><td>IAM evaluates the permission in step 3, right after the SDK creates the request.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>1.6 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/boto3/latest/" target="_blank" rel="noopener">Boto3 Documentation</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://aws.amazon.com/developer/tools/" target="_blank" rel="noopener">AWS Developer Tools</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Boto3 and Credentials</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>RetailCloud&#8217;s web application must save every customer order in a DynamoDB table named CustomerOrders. The application runs on Amazon EC2, and the security team does not allow access keys in source code.</p>
+    <p>The architect shows a Boto3 example, and explains how the application gets its permissions safely.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Read a Boto3 example that calls an AWS service.</li>
+      <li>Explain how an application on EC2 gets credentials without stored keys.</li>
+      <li>Apply the credential best practices.</li>
+    </ul>
+  </div>
+
+  <h2>2.1 AWS SDK for Python Example</h2>
+  <p>The following Python code uses <strong>Boto3</strong> to upload a file to Amazon S3:</p>
+  <pre class="cmd"><code>import boto3
+s3 = boto3.client(&quot;s3&quot;)
+s3.upload_file(
+    &quot;daily-sales.csv&quot;,
+    &quot;company-report-backups&quot;,
+    &quot;daily/daily-sales.csv&quot;
+)
+print(&quot;Report uploaded successfully.&quot;)</code></pre>
+  <p>This example:</p>
+  <ul>
+    <li>Imports the Boto3 library.</li>
+    <li>Creates an S3 service client.</li>
+    <li>Uploads the local file to an S3 bucket.</li>
+    <li>Stores the object inside the daily prefix.</li>
+  </ul>
+  <p>The application&#8217;s IAM role must allow the s3:PutObject action for the destination.</p>
+  <p>The SDK also needs an AWS Region. You can set it with the <code>region_name</code> parameter in code, with the <code>AWS_DEFAULT_REGION</code> environment variable, or in the AWS config file. For example:</p>
+  <pre class="cmd"><code>s3 = boto3.client(&quot;s3&quot;, region_name=&quot;us-east-1&quot;)</code></pre>
+
+  <h2>2.2 Real-World Scenario: Processing Customer Orders</h2>
+  <h3>2.2.1 Business Situation</h3>
+  <p>You have joined an online retail company as a cloud developer. The company has a web application that receives customer orders. Each order must be saved in a DynamoDB table named CustomerOrders.</p>
+  <h3>2.2.2 AWS SDK Solution</h3>
+  <p>The application uses Boto3 to send the order directly to DynamoDB:</p>
+  <pre class="cmd"><code>import boto3
+dynamodb = boto3.resource(&quot;dynamodb&quot;)
+table = dynamodb.Table(&quot;CustomerOrders&quot;)
+table.put_item(
+    Item={
+        &quot;OrderId&quot;: &quot;ORD-1001&quot;,
+        &quot;CustomerId&quot;: &quot;CUST-205&quot;,
+        &quot;Product&quot;: &quot;Laptop&quot;,
+        &quot;Quantity&quot;: 1,
+        &quot;Status&quot;: &quot;Received&quot;
+    }
+)
+print(&quot;Order saved successfully.&quot;)</code></pre>
+  <h3>2.2.3 Authentication Solution</h3>
+  <p>If the application runs on Amazon EC2, the architect attaches an <strong>IAM role</strong> to the instance. The role allows the required DynamoDB action. For example, this permission lets the application save items in the table:</p>
+  <pre class="cmd"><code>{
+  &quot;Effect&quot;: &quot;Allow&quot;,
+  &quot;Action&quot;: &quot;dynamodb:PutItem&quot;,
+  &quot;Resource&quot;: &quot;arn:aws:dynamodb:us-east-1:123456789012:table/CustomerOrders&quot;
+}</code></pre>
+  <p>The SDK automatically obtains temporary credentials from the EC2 role. The developer does not need to place access keys in the program.</p>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 240" role="img" aria-label="A web application on an EC2 instance uses Boto3. The instance has an IAM role that allows dynamodb:PutItem on the CustomerOrders table. The SDK gets temporary credentials from the role, and the application calls put_item to save each order as an item in the DynamoDB table. No access keys are in the code."><defs><marker id="s3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-box" x="10" y="70" width="230" height="110" rx="8"/><text class="sv-tb" x="125.0" y="96" text-anchor="middle">Web application</text><text class="sv-t" x="125.0" y="120" text-anchor="middle">Runs on an EC2 instance</text><text class="sv-t" x="125.0" y="142" text-anchor="middle">Uses Boto3</text><line class="sv-line" x1="244" y1="125" x2="296" y2="125" marker-end="url(#s3)"/><rect class="sv-boxg" x="300" y="70" width="230" height="110" rx="8"/><text class="sv-tb" x="415.0" y="96" text-anchor="middle">IAM role</text><text class="sv-t" x="415.0" y="120" text-anchor="middle">Allows dynamodb:PutItem</text><text class="sv-t" x="415.0" y="142" text-anchor="middle">on the CustomerOrders table</text><line class="sv-line" x1="534" y1="125" x2="586" y2="125" marker-end="url(#s3)"/><rect class="sv-boxb" x="590" y="70" width="320" height="110" rx="8"/><text class="sv-tb" x="750.0" y="96" text-anchor="middle">DynamoDB table CustomerOrders</text><text class="sv-t" x="750.0" y="120" text-anchor="middle">Each order is saved as an item</text><text class="sv-t" x="272" y="40" text-anchor="start">1. The SDK gets temporary credentials from the role</text><text class="sv-t" x="272" y="218" text-anchor="start">2. The application calls put_item. No access keys are in the code.</text></svg>
+    </div>
+    <figcaption>Image 2a — An application saves orders in DynamoDB by using an IAM role. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <h3>2.2.4 Expected Outcome</h3>
+  <p>Each customer order is stored as an item in the DynamoDB table. The application can process orders automatically, without an employee manually entering data through the AWS Management Console.</p>
+
+  <h2>2.3 Credential Best Practices</h2>
+  <ul>
+    <li>Use IAM roles and temporary credentials.</li>
+    <li>Do not hard-code access keys in source code.</li>
+    <li>Do not upload credentials to GitHub or other repositories.</li>
+    <li>Assign only the permissions that the application requires.</li>
+    <li>Use separate roles for separate workloads.</li>
+    <li>Use AWS Secrets Manager for application secrets, such as database passwords.</li>
+    <li>Rotate credentials when long-term credentials cannot be avoided.</li>
+    <li>Monitor API activity with AWS CloudTrail.</li>
+  </ul>
+
+  <h2>2.4 Exam-Style Questions</h2>
+  <p>The first question comes from the course lesson document. The second question is new for this lesson.</p>
+  <div class="qbox">
+    <h2>2.4.1 Exam-Style Question</h2>
+    <p class="origin">From the course lesson document.</p>
+    <p><strong>Scenario:</strong> An application on an Amazon EC2 instance uses the AWS SDK to write orders to a DynamoDB table. Which approach follows the credential best practices in this lesson? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Reuse one access key in several workloads.</li>
+      <li><strong>B.</strong> Hard-code an access key in the source code.</li>
+      <li><strong>C.</strong> Attach an IAM role to the instance.</li>
+      <li><strong>D.</strong> Upload the access key to a code repository.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> The best practices say to use IAM roles and temporary credentials, and not to hard-code access keys or upload them to repositories. The SDK obtains temporary credentials from the instance role.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Reusing one access key across workloads breaks the separate-roles practice, and the key is a long-term credential.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Hard-coded access keys are the practice to avoid.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>An IAM role on the instance gives the SDK temporary credentials, with no keys in the code.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Uploading credentials to a repository exposes them.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="qbox">
+    <h2>2.4.2 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> The Boto3 code on an EC2 instance calls put_item and receives an access denied error. The instance has an IAM role. What is the most likely cause? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> The SDK does not provide permissions, and the role does not allow dynamodb:PutItem on the table.</li>
+      <li><strong>B.</strong> Boto3 cannot call DynamoDB from an EC2 instance.</li>
+      <li><strong>C.</strong> The code needs a hard-coded access key to work.</li>
+      <li><strong>D.</strong> DynamoDB tables cannot be reached through an SDK.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> The SDK does not grant permissions. The role must allow the action on the table.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>The permissions come from the role. If the role does not allow dynamodb:PutItem on the table, IAM denies the request.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Boto3 can call DynamoDB from EC2.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>Hard-coding keys is not the fix, and it breaks the best practices.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>Applications use SDKs to reach DynamoDB.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+
+  <h2>2.5 Lesson Summary</h2>
+  <p>In this lesson, you learned the following:</p>
+  <ul>
+    <li>An AWS SDK is a collection of programming libraries and tools that lets application code interact with AWS services, in languages such as Python, Java, JavaScript and TypeScript, .NET, PHP, and Ruby.</li>
+    <li>Boto3 is the AWS SDK for Python.</li>
+    <li>Applications use AWS SDKs to work with services such as Amazon S3, Amazon DynamoDB, Amazon SQS, Amazon SNS, AWS Lambda, Amazon EC2, and AWS Secrets Manager.</li>
+    <li>An SDK request has five steps: the application obtains credentials, the SDK creates a request to a service API, IAM evaluates permission, the service processes an authorized request, and the SDK returns the result.</li>
+    <li>The SDK does not provide permissions by itself. The application receives permissions from the IAM user or role whose credentials it uses.</li>
+    <li>The AWS Management Console, AWS CLI, AWS SDK, and AWS API are all subject to IAM authorization. The console suits manual work, the AWS CLI suits scripts, the SDK integrates services into application code, and the API holds the underlying operations.</li>
+    <li>The credential best practices are to use IAM roles and temporary credentials, not to hard-code or upload access keys, to assign only the permissions that the application requires, to use separate roles for separate workloads, to use AWS Secrets Manager for application secrets, and to monitor API activity with AWS CloudTrail.</li>
+  </ul>
+  <div class="res">
+    <h2>2.6 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/boto3/latest/" target="_blank" rel="noopener">Boto3 Documentation</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/boto3/latest/guide/credentials.html" target="_blank" rel="noopener">Boto3 Credentials</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/boto3/latest/guide/configuration.html" target="_blank" rel="noopener">Boto3 Configuration</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html" target="_blank" rel="noopener">IAM Best Practices</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: What is an AWS SDK, and which SDK would a Python developer use?</summary>
+    <p><em>Maps to:</em> Objective 1 (Comprehension).</p>
+    <p>An AWS SDK is a collection of programming libraries and tools that lets developers interact with AWS services directly from application code. A Python developer uses Boto3, the AWS SDK for Python.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: Compare the AWS Management Console, the AWS CLI, the AWS SDK, and the AWS API. What do all four have in common?</summary>
+    <p><em>Maps to:</em> Objective 2 (Analysis).</p>
+    <p>The console manages resources in a graphical browser interface, the AWS CLI manages them with terminal commands and scripts, the SDK integrates AWS services into application code, and the API holds the underlying service operations that the other three call. All four are subject to IAM authorization.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: Name four things that an application can do with an AWS SDK.</summary>
+    <p><em>Maps to:</em> Objective 3 (Knowledge and Comprehension).</p>
+    <p>For example, upload and download objects in Amazon S3, read and write items in DynamoDB, send messages to Amazon SQS, publish notifications through Amazon SNS, invoke Lambda functions, start or stop EC2 instances, and retrieve secrets from AWS Secrets Manager.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Walk through the five steps of an SDK request, and say where IAM is involved.</summary>
+    <p><em>Maps to:</em> Objective 4 (Comprehension).</p>
+    <p>First, the application obtains AWS credentials. Second, the SDK creates a request to an AWS service API. Third, IAM evaluates whether the identity has permission. Fourth, the AWS service processes the authorized request. Fifth, the SDK returns the result to the application. IAM is involved in the third step.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: Explain what this Boto3 code does, and which IAM permission the application needs: s3 = boto3.client("s3"), then s3.upload_file("daily-sales.csv", "company-report-backups", "daily/daily-sales.csv").</summary>
+    <p><em>Maps to:</em> Objective 5 (Application).</p>
+    <p>The code imports Boto3, creates an S3 client, and uploads the local file daily-sales.csv to the company-report-backups bucket, where it is stored under the daily prefix. The application&#8217;s IAM role must allow the s3:PutObject action for that destination, and the SDK also needs a Region.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: A web application on EC2 must save orders in a DynamoDB table. How should it get its credentials, and which best practices apply?</summary>
+    <p><em>Maps to:</em> Objective 5 (Application).</p>
+    <p>Attach an IAM role to the EC2 instance that allows dynamodb:PutItem on the table, and let the SDK obtain temporary credentials from the role. Do not hard-code access keys or upload them to a repository. Assign only the permissions that the application requires, use separate roles for separate workloads, use AWS Secrets Manager for application secrets, and monitor API activity with AWS CloudTrail.</p>
+  </details>
+
+  <details>
+    <summary>Question 7: Why does the SDK not provide permissions by itself, and what happens if the role lacks a permission?</summary>
+    <p><em>Maps to:</em> Objective 4 (Analysis).</p>
+    <p>The SDK only creates and sends requests. The permissions come from the IAM user or role whose credentials the application uses. If the role does not allow the action, IAM denies the request, and the application receives an access denied error.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>

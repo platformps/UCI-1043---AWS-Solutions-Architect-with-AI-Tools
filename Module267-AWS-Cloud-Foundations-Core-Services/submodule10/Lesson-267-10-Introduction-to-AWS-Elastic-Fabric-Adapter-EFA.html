@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson 267.10 - Introduction to AWS Elastic Fabric Adapter (EFA)</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ffffff; --text:#1b1f23; --muted:#555d66; --h1:#611940; --h3:#7a2455;
+  --th:#611940; --border:#ccd3da; --surface:#f4f7fa; --link:#611940; --labdark:#a31515; --cyan:#71E2FD;
+  --prob-bg:#ffeef7; --prob-bd:#611940;
+  --warn-bg:#fff1dc; --warn-bd:#d47c00;
+  --tip-bg:#e5fe77; --tip-bd:#0b5394; --svb-bg:#e8f2fb; --h34:#05576b;
+  --exam-bg:#e6f5e9; --exam-bd:#2e7d32;
+  --lab-bg:#fffaf0; --focus:#611940; --nav-active:#611940;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+    --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+    --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+    --warn-bg:#352711; --warn-bd:#e39a2d;
+    --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+    --exam-bg:#12291a; --exam-bd:#5cc36a;
+    --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --text:#e8eaed; --muted:#aab2ba; --h1:#f0b3d3; --h3:#e8a0c8;
+  --th:#611940; --border:#3b434b; --surface:#1d2227; --link:#f0b3d3; --labdark:#ff9c9c; --cyan:#71E2FD;
+  --prob-bg:#2b1722; --prob-bd:#f0b3d3;
+  --warn-bg:#352711; --warn-bd:#e39a2d;
+  --tip-bg:#10263a; --tip-bd:#5fb4ff; --svb-bg:#10263a; --h34:#7fd4e6;
+  --exam-bg:#12291a; --exam-bd:#5cc36a;
+  --lab-bg:#24201a; --focus:#71E2FD; --nav-active:#8a2d5f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:1.05rem;line-height:1.5;min-height:100%}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 40px}
+.pagehead{padding:10px 0 18px;border-bottom:5px solid var(--cyan);margin-bottom:20px}
+.brand{display:inline-block;background:#fff;border-radius:8px;padding:6px 10px;margin-bottom:12px}
+.brand img{display:block;height:34px;width:auto}
+.side button.tabbtn[aria-selected="true"]{box-shadow:inset 5px 0 0 var(--cyan)}
+.copy{margin-top:36px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:1rem}
+.pagehead h1.title{font-size:2.8rem;line-height:1.5;margin:0 0 6px;color:var(--text);font-weight:700}
+.pagehead p{margin:0;color:var(--muted);font-size:1.1rem}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button.tabbtn{display:block;width:100%;text-align:left;background:transparent;color:var(--text);border:0;border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;cursor:pointer;line-height:1.5}
+.side button.tabbtn:hover{background:var(--border)}
+.side button.tabbtn[aria-selected="true"]{background:var(--nav-active);color:#fff;font-weight:700}
+.pager{display:flex;gap:10px;margin-top:10px}
+.pager button{flex:1;font:inherit;font-size:1rem;padding:9px 10px;border-radius:8px;border:1px solid var(--h1);background:var(--bg);color:var(--h1);cursor:pointer;font-weight:600}
+.pager button:disabled{opacity:.45;cursor:not-allowed}
+.pager.bottom{margin-top:28px;max-width:420px}
+main{min-width:0}
+.js .tab{display:none}
+.js .tab.active{display:block}
+.nojs-note{display:none}
+h1.tabh{font-size:2.35rem;line-height:1.5;color:var(--h1);margin:0 0 16px}
+h2{font-size:35px;line-height:1.5;color:var(--text);margin:34px 0 12px}
+h3{font-size:1.45rem;line-height:1.5;color:var(--h34);margin:26px 0 10px;font-weight:700}
+h4{font-size:1.15rem;color:var(--h34);margin:18px 0 8px;font-weight:700}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:1.4rem}
+li{margin-bottom:6px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.92em}
+.tw{overflow-x:auto;margin:12px 0 18px;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:1rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{background:var(--th);color:#fff}
+tbody tr:nth-child(even){background:var(--surface)}
+.problem{border-left:6px solid var(--prob-bd);background:var(--prob-bg);border-radius:0 12px 12px 0;padding:22px 25px;margin:28px 0}
+.problem h2{margin:0 0 8px;font-size:1.35rem}
+.callout{border-left:6px solid;border-radius:0 12px 12px 0;padding:16px 20px;margin:22px 0}
+.callout h4{margin:0 0 8px;color:var(--text);font-size:1.15rem}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+.tip{background:var(--tip-bg);border-color:var(--tip-bd)}
+.exam{background:var(--exam-bg);border-color:var(--exam-bd)}
+.qbox{border:2px solid var(--tip-bd);border-radius:12px;padding:18px 22px;margin:24px 0;background:var(--bg)}
+.qbox h3{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox h2{margin-top:0;color:var(--text);font-size:1.25rem}
+.qbox .origin{color:var(--muted);font-size:1rem;margin-bottom:10px}
+.opts{list-style:none;padding:0}
+.opts li{padding:6px 0}
+details{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;background:var(--surface)}
+summary{cursor:pointer;font-weight:700;color:var(--h1)}
+details[open] summary{margin-bottom:10px}
+figure{margin:20px 0}
+.figwrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;padding:8px;background:var(--bg)}
+.figwrap svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:1rem;color:var(--muted);margin-top:8px}
+.res{margin:30px 0 10px}
+.res ul{list-style:none;padding:0}
+.res li a{font-weight:600}
+.res .lbl{display:inline-block;min-width:3.6rem;color:var(--muted);font-size:1rem}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sv-box{fill:var(--surface);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-boxw{fill:var(--warn-bg);stroke:var(--warn-bd);stroke-width:1.6}
+.sv-boxg{fill:var(--exam-bg);stroke:var(--exam-bd);stroke-width:1.6}
+.sv-boxb{fill:var(--svb-bg);stroke:var(--tip-bd);stroke-width:1.6}
+.sv-dash{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 4}
+.sv-line{stroke:var(--text);stroke-width:1.8;fill:none}
+.sv-arrow{fill:var(--text)}
+.sv-t{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px}
+.sv-tb{fill:var(--text);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;font-weight:700}
+.sv-tm{fill:var(--muted);font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px}
+.srv{position:absolute;left:-9999px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;max-height:none}
+  .side ul{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .pagehead h1.title{font-size:2.1rem}
+  h1.tabh{font-size:1.7rem}
+  h2{font-size:1.4rem}
+  h3{font-size:1.2rem}
+  .side-by-side{grid-template-columns:1fr}
+  .problem{padding:18px}
+}
+@media (max-width:480px){
+  .side ul{grid-template-columns:1fr}
+}
+.problem h3{margin:0 0 8px;font-size:1.35rem;color:var(--text)}
+.lab-box .lab-sub{font-size:1.25rem;color:#611940;font-weight:700;margin:0 0 8px}
+.lab-expectation{border:1.5px solid #333333;background:#ffffff;color:#1b1f23;border-radius:4px;padding:14px 24px;margin:0 0 26px}
+.lab-expectation p{margin:0 0 8px}
+.lab-expectation a{color:#1b1f23;font-weight:700}
+.lab-box{border:2px dashed #333333;background:#fdf3d7;color:#1b1f23;border-radius:4px;padding:20px 24px 18px;margin:30px 0 0}
+.lab-box .lab-title{text-align:center;color:#611940;font-size:1.9rem;font-weight:700;margin:0 0 18px}
+.lab-box ul{list-style:none;padding-left:10px}
+.lab-box ul li{margin-bottom:10px}
+.lab-box ul li::before{content:"\2192\00a0 ";color:#8a1a1a;font-weight:700}
+.lab-box a.lab-link{color:#00a5a8;font-weight:700;text-decoration:underline}
+code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:.92rem;line-height:1.5}pre.flowcode code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="pagehead">
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Per Scholas logo."></div>
+  <h1 class="title">Introduction to AWS Elastic Fabric Adapter (EFA)</h1>
+  <p>Learn what an Elastic Fabric Adapter is, how OS-bypass and SRD differ from ENA, which workloads and instances use it, and how to set it up.</p>
+</header>
+
+<div class="layout">
+<aside class="side" aria-label="Lesson tabs">
+  <nav aria-label="Lesson navigation">
+    <ul id="tablist" role="tablist" aria-orientation="vertical">
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="true" aria-controls="tab0" id="b0">Overview and Objectives</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab1" id="b1">1. What EFA Is and How It Works</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab2" id="b2">2. Use Cases, Instance Types, and Setup</button></li>
+      <li role="presentation"><button class="tabbtn" role="tab" type="button" aria-selected="false" aria-controls="tab3" id="b3">3. Knowledge Check</button></li>
+
+    </ul>
+  </nav>
+  <div class="pager" id="pagerTop">
+    <button type="button" id="prevTop">Previous</button>
+    <button type="button" id="nextTop">Next</button>
+  </div>
+</aside>
+
+<main id="main">
+<div class="srv" aria-live="polite" id="live"></div>
+
+<!-- ============ TAB 0 ============ -->
+
+<section class="tab active" id="tab0" role="tabpanel" aria-labelledby="b0">
+  <h1 class="tabh">Overview and Objectives</h1>
+
+  <h2>Lesson Overview</h2>
+  <p>This lesson gives a technical overview of AWS Elastic Fabric Adapter (EFA), a network interface for Amazon EC2 instances that is designed to accelerate High Performance Computing (HPC) and machine learning (ML) workloads.</p>
+  <p>This lesson supports the Module 267 scenario, in which you help RetailCloud. The last tab checks what you learned.</p>
+  <p>The tabs in this lesson cover the following topics:</p>
+  <ul>
+    <li><strong>Tab 1:</strong> what EFA is, how you attach it, what it costs, its key capabilities, and how it compares with ENA.</li>
+    <li><strong>Tab 2:</strong> the workloads that use EFA, the supported instance types, the configuration flow, the SAA-C03 exam guidance, and the summary.</li>
+    <li><strong>Tab 3:</strong> open-ended Knowledge Check questions with model answers.</li>
+  </ul>
+
+  <h2>Table of Contents</h2>
+  <p>The lesson tabs are:</p>
+  <ol class="toc" style="padding-left:1.4rem">
+    <li><button type="button" class="linkbtn" data-go="1" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">What EFA Is and How It Works</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="2" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Use Cases, Instance Types, and Setup</button>.</li>
+    <li><button type="button" class="linkbtn" data-go="3" style="background:none;border:0;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer">Knowledge Check</button>.</li>
+  </ol>
+
+  <h2>Learning Objectives</h2>
+  <p>By the end of this lesson, learners will be able to:</p>
+  <ol>
+    <li>Define Elastic Fabric Adapter (EFA).</li>
+    <li>Identify the primary use cases of EFA in High Performance Computing (HPC) and distributed Machine Learning (ML).</li>
+    <li>Explain the key architectural differences between standard Elastic Network Adapters (ENA) and EFA, focusing on OS-bypass capabilities and the Scalable Reliable Datagram (SRD) protocol.</li>
+    <li>Evaluate application communication requirements to determine whether EFA or ENA is the appropriate networking interface for a given AWS architectural scenario.</li>
+  </ol>
+
+  <h2>Acronyms and Terminology</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Acronym</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>AI</td><td>Artificial intelligence.</td></tr>
+      <tr><td>AWS</td><td>Amazon Web Services.</td></tr>
+      <tr><td>CFD</td><td>Computational Fluid Dynamics: using software to simulate how liquids and gases flow.</td></tr>
+      <tr><td>CPU</td><td>Central processing unit: the main processor of a computer.</td></tr>
+      <tr><td>EC2</td><td>Amazon Elastic Compute Cloud: resizable virtual servers (instances) in the cloud.</td></tr>
+      <tr><td>EFA</td><td>Elastic Fabric Adapter: a network device that you attach to EC2 instances to speed up communication between them for HPC and machine learning workloads.</td></tr>
+      <tr><td>ENA</td><td>Elastic Network Adapter: the standard network device for EC2 instances, used for general networking.</td></tr>
+      <tr><td>GPU</td><td>Graphics processing unit: a processor that does many calculations at the same time, often used for machine learning.</td></tr>
+      <tr><td>HPC</td><td>High performance computing: running large calculations across many connected servers.</td></tr>
+      <tr><td>LLM</td><td>Large language model.</td></tr>
+      <tr><td>ML</td><td>Machine learning.</td></tr>
+      <tr><td>MPI</td><td>Message Passing Interface: a standard that lets programs running on different servers send messages to each other.</td></tr>
+      <tr><td>NCCL</td><td>NVIDIA Collective Communications Library: a library that GPUs use to exchange data during distributed machine learning.</td></tr>
+      <tr><td>OS</td><td>Operating system.</td></tr>
+      <tr><td>SAA-C03</td><td>The code for the AWS Certified Solutions Architect – Associate exam.</td></tr>
+      <tr><td>SRD</td><td>Scalable Reliable Datagram: the AWS network protocol that EFA uses. It delivers packets reliably but not in order, over many network paths.</td></tr>
+      <tr><td>TCP</td><td>Transmission Control Protocol: the standard protocol that delivers packets in order. The TCP/IP stack is the operating system software that handles it.</td></tr>
+      <tr><td>UDP</td><td>User Datagram Protocol: a protocol that sends packets with no ordering guarantee.</td></tr>
+      <tr><td>AllReduce</td><td>An operation in which every server or GPU shares its results with all the others and receives the combined result.</td></tr>
+      <tr><td>aws-ofi-nccl</td><td>A plugin that lets NCCL use EFA.</td></tr>
+      <tr><td>Cluster placement group</td><td>A placement group that packs instances close together in one Availability Zone for low latency (Lesson 267.9).</td></tr>
+      <tr><td>Domain decomposition</td><td>Splitting a simulation into parts so that each server calculates one part.</td></tr>
+      <tr><td>Head-of-line blocking</td><td>A delay that happens when one lost or late packet holds back the packets behind it.</td></tr>
+      <tr><td>Inter-node communication</td><td>Data exchange between the servers (nodes) of a cluster.</td></tr>
+      <tr><td>Libfabric</td><td>A communication library that applications, such as MPI and NCCL, use to reach the EFA device.</td></tr>
+      <tr><td>NAMD and GROMACS</td><td>Programs that simulate how molecules move (molecular dynamics).</td></tr>
+      <tr><td>OpenFOAM and ANSYS Fluent</td><td>Computational fluid dynamics programs (solvers).</td></tr>
+      <tr><td>OS-bypass</td><td>Letting an application talk to the network device without going through the operating system&#8217;s TCP/IP stack.</td></tr>
+      <tr><td>Parameter server</td><td>A distributed training design in which some servers store the model&#8217;s parameters and others send them updates.</td></tr>
+      <tr><td>Tightly coupled workload</td><td>A job in which many servers must exchange data constantly while they work together.</td></tr>
+      <tr><td>WRF</td><td>Weather Research and Forecasting: a weather simulation model.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TAB 1 ============ -->
+
+<section class="tab" id="tab1" role="tabpanel" aria-labelledby="b1">
+  <h1 class="tabh">1. What EFA Is and How It Works</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>You work as a junior AWS solutions architect at RetailCloud, a fast-growing e-commerce platform, under the guidance of a lead architect. RetailCloud&#8217;s data science team runs a demand-forecasting simulation across 20 EC2 instances. The instances must constantly exchange large amounts of data, and the simulation takes longer than the team expected.</p>
+    <p>Your lead architect asks whether a special network device can lower the latency between the instances. Before you recommend it, you need answers to the questions below. This lesson explains how Elastic Fabric Adapter (EFA) answers them.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>What is an Elastic Fabric Adapter, and what does it do?</li>
+      <li>How is an EFA attached to an instance?</li>
+      <li>Does an EFA add a charge?</li>
+      <li>How does EFA differ from the standard Elastic Network Adapter (ENA)?</li>
+    </ul>
+  </div>
+
+  <h2>1.1 Overview of Elastic Fabric Adapter (EFA)</h2>
+  <ul>
+    <li>An Elastic Fabric Adapter (EFA) is a network device that you attach to <strong>Amazon EC2 instances</strong> to accelerate High Performance Computing (HPC) and Machine Learning (ML) applications.</li>
+    <li>It enables applications that need inter-node communication to run at scale, with the low latency and high throughput that you find in custom on-premises <strong>HPC</strong> clusters.</li>
+    <li>It is designed mainly for workloads in which several EC2 instances communicate rapidly and frequently.</li>
+    <li>It reduces networking overhead by communicating directly with the network device, which bypasses much of the operating system TCP/IP stack (<strong>OS-bypass</strong>).</li>
+  </ul>
+  <p>The image shows the traditional software stack next to the stack that uses an EFA.</p>
+
+  <figure>
+    <div class="figwrap"><img src="data:image/webp;base64,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" alt="Two software stacks. In the traditional HPC software stack in EC2, an HPC application and an MPI implementation sit in user space, and the TCP/IP stack, the ENA network driver, and the ENA device are below the user space and kernel line. In the stack with EFA, an HPC application with MPI, and a machine learning application with NCCL, sit on Libfabric in user space. Libfabric talks to the EFA device, and only the EFA kernel driver sits in the kernel." style="display:block;max-width:820px;height:auto;margin:0 auto"></div>
+    <figcaption>Image 1a — The traditional HPC software stack in EC2, and the stack with EFA. (Source: AWS documentation.)</figcaption>
+  </figure>
+
+  <p><strong>Reference:</strong> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html" target="_blank" rel="noopener">Elastic Fabric Adapter for AI/ML and HPC workloads on Amazon EC2</a>.</p>
+
+  <h2>1.2 How to Attach the EFA Device to the EC2 Instance</h2>
+  <p>You can add an EFA to an instance through one of two interface types:</p>
+  <ol>
+    <li><strong>EFA with ENA</strong> (the traditional EFA interface): one interface that gives the instance both an EFA device and an ENA device.</li>
+    <li><strong>EFA-only:</strong> an interface that has just the EFA device and no ENA device, so you cannot assign an IP address to it.</li>
+  </ol>
+  <p><strong>Reference:</strong> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html#efa-basics" target="_blank" rel="noopener">EFA basics</a>.</p>
+
+  <h2>1.3 EFA Pricing</h2>
+  <p>EFA is an optional feature of supported EC2 instances. AWS does not charge extra for it, so you pay only for the instances and the other resources that you use.</p>
+
+  <h2>1.4 Key Capabilities</h2>
+  <p>EFA enhances traditional cloud networking by bypassing the operating system kernel and communicating directly with the network interface hardware.</p>
+  <ul>
+    <li><strong>OS Bypass (kernel bypass):</strong> EFA provides an application-level interface that lets user-space applications bypass the Linux kernel driver and talk directly to the network interface. This reduces the latency of inter-node communication significantly.</li>
+    <li><strong>Scalable Reliable Datagram (SRD):</strong> TCP guarantees the ordered delivery of packets, and it can suffer from head-of-line blocking when packets are lost. EFA uses SRD instead. SRD load-balances traffic dynamically across multiple network paths, and it handles out-of-order packet delivery efficiently at the receiving end.</li>
+    <li>EFA supports AI and ML communication libraries such as <strong>NCCL</strong>.</li>
+    <li>EFA works only with supported EC2 instance types and operating systems.</li>
+    <li>EFA works best with a <strong>cluster placement group</strong>, which places instances close together to minimize latency.</li>
+  </ul>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 355" role="img" aria-label="Two paths that data takes between instances. In the standard path with ENA, the application with MPI or NCCL in user space passes data to the TCP/IP stack in the kernel, then to the ENA network driver in the kernel, then to the ENA device. In the EFA path, the application with MPI or NCCL in user space passes data to Libfabric in user space, which talks directly to the EFA device, so the kernel TCP/IP stack is skipped. The Scalable Reliable Datagram protocol sends packets over many network paths. Both paths end at the AWS network."><defs><marker id="e1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><text class="sv-tb" x="225" y="26" text-anchor="middle">Standard path: ENA</text><text class="sv-tb" x="685" y="26" text-anchor="middle">EFA path (OS-bypass)</text><rect class="sv-box" x="40" y="44" width="370" height="46" rx="8"/><text class="sv-t" x="225" y="72" text-anchor="middle">Application with MPI or NCCL (User space)</text><line class="sv-line" x1="225" y1="90" x2="225" y2="110" marker-end="url(#e1)"/><rect class="sv-boxw" x="40" y="110" width="370" height="46" rx="8"/><text class="sv-t" x="225" y="138" text-anchor="middle">TCP/IP stack (Kernel)</text><line class="sv-line" x1="225" y1="156" x2="225" y2="176" marker-end="url(#e1)"/><rect class="sv-boxw" x="40" y="176" width="370" height="46" rx="8"/><text class="sv-t" x="225" y="204" text-anchor="middle">ENA network driver (Kernel)</text><line class="sv-line" x1="225" y1="222" x2="225" y2="242" marker-end="url(#e1)"/><rect class="sv-box" x="40" y="242" width="370" height="46" rx="8"/><text class="sv-t" x="225" y="270" text-anchor="middle">ENA device (Hardware)</text><rect class="sv-box" x="500" y="44" width="370" height="46" rx="8"/><text class="sv-t" x="685" y="72" text-anchor="middle">Application with MPI or NCCL (User space)</text><line class="sv-line" x1="685" y1="90" x2="685" y2="110" marker-end="url(#e1)"/><rect class="sv-boxb" x="500" y="110" width="370" height="46" rx="8"/><text class="sv-t" x="685" y="138" text-anchor="middle">Libfabric (User space)</text><line class="sv-line" x1="685" y1="156" x2="685" y2="176" marker-end="url(#e1)"/><rect class="sv-boxg" x="500" y="176" width="370" height="46" rx="8"/><text class="sv-t" x="685" y="204" text-anchor="middle">EFA device (Hardware)</text><rect class="sv-dash" x="500" y="244" width="370" height="64" rx="8"/><text class="sv-t" x="685" y="270" text-anchor="middle">The kernel TCP/IP stack is skipped.</text><text class="sv-t" x="685" y="294" text-anchor="middle">SRD sends packets over many paths.</text><text class="sv-t" x="460" y="340" text-anchor="middle">Both paths end at the AWS network.</text></svg>
+    </div>
+    <figcaption>Image 1b — How data travels with ENA and with EFA. (Original diagram for this course.)</figcaption>
+  </figure>
+
+
+  <h2>1.5 Comparative Matrix: ENA vs. EFA</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>Elastic Network Adapter (ENA)</th><th>Elastic Fabric Adapter (EFA)</th><th>Architectural impact</th></tr></thead>
+    <tbody>
+      <tr><td>Transport protocol</td><td>TCP and UDP</td><td>Scalable Reliable Datagram (SRD)</td><td>Reliable delivery without ordering, so one delayed packet does not hold back the others, and traffic is spread over many network paths.</td></tr>
+      <tr><td>Kernel overhead</td><td>Standard Linux network stack</td><td>OS bypass (direct hardware access)</td><td>Avoids operating system calls and memory copies, which reduces latency, jitter, and CPU work.</td></tr>
+      <tr><td>Target workloads</td><td>Web servers, databases, and general applications</td><td>HPC and distributed deep learning</td><td>Optimized for tightly coupled, inter-node communication patterns.</td></tr>
+      <tr><td>Order guarantees</td><td>TCP keeps packets in order. UDP does not.</td><td>Reliable but not in order. The software layers above SRD restore the order when it is needed.</td><td>Lets SRD use many network paths at once and avoid overloaded ones.</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>Reference:</strong> <a href="https://cdn.amazon.science/a6/34/41496f64421faafa1cbe301c007c/a-cloud-optimized-transport-protocol-for-elastic-and-scalable-hpc.pdf" target="_blank" rel="noopener">A Cloud-Optimized Transport Protocol for Elastic and Scalable HPC</a> (PDF).</p>
+
+  <h2>1.6 Exam-Style Questions</h2>
+  <p>These four questions come from the Knowledge Check in the course lesson document.</p>
+  <div class="qbox">
+    <h2>1.6.1 Exam-Style Question</h2>
+    <p class="origin">From the course lesson document.</p>
+    <p><strong>Scenario:</strong> A team asks what an Elastic Fabric Adapter (EFA) is. Which description is correct? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> A load balancer that spreads web requests across EC2 instances.</li>
+      <li><strong>B.</strong> A network device that speeds up communication between EC2 instances.</li>
+      <li><strong>C.</strong> A virtual firewall that controls traffic to and from an instance.</li>
+      <li><strong>D.</strong> A shared file system that many instances can use at the same time.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> An EFA is a network device that you attach to EC2 instances to accelerate HPC and machine learning applications.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>A load balancer spreads web requests.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>An EFA is a network device that speeds up communication between instances.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>A security group is the virtual firewall.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>A shared file system is a storage service.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="qbox">
+    <h2>1.6.2 Exam-Style Question</h2>
+    <p class="origin">From the course lesson document.</p>
+    <p><strong>Scenario:</strong> What does the OS-bypass capability of EFA do? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> It spreads incoming web requests across several instances at once.</li>
+      <li><strong>B.</strong> It saves the contents of memory to an EBS volume when the instance stops.</li>
+      <li><strong>C.</strong> It removes the need for a security group on the instance.</li>
+      <li><strong>D.</strong> It lets applications reach the network device without the TCP/IP stack.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: D.</strong> OS-bypass lets applications talk to the network hardware without going through the operating system&#8217;s TCP/IP stack, which reduces latency.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>Spreading web requests is the job of Elastic Load Balancing.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>Saving memory to EBS is hibernation.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>The security group still needs a self-referencing rule.</td></tr>
+      <tr><td>D</td><td>Correct</td><td>OS-bypass lets applications reach the network device without the TCP/IP stack.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="qbox">
+    <h2>1.6.3 Exam-Style Question</h2>
+    <p class="origin">From the course lesson document.</p>
+    <p><strong>Scenario:</strong> How does the Scalable Reliable Datagram (SRD) protocol that EFA uses differ from TCP? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> It delivers packets reliably but not in order, over many network paths.</li>
+      <li><strong>B.</strong> It delivers packets in order over a single network path.</li>
+      <li><strong>C.</strong> It drops any packet that arrives late instead of resending it.</li>
+      <li><strong>D.</strong> It carries traffic only between instances in different Regions.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: A.</strong> SRD delivers packets reliably but not in order, and it spreads traffic across multiple network paths, while TCP delivers packets in order.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Correct</td><td>SRD is reliable, it does not guarantee order, and it uses many network paths.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>This describes TCP.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>SRD is reliable, so it does not simply drop late packets.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>EFA serves low-latency communication between nearby instances, not between Regions.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="qbox">
+    <h2>1.6.4 Exam-Style Question</h2>
+    <p class="origin">From the course lesson document.</p>
+    <p><strong>Scenario:</strong> A manager asks whether turning on EFA adds a charge. What should you answer? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> EFA is billed per hour for each adapter.</li>
+      <li><strong>B.</strong> EFA is billed per gigabyte of data that it sends.</li>
+      <li><strong>C.</strong> EFA is free only for the first instance in an account.</li>
+      <li><strong>D.</strong> EFA has no additional charge on supported instances.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: D.</strong> EFA is an optional feature of supported EC2 instances, and AWS does not charge extra for it. You pay for the instances and the other resources that you use.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>There is no hourly charge for the adapter.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>There is no charge per gigabyte for the adapter.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>The feature is not limited to the first instance.</td></tr>
+      <tr><td>D</td><td>Correct</td><td>EFA has no additional charge on supported instances.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="res">
+    <h2>1.7 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html" target="_blank" rel="noopener">Elastic Fabric Adapter for AI/ML and HPC Workloads on Amazon EC2</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-efa.html" target="_blank" rel="noopener">Create and Attach an Elastic Fabric Adapter</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start.html" target="_blank" rel="noopener">Get Started with EFA and MPI for HPC Workloads on Amazon EC2</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking-ena.html" target="_blank" rel="noopener">Enable Enhanced Networking with ENA on Your EC2 Instances</a></li>
+      <li><span class="lbl">Paper</span> <a href="https://cdn.amazon.science/a6/34/41496f64421faafa1cbe301c007c/a-cloud-optimized-transport-protocol-for-elastic-and-scalable-hpc.pdf" target="_blank" rel="noopener">A Cloud-Optimized Transport Protocol for Elastic and Scalable HPC</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+
+<section class="tab" id="tab2" role="tabpanel" aria-labelledby="b2">
+  <h1 class="tabh">2. Use Cases, Instance Types, and Setup</h1>
+
+  <div class="problem">
+    <h2>Problem Statement</h2>
+    <p>The data science team asks which kinds of work benefit from EFA, which instance types support it, and how to set it up. The lead architect also asks whether EFA appears on the AWS Certified Solutions Architect – Associate (SAA-C03) exam that you are preparing for.</p>
+    <p><strong>Your challenge:</strong></p>
+    <ul>
+      <li>Which workloads benefit from EFA?</li>
+      <li>Which EC2 instances support it?</li>
+      <li>In what order do you set up an EFA-enabled cluster?</li>
+      <li>How much do you need to know about EFA for the SAA-C03 exam?</li>
+    </ul>
+  </div>
+
+  <h2>2.1 Target Workloads and Primary Use Cases</h2>
+  <h3>2.1.1 High Performance Computing (HPC)</h3>
+  <ul>
+    <li><strong>Computational Fluid Dynamics (CFD):</strong> solvers such as OpenFOAM and ANSYS Fluent benefit from low latency during the synchronization of the domain decomposition.</li>
+    <li><strong>Weather and climate modeling:</strong> WRF (Weather Research and Forecasting) can run at scale across hundreds of compute nodes.</li>
+    <li><strong>Molecular dynamics:</strong> EFA accelerates codes such as NAMD and GROMACS, which need frequent node-to-node communication in under a millisecond.</li>
+  </ul>
+  <h3>2.1.2 Distributed Machine Learning and Deep Learning</h3>
+  <ul>
+    <li><strong>Large Language Model (LLM) training:</strong> EFA accelerates multi-node training with frameworks such as PyTorch and TensorFlow through aws-ofi-nccl.</li>
+    <li><strong>Parameter server architecture:</strong> EFA speeds up the heavy GPU-to-GPU communication (for example, AllReduce algorithms) across distributed clusters.</li>
+  </ul>
+
+  <h2>2.2 Real-World Scenario</h2>
+  <p>A research organization runs a weather simulation across 20 EC2 instances. Each instance calculates one portion of the simulation, but the instances must continually exchange large quantities of data.</p>
+  <p>With traditional TCP networking, operating system processing can add latency and reduce the overall performance of the cluster. The organization uses the following:</p>
+  <ul>
+    <li>Supported compute-optimized EC2 instances.</li>
+    <li>An Elastic Fabric Adapter.</li>
+    <li>A cluster placement group.</li>
+    <li>MPI-based simulation software.</li>
+  </ul>
+  <p>EFA allows the instances to exchange data with lower latency and higher throughput, which helps the simulation finish more quickly.</p>
+
+  <h2>2.3 Supported Instance Types</h2>
+  <p>EFA is supported on select high-performance Amazon EC2 compute, memory, and GPU instances. The supported types vary by Region, so the following groups are examples:</p>
+  <ul>
+    <li><strong>HPC optimized:</strong> Hpc6a, Hpc6id, Hpc7g, and Hpc7a.</li>
+    <li><strong>GPU and accelerated:</strong> P4d, P5, G5, Trn1, and Trn2.</li>
+    <li><strong>Compute, memory, and general purpose:</strong> C5n, C6i, C7g, M6i, and R6i, on select large sizes or metal.</li>
+  </ul>
+  <p>To list the instance types that support EFA in a Region, run the following AWS CLI command:</p>
+  <pre class="flowcode"><code>aws ec2 describe-instance-types \
+    --region us-east-1 \
+    --filters Name=network-info.efa-supported,Values=true \
+    --query &quot;InstanceTypes[*].[InstanceType]&quot; \
+    --output text | sort</code></pre>
+  <p><strong>Reference:</strong> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html#efa-instance-types" target="_blank" rel="noopener">Supported instance types</a>.</p>
+
+  <h2>2.4 Implementation and Configuration Flow</h2>
+  <p>Setting up EFA follows a fixed order. AWS publishes a full tutorial, so for the exam you only need to know the order and the purpose of each step.</p>
+  <h3>2.4.1 Prerequisites</h3>
+  <ol>
+    <li><strong>Supported instance and operating system:</strong> choose a supported instance type and an image for a supported operating system.</li>
+    <li><strong>Subnet:</strong> select a subnet when you launch the instance. Without a subnet, you cannot enable EFA on it.</li>
+    <li><strong>Placement group (recommended):</strong> launch the instances in a <strong>cluster placement group</strong>, so that they sit close together and communicate with low latency. AWS ParallelCluster recommends one to minimize latency, and AWS Batch requires one for jobs that use EFA.</li>
+    <li><strong>Security group configuration:</strong> the security group that is associated with the EFA interface must contain a self-referencing rule that allows all inbound and outbound traffic to itself. This rule enables OS-bypass.</li>
+  </ol>
+  <h3>2.4.2 Configuration Flow</h3>
+  <p>Follow these steps to launch a cluster of EFA-enabled instances for an HPC workload.</p>
+  <ol>
+    <li><strong>Create an EFA-enabled security group.</strong> Allow all inbound and outbound traffic to and from the group itself, and allow SSH so that you can connect.</li>
+    <li><strong>Launch a temporary instance.</strong> Choose a supported operating system image, a supported instance type, a subnet, and the EFA-enabled security group. Under Advanced network configuration, enable the EFA interface, using the interface type EFA with ENA or EFA-only.</li>
+    <li><strong>Install the EFA software.</strong> Install the EFA-enabled kernel, the EFA drivers, Libfabric, and Open MPI on the temporary instance.</li>
+    <li><strong>Finish the setup and test it.</strong> Complete the steps that apply to your case, such as installing Intel MPI or disabling ptrace (process trace) protection, then confirm the installation and install your HPC application.</li>
+    <li><strong>Create an EFA-enabled AMI.</strong> Create an image from the configured temporary instance, so that every new instance starts with the EFA software already installed.</li>
+    <li><strong>Launch the cluster.</strong> Launch the EFA-enabled instances from that AMI into a cluster placement group.</li>
+    <li><strong>Clean up and connect the instances.</strong> Terminate the temporary instance, and enable passwordless SSH between the instances, so that an application can run across the whole cluster.</li>
+  </ol>
+
+  <figure>
+    <div class="figwrap">
+    <svg viewBox="0 0 920 240" role="img" aria-label="The seven steps to launch a cluster of EFA-enabled instances. Step 1, create an EFA-enabled security group. Step 2, launch a temporary instance with EFA. Step 3, install the EFA software. Step 4, finish the setup and test it. Step 5, create an EFA-enabled AMI. Step 6, launch the cluster in a placement group. Step 7, clean up and connect the instances."><defs><marker id="e2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="sv-arrow"/></marker></defs><rect class="sv-boxb" x="10" y="14" width="210" height="84" rx="8"/><text class="sv-tb" x="115" y="40" text-anchor="middle">Step 1</text><text class="sv-t" x="115" y="64" text-anchor="middle">Create an EFA-enabled</text><text class="sv-t" x="115" y="84" text-anchor="middle">security group</text><line class="sv-line" x1="220" y1="56" x2="236" y2="56" marker-end="url(#e2)"/><rect class="sv-box" x="240" y="14" width="210" height="84" rx="8"/><text class="sv-tb" x="345" y="40" text-anchor="middle">Step 2</text><text class="sv-t" x="345" y="64" text-anchor="middle">Launch a temporary</text><text class="sv-t" x="345" y="84" text-anchor="middle">instance with EFA</text><line class="sv-line" x1="450" y1="56" x2="466" y2="56" marker-end="url(#e2)"/><rect class="sv-box" x="470" y="14" width="210" height="84" rx="8"/><text class="sv-tb" x="575" y="40" text-anchor="middle">Step 3</text><text class="sv-t" x="575" y="64" text-anchor="middle">Install the EFA</text><text class="sv-t" x="575" y="84" text-anchor="middle">software</text><line class="sv-line" x1="680" y1="56" x2="696" y2="56" marker-end="url(#e2)"/><rect class="sv-box" x="700" y="14" width="210" height="84" rx="8"/><text class="sv-tb" x="805" y="40" text-anchor="middle">Step 4</text><text class="sv-t" x="805" y="64" text-anchor="middle">Finish the setup</text><text class="sv-t" x="805" y="84" text-anchor="middle">and test it</text><rect class="sv-boxb" x="125" y="122" width="210" height="84" rx="8"/><text class="sv-tb" x="230" y="148" text-anchor="middle">Step 5</text><text class="sv-t" x="230" y="172" text-anchor="middle">Create an EFA-enabled</text><text class="sv-t" x="230" y="192" text-anchor="middle">AMI</text><line class="sv-line" x1="335" y1="164" x2="351" y2="164" marker-end="url(#e2)"/><rect class="sv-boxb" x="355" y="122" width="210" height="84" rx="8"/><text class="sv-tb" x="460" y="148" text-anchor="middle">Step 6</text><text class="sv-t" x="460" y="172" text-anchor="middle">Launch the cluster</text><text class="sv-t" x="460" y="192" text-anchor="middle">in a placement group</text><line class="sv-line" x1="565" y1="164" x2="581" y2="164" marker-end="url(#e2)"/><rect class="sv-box" x="585" y="122" width="210" height="84" rx="8"/><text class="sv-tb" x="690" y="148" text-anchor="middle">Step 7</text><text class="sv-t" x="690" y="172" text-anchor="middle">Clean up and connect</text><text class="sv-t" x="690" y="192" text-anchor="middle">the instances</text></svg>
+    </div>
+    <figcaption>Image 2a — The configuration flow for an EFA cluster. (Original diagram for this course.)</figcaption>
+  </figure>
+
+  <p><strong>Note:</strong> you can add an EFA when you launch an instance, or attach one to a supported instance that is stopped. You cannot attach or detach an EFA while the instance is running.</p>
+  <p><strong>Reference:</strong> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start.html" target="_blank" rel="noopener">Get started with EFA and MPI for HPC workloads on Amazon EC2</a>.</p>
+
+  <h2>2.5 Example Security Group Rules</h2>
+  <p>The security group of an EFA-enabled instance needs both of the rules below, where sg-xxxxxxxx is the ID of the security group itself.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Direction</th><th>Type</th><th>Protocol</th><th>Port range</th><th>Source or destination</th></tr></thead>
+    <tbody>
+      <tr><td>Inbound</td><td>All traffic</td><td>All</td><td>All</td><td>sg-xxxxxxxx (self)</td></tr>
+      <tr><td>Outbound</td><td>All traffic</td><td>All</td><td>All</td><td>sg-xxxxxxxx (self)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>2.6 Is EFA Part of the SAA-C03 Exam?</h2>
+  <p><strong>EFA is not named as a separate service in the current official SAA-C03 in-scope service list.</strong> However, <strong>Amazon EC2 is in scope</strong>, and AWS states that the list is non-exhaustive and subject to change. Therefore, EFA can appear as an EC2 networking feature in a high-performance architecture scenario.</p>
+  <p>For the SAA-C03 exam, you should know EFA at a <strong>high level</strong>, but you do not need deep configuration knowledge. Focus on recognizing this requirement: choose <strong>EFA</strong> when multiple EC2 instances that run an HPC or distributed machine learning workload require extremely low-latency, high-throughput communication.</p>
+  <p>See the <a href="https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/saa-03-in-scope-services.html" target="_blank" rel="noopener">in-scope AWS services for SAA-C03</a>.</p>
+  <h3>2.6.1 Exam Decision Guide</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Scenario requirement</th><th>Appropriate solution</th></tr></thead>
+    <tbody>
+      <tr><td>Improve general EC2 network performance.</td><td>ENA (enhanced networking)</td></tr>
+      <tr><td>Reduce latency between tightly coupled EC2 instances.</td><td>Cluster placement group</td></tr>
+      <tr><td>Provide optimized inter-instance communication for HPC or distributed ML.</td><td>EFA, with a cluster placement group</td></tr>
+      <tr><td>Distribute web requests across instances.</td><td>Elastic Load Balancing</td></tr>
+      <tr><td>Connect an EC2 instance to a VPC subnet.</td><td>Elastic network interface</td></tr>
+    </tbody>
+  </table></div>
+  <h3>2.6.2 Exam Memory Aid</h3>
+  <p>ENA is for general enhanced networking. EFA is for tightly coupled HPC and distributed AI and ML workloads.</p>
+
+  <h2>2.7 Exam-Style Questions</h2>
+  <p>The first two questions come from the Knowledge Check in the course lesson document. The last question is new for this lesson.</p>
+  <div class="qbox">
+    <h2>2.7.1 Exam-Style Question</h2>
+    <p class="origin">From the course lesson document.</p>
+    <p><strong>Scenario:</strong> Which workload benefits most from EFA? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> A website that serves static pages to visitors.</li>
+      <li><strong>B.</strong> A nightly job that copies backups to Amazon S3.</li>
+      <li><strong>C.</strong> A weather simulation whose instances constantly exchange data.</li>
+      <li><strong>D.</strong> A relational database behind a web application.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: C.</strong> EFA suits tightly coupled workloads in which several instances exchange data rapidly and frequently, such as a weather simulation.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>A static website does not depend on constant communication between instances.</td></tr>
+      <tr><td>B</td><td>Incorrect</td><td>A nightly backup copy does not depend on constant low-latency communication between instances.</td></tr>
+      <tr><td>C</td><td>Correct</td><td>A weather simulation is a tightly coupled workload, and its instances exchange data constantly.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>A database behind a web application does not depend on constant low-latency communication between instances.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="qbox">
+    <h2>2.7.2 Exam-Style Question</h2>
+    <p class="origin">From the course lesson document.</p>
+    <p><strong>Scenario:</strong> An engineering team runs a computational fluid dynamics solver on 40 EC2 instances. The instances must exchange data constantly, and the team needs the lowest possible latency between them. Which choice best meets the requirement? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> ENA only, on instances spread across several Availability Zones.</li>
+      <li><strong>B.</strong> EFA on supported instances in a cluster placement group.</li>
+      <li><strong>C.</strong> Elastic Load Balancing in front of all the instances.</li>
+      <li><strong>D.</strong> An Elastic IP address attached to every instance.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> A tightly coupled solver needs EFA on supported instances with a cluster placement group, so that the instances sit close together.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>ENA serves general networking, and a cluster placement group cannot span Availability Zones.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>EFA with a cluster placement group gives the lowest latency between instances.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>Elastic Load Balancing spreads web requests. It does not lower latency between instances.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>An Elastic IP address gives an instance a fixed public address. It does not lower latency between instances.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+  <div class="qbox">
+    <h2>2.7.3 Exam-Style Question</h2>
+    <p class="origin">Written for this course.</p>
+    <p><strong>Scenario:</strong> A team has a running EC2 instance of a supported type, and it wants to add an Elastic Fabric Adapter to it. What should the team do? Which solution meets the requirements?</p>
+    <ul class="opts">
+      <li><strong>A.</strong> Attach the EFA to the running instance.</li>
+      <li><strong>B.</strong> Stop the instance, attach the EFA, and start the instance again.</li>
+      <li><strong>C.</strong> Add a self-referencing rule to the security group, which adds an EFA automatically.</li>
+      <li><strong>D.</strong> Move the instance into a cluster placement group, which adds an EFA automatically.</li>
+    </ul>
+    <details>
+      <summary>Show Answer and Explanation</summary>
+      <p><strong>Correct answer: B.</strong> You can attach an EFA to a supported instance that is stopped, or add one when you launch the instance. You cannot attach or detach an EFA while the instance is running.</p>
+<div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Incorrect</td><td>You cannot attach an EFA to a running instance.</td></tr>
+      <tr><td>B</td><td>Correct</td><td>You can attach an EFA to a supported instance in the stopped state.</td></tr>
+      <tr><td>C</td><td>Incorrect</td><td>The self-referencing rule allows the traffic. It does not add an EFA.</td></tr>
+      <tr><td>D</td><td>Incorrect</td><td>A placement group places instances. It does not add an EFA.</td></tr>
+    </tbody>
+  </table></div>
+    </details>
+  </div>
+
+
+  <h2>2.8 Summary</h2>
+  <p>In this lesson, you learned what EFA does:</p>
+  <ul>
+    <li><strong>Tightly coupled workloads:</strong> EFA helps large groups of virtual servers talk to each other very quickly and frequently.</li>
+    <li><strong>High-scale operations:</strong> EFA helps machine learning training and simulations, such as weather models, keep scaling as more instances join the cluster.</li>
+    <li><strong>No extra cost:</strong> EFA is available as an optional networking feature on supported EC2 instances, with no added pricing.</li>
+    <li><strong>OS-bypass:</strong> EFA lets applications talk directly to the network hardware without going through the operating system kernel, which cuts down delay and CPU usage.</li>
+    <li><strong>SRD protocol:</strong> EFA uses the custom <em>Scalable Reliable Datagram</em> protocol, which spreads data across multiple network paths and avoids overloaded ones.</li>
+  </ul>
+  <div class="res">
+    <h2>2.9 Useful Resources</h2>
+    <ul>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html#efa-instance-types" target="_blank" rel="noopener">Supported Instance Types for EFA</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start.html" target="_blank" rel="noopener">Get Started with EFA and MPI for HPC Workloads on Amazon EC2</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-efa.html" target="_blank" rel="noopener">Create and Attach an Elastic Fabric Adapter</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/batch/latest/userguide/efa.html" target="_blank" rel="noopener">Elastic Fabric Adapter in AWS Batch</a></li>
+      <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/saa-03-in-scope-services.html" target="_blank" rel="noopener">In-Scope AWS Services for SAA-C03</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+
+<section class="tab" id="tab3" role="tabpanel" aria-labelledby="b3">
+  <h1 class="tabh">3. Knowledge Check</h1>
+
+  <p>Answer each question in your own words before you open the model answer. The questions were written for this course.</p>
+
+  <details>
+    <summary>Question 1: What is an Elastic Fabric Adapter (EFA)?</summary>
+    <p><em>Maps to:</em> Objective 1 (Knowledge).</p>
+    <p>An EFA is a network device that you attach to Amazon EC2 instances to accelerate High Performance Computing (HPC) and machine learning (ML) applications. It lets applications that exchange data between many instances run at scale, with low latency and high throughput.</p>
+  </details>
+
+  <details>
+    <summary>Question 2: In what two ways can you add an EFA to an instance, and which way cannot have an IP address?</summary>
+    <p><em>Maps to:</em> Objective 1 (Knowledge and Comprehension).</p>
+    <p>You can use an EFA with ENA, which gives the instance both an EFA device and an ENA device, or an EFA-only interface, which has just the EFA device. You cannot assign an IP address to an EFA-only interface. You can add an EFA when you launch an instance, or attach one to a supported instance that is stopped, but not to a running instance.</p>
+  </details>
+
+  <details>
+    <summary>Question 3: Name two HPC use cases and two distributed machine learning use cases for EFA.</summary>
+    <p><em>Maps to:</em> Objective 2 (Knowledge and Comprehension).</p>
+    <p>HPC: computational fluid dynamics, weather and climate modeling, and molecular dynamics. Distributed machine learning: large language model training across several nodes, and GPU-to-GPU communication in a parameter server architecture, for example with AllReduce.</p>
+  </details>
+
+  <details>
+    <summary>Question 4: Explain OS-bypass and the Scalable Reliable Datagram (SRD) protocol, and say how they differ from the standard ENA path.</summary>
+    <p><em>Maps to:</em> Objective 3 (Comprehension and Analysis).</p>
+    <p>With ENA, data passes through the TCP/IP stack in the operating system kernel. With OS-bypass, the application talks to the EFA device through Libfabric, without the kernel TCP/IP stack, which lowers latency and CPU work. TCP delivers packets in order and can suffer head-of-line blocking. SRD delivers packets reliably but not in order, and it spreads traffic across many network paths, so one delayed packet does not hold back the others.</p>
+  </details>
+
+  <details>
+    <summary>Question 5: A company runs a public website and a tightly coupled weather simulation. Which one needs EFA, which one needs ENA, and why?</summary>
+    <p><em>Maps to:</em> Objective 4 (Analysis).</p>
+    <p>The weather simulation needs EFA, because its instances constantly exchange data and need very low latency and high throughput. The website needs only ENA, the standard device for general networking, because it does not depend on constant low-latency communication between instances.</p>
+  </details>
+
+  <details>
+    <summary>Question 6: An engineering team runs a computational fluid dynamics solver on 40 EC2 instances. Which networking design do you recommend, and what do you need to set up?</summary>
+    <p><em>Maps to:</em> Objective 4 (Evaluation).</p>
+    <p>Recommend EFA on supported instance types, in a cluster placement group in one Availability Zone. The security group needs a self-referencing rule that allows all inbound and outbound traffic to itself. The setup order is: create the security group, launch a temporary instance with EFA, install the EFA software, finish and test the setup, create an EFA-enabled AMI, launch the cluster, and then clean up and connect the instances.</p>
+  </details>
+
+  <details>
+    <summary>Question 7: Does EFA cost extra, and how much do you need to know about it for the SAA-C03 exam?</summary>
+    <p><em>Maps to:</em> Objectives 1 and 4 (Comprehension).</p>
+    <p>AWS does not charge extra for EFA. You pay only for the instances and the other resources that you use. EFA is not named separately in the SAA-C03 in-scope list, but Amazon EC2 is in scope and the list is non-exhaustive, so know EFA at a high level: choose it when instances in an HPC or distributed machine learning workload need extremely low-latency, high-throughput communication.</p>
+  </details>
+
+</section>
+
+<div class="pager bottom" id="pagerBottom">
+  <button type="button" id="prevBot">Previous</button>
+  <button type="button" id="nextBot">Next</button>
+</div>
+</main>
+</div>
+<footer class="copy"><p>Copyright © 2026 Per Scholas. All rights reserved.</p></footer>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className+=' js';
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var btns=[].slice.call(document.querySelectorAll('button.tabbtn'));
+  var live=document.getElementById('live');
+  var cur=0;
+  function show(i,focusTop){
+    if(i<0||i>=tabs.length){return;}
+    cur=i;
+    tabs.forEach(function(t,k){t.classList.toggle('active',k===i);});
+    btns.forEach(function(b,k){b.setAttribute('aria-selected',k===i?'true':'false');b.tabIndex=(k===i)?0:-1;});
+    var pb=[['prevTop','nextTop'],['prevBot','nextBot']];
+    pb.forEach(function(p){
+      document.getElementById(p[0]).disabled=(i===0);
+      document.getElementById(p[1]).disabled=(i===tabs.length-1);
+    });
+    live.textContent='Tab '+i+' of '+(tabs.length-1)+': '+btns[i].textContent;
+    try{history.replaceState(null,'','#tab'+i);}catch(e){}
+    if(focusTop){window.scrollTo(0,0);}
+  }
+  btns.forEach(function(b,k){
+    b.addEventListener('click',function(){show(k,true);});
+    b.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();var n=Math.min(k+1,btns.length-1);show(n,false);btns[n].focus();}
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();var p=Math.max(k-1,0);show(p,false);btns[p].focus();}
+    });
+  });
+  ['prevTop','prevBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur-1,true);});});
+  ['nextTop','nextBot'].forEach(function(id){document.getElementById(id).addEventListener('click',function(){show(cur+1,true);});});
+  [].slice.call(document.querySelectorAll('[data-go]')).forEach(function(b){
+    b.addEventListener('click',function(){show(parseInt(b.getAttribute('data-go'),10),true);});
+  });
+  var start=0;
+  try{var m=/^#tab(\d+)$/.exec(location.hash);if(m){start=Math.min(parseInt(m[1],10),tabs.length-1);}}catch(e){}
+  show(start,false);
+})();
+</script>
+<noscript><style>.pager{display:none}.tab{display:block !important;margin-bottom:40px}</style></noscript>
+</body>
+</html>
