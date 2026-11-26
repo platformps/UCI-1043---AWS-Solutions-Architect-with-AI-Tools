@@ -237,6 +237,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
       <tr><td>ID</td><td>Identifier</td></tr>
       <tr><td>JSON</td><td>JavaScript Object Notation</td></tr>
       <tr><td>MWAA</td><td>Amazon Managed Workflows for Apache Airflow</td></tr>
+      <tr><td>REST</td><td>Representational State Transfer</td></tr>
       <tr><td>S3</td><td>Amazon Simple Storage Service</td></tr>
       <tr><td>SAA-C03</td><td>The exam code for the AWS Certified Solutions Architect – Associate exam</td></tr>
       <tr><td>SDK</td><td>Software development kit</td></tr>
@@ -271,7 +272,17 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <li>Data grants, subscriptions, data sets, revisions, and assets are Region resources, and they are managed in supported Regions.</li>
   </ul>
 
-  <h2>1.2 Key Terms</h2>
+  <h2>1.2 The Three Building Blocks</h2>
+  <p>Data is organized in AWS Data Exchange using three building blocks:</p>
+  <ul>
+    <li><a href="https://docs.aws.amazon.com/data-exchange/latest/userguide/data-sets.html#assets" target="_blank" rel="noopener">Assets</a>: A piece of data.</li>
+    <li><a href="https://docs.aws.amazon.com/data-exchange/latest/userguide/data-sets.html#revisions" target="_blank" rel="noopener">Revisions</a>: A container for one or more assets.</li>
+    <li><a href="https://docs.aws.amazon.com/data-exchange/latest/userguide/data-sets.html#data-sets-concept" target="_blank" rel="noopener">Data sets</a>: A series of one or more revisions.</li>
+  </ul>
+  <p>These three building blocks form the foundation of the product that you manage using the AWS Data Exchange console or the AWS Data Exchange API.</p>
+  <p>To create, view, update, or delete data sets, you can use the AWS Data Exchange console, the AWS Command Line Interface (AWS CLI), your own REST (Representational State Transfer) client, or one of the AWS SDKs. For more information about programmatically managing AWS Data Exchange data sets, see the <a href="https://docs.aws.amazon.com/data-exchange/latest/apireference" target="_blank" rel="noopener">AWS Data Exchange API Reference</a>.</p>
+
+  <h2>1.3 Key Terms</h2>
   <div class="tw"><table>
     <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
     <tbody>
@@ -285,7 +296,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
       </tbody>
   </table></div>
 
-  <h2>1.3 Data Grants and Data Products</h2>
+  <h2>1.4 Data Grants and Data Products</h2>
   <div class="tw"><table>
     <thead><tr><th>Feature</th><th>Data grant</th><th>AWS Marketplace data product</th></tr></thead>
     <tbody>
@@ -300,7 +311,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <li>A subscriber can also use a <strong>Bring Your Own Subscription (BYOS)</strong> offer, which brings an existing agreement into AWS Data Exchange.</li>
   </ul>
 
-  <h2>1.4 Types of Data Sets</h2>
+  <h2>1.5 Types of Data Sets</h2>
   <div class="tw"><table>
     <thead><tr><th>Type</th><th>What the receiver gets</th></tr></thead>
     <tbody>
@@ -312,7 +323,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
       </tbody>
   </table></div>
 
-  <h2>1.5 The Subscriber Workflow</h2>
+  <h2>1.6 The Subscriber Workflow</h2>
   <ol>
     <li>Find a data product in the AWS Marketplace catalog, or accept a data grant that a sender made.</li>
     <li>Review the offer, which has the price, the duration, and the data subscription agreement, and subscribe.</li>
@@ -327,7 +338,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <figcaption>Image 1a — A provider shares a data set, and a subscriber exports it to Amazon S3 for analysis (Original diagram for this course.)</figcaption>
   </figure>
 
-  <h2>1.6 Automating New Revisions</h2>
+  <h2>1.7 Automating New Revisions</h2>
   <ul>
     <li>Providers publish new revisions on a schedule, such as a new file every day.</li>
     <li>AWS Data Exchange is integrated with <strong>Amazon EventBridge (lesson 273.3)</strong>. A subscriber with an active subscription receives an event each time the provider publishes a new revision or adds a data set to the product.</li>
@@ -335,7 +346,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     <li>AWS delivers these events on a best effort basis.</li>
   </ul>
 
-  <h2>1.7 The Provider Workflow</h2>
+  <h2>1.8 The Provider Workflow</h2>
   <ol>
     <li>Create a data set, and import assets into a revision, for example from your Amazon S3 buckets.</li>
     <li>Share it with a data grant to a receiver’s AWS account, or publish it as a data product in AWS Marketplace with a public offer.</li>
@@ -368,7 +379,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
     </div>
 
   <div class="qbox">
-    <h2>1.8 Exam-Style Question</h2>
+    <h2>1.9 Exam-Style Question</h2>
     <p class="origin">Written for this course.</p>
     <p><strong>Scenario:</strong> A company subscribes to a vendor’s daily market data. The vendor publishes a new set of files every day. The company wants the new files in its Amazon S3 bucket every day with no manual work. Which solution meets the requirements?</p>
     <ul class="opts">
@@ -393,7 +404,7 @@ code{overflow-wrap:anywhere}pre.flowcode{overflow-x:auto;max-width:100%;backgrou
   </div>
 
   <div class="res">
-    <h2>1.9 Useful Resources</h2>
+    <h2>1.10 Useful Resources</h2>
     <ul>
       <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/data-exchange/latest/userguide/what-is.html" target="_blank" rel="noopener">What Is AWS Data Exchange?</a></li>
       <li><span class="lbl">Docs</span> <a href="https://docs.aws.amazon.com/data-exchange/latest/userguide/cloudwatch-events.html" target="_blank" rel="noopener">Amazon EventBridge Events for AWS Data Exchange</a></li>
